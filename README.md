@@ -82,7 +82,7 @@ flowchart TB
 | Nextcloud AIO | Document and file storage |
 | Vaultwarden | Password manager |
 | Trilium | Notes |
-| UniFi Network Application | Network device management (with MongoDB) |
+| UniFi OS Server | Network device management (with MongoDB) |
 
 ## Security
 
