@@ -1,6 +1,6 @@
 # Audit findings
 
-Results of a full review of the live host on **2026-10-13**, ordered by priority. Each item states what was observed, why it matters, and a recommended fix. Nothing here has been changed on the server yet.
+Results of a full review of the live host on **2026-10-13**, roughly ordered by priority. Items 17 and 18 were added after a second pass with root access. Each item states what was observed, why it matters, and a recommended fix. Nothing here has been changed on the server yet.
 
 | # | Finding | Priority |
 |---|---|---|
@@ -20,6 +20,8 @@ Results of a full review of the live host on **2026-10-13**, ordered by priority
 | 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low |
 | 15 | [Thermal watchdog matches more than it should](#15-thermal-watchdog-matches-more-than-it-should) | Low |
 | 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low |
+| 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium |
+| 18 | [Data disk is past its rated load cycles](#18-data-disk-is-past-its-rated-load-cycles) | Medium |
 
 ---
 
@@ -160,7 +162,7 @@ Every other published port is bound to the LAN address. Docker-published ports b
 - The Ubiquiti APT source and `openjdk-17-jre-headless` remain from a native UniFi install.
 - Two Docker networks with no containers, four volumes with no containers, and images for retired stacks. `docker system df` reports 26.6 GB of reclaimable images and 17.2 GB of build cache.
 - An unused `containrrr/watchtower` image and a second `raetro/quartus` tag (16.1 GB) that the current Dockerfile does not use.
-- UFW rules were added for services that no longer exist. The live rule list could not be read during the audit.
+- UFW still has rules for services that no longer exist (finding 17).
 
 **Fix.** After checking nothing depends on them:
 
@@ -219,6 +221,8 @@ Or set a permanent `cpus:` limit on the ML service in the Compose file so the wa
 
 ## 16. Minor host hygiene
 
+- **Memory:** the four 8 GB modules come from two different kits and run at 2666 MT/s. It works, but a matched set at its rated profile would be faster and is the first thing to rule out if unexplained instability appears.
+- **Unsafe shutdowns:** the NVMe has recorded 160 over its life. With a writeback cache in front of the data disk, a small UPS with a clean-shutdown hook is worth considering.
 - **Firmware:** UEFI F50 is from 2019. Later releases for this board carry AGESA security and stability fixes.
 - **Unneeded services:** `ModemManager`, `multipathd`, and `open-iscsi` are enabled by default and serve no purpose here. `sudo systemctl disable --now ModemManager multipathd open-iscsi iscsid.socket`.
 - **SSH:** `X11Forwarding yes` is not needed on a headless server. Confirm effective settings with `sudo sshd -T`, because drop-in files override `sshd_config`.
@@ -228,3 +232,42 @@ Or set a permanent `cpus:` limit on the ML service in the Compose file so the wa
 - **Time zones:** containers do not all set the same `TZ` as the host; align them so logs and schedules agree.
 - **Fan monitoring:** only the motherboard's secondary sensor chip is detected and its fan inputs read 0 RPM, so a failed fan would only show up as temperature.
 - **Proxy host definitions** exist only in the NPM volume. Back that volume up (finding 2) or export the configuration.
+
+## 17. Firewall rules have drifted
+
+**Observed.** UFW is active with default-deny inbound and 20 rules. The full table is in [hardening](hardening.md#firewall-ufw).
+
+- SSH (22/tcp) is allowed from anywhere on IPv4 and IPv6. Every other host service is scoped to the LAN or to Tailscale.
+- Eight rules cover ports that Docker publishes (80, 81, 443, 9000, 8091, 8097). They have no effect, because Docker's rules are evaluated first, and they give a false impression that those ports are filtered.
+- Four rules are for ports nothing listens on any more.
+- The `DOCKER-USER` chain is empty.
+
+**Impact.** The host has a global IPv6 address, so the SSH rule relies on the upstream routers to keep the internet out. The stale and ineffective rules make the firewall harder to reason about.
+
+**Fix.**
+
+```bash
+sudo ufw allow from 192.168.1.0/24 to any port 22 proto tcp
+sudo ufw delete allow OpenSSH          # after confirming the LAN rule and Tailscale access work
+sudo ufw status numbered               # then delete the stale and no-effect rules by number
+```
+
+Tailscale access to SSH is already covered by the `tailscale0` rule. To actually filter Docker-published ports, add rules to the `DOCKER-USER` chain or, better, stop publishing them (finding 6).
+
+## 18. Data disk is past its rated load cycles
+
+**Observed.** The 4 TB data disk passes SMART with no reallocated, pending, or uncorrectable sectors after 20,439 power-on hours. Its load cycle count is 485,123, and the normalised value for that attribute has reached its floor of 1. Desktop drives of this class are typically rated for about 300,000 cycles. The disk has been power-cycled only 44 times, so the count comes from the firmware parking the heads after a few seconds of idle, roughly 24 times an hour. No SMART self-test has ever been run on it.
+
+**Impact.** This is the only copy of the application data, behind a writeback cache, with backups not currently running (finding 1). Head-parking wear does not predict failure on its own, but it removes margin on a single-disk tier.
+
+**Fix.**
+
+1. Restore working backups first (findings 1 and 2).
+2. Reduce parking. Try `sudo hdparm -B 254 /dev/sdb` and watch whether attribute 193 stops climbing; persist it in `/etc/hdparm.conf` if it does. Some firmware on this model ignores APM settings.
+3. Schedule self-tests in `/etc/smartd.conf`, for example a short test daily and a long test weekly:
+
+   ```
+   DEVICESCAN -d removable -n standby -s (S/../.././02|L/../../6/03) -m root -M exec /usr/share/smartmontools/smartd-runner
+   ```
+
+4. Plan a replacement or a second disk to mirror onto, rather than waiting for a failure.

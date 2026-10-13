@@ -8,7 +8,7 @@ Hardware, operating system, and everything that runs directly on the host. Value
 |---|---|
 | Motherboard | Gigabyte B450 AORUS M, UEFI firmware F50 (2019-11-27) |
 | CPU | AMD Ryzen 5 2600X, 6 cores / 12 threads, 2.2 to 3.8 GHz, AMD-V capable |
-| Memory | 32 GB (30 GiB usable), 8 GB swap file at `/swap.img` |
+| Memory | 32 GB DDR4, non-ECC: 4 x 8 GB from two different kits, all running at 2666 MT/s. All four slots are populated (board maximum 128 GB). 8 GB swap file at `/swap.img` |
 | Boot disk | Sabrent NVMe, 238.5 GB (Phison E12 controller) |
 | Cache disk | Kingston SA400 SATA SSD, 111.8 GB |
 | Data disk | Seagate ST4000DM000 HDD, 3.6 TB |
@@ -27,7 +27,7 @@ At idle the CPU sits around 48 °C and the NVMe around 28 °C.
 | Distribution | Ubuntu Server 26.04.1 LTS (Resolute Raccoon) |
 | Kernel | 7.0.0-34-generic running; 7.0.0-38 installed and waiting for a reboot |
 | Boot | UEFI, GRUB, ext4 root on NVMe |
-| Init / network | systemd, systemd-networkd via netplan, systemd-resolved (stub resolver) |
+| Init / network | systemd, systemd-networkd via netplan (`eno1` with DHCPv4 and DHCPv6), systemd-resolved (stub resolver) |
 | Time | chrony, synchronized to Ubuntu NTS servers; time zone America/New_York |
 | Uptime at audit | 17 days (booted 2026-09-26) |
 
@@ -130,13 +130,6 @@ There are no user crontabs. Watchtower's 04:00 schedule runs inside its containe
 
 Disk usage: 68.7 GB of images (26.6 GB reclaimable), 17.2 GB of build cache, 2.8 GB in named volumes.
 
-## What was not collected
+## How this was collected
 
-The audit ran as an unprivileged user in the `docker` and `adm` groups. These need root and are not documented from live data:
-
-- Active UFW rules (`sudo ufw status verbose`)
-- Effective SSH daemon configuration (`sudo sshd -T`)
-- SMART health and wear (`sudo smartctl -a /dev/nvme0n1`, `/dev/sda`, `/dev/sdb`)
-- Memory module layout (`sudo dmidecode -t memory`)
-- netplan configuration (`/etc/netplan/*.yaml`)
-- restic snapshot list (`sudo restic snapshots`)
+Most of the audit ran as an unprivileged user in the `docker` and `adm` groups. A second pass with root read the firewall rules, the effective SSH daemon configuration, SMART data, the memory layout, the netplan file, and the restic snapshot list. Every command was read-only.

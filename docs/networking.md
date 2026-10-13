@@ -110,6 +110,8 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | 323/udp | loopback | `chronyd` | Control socket |
 | 27017/tcp | loopback | `mongod` | Unused host MongoDB (see [finding 11](findings.md#11-leftovers-from-retired-setups)) |
 | 41641/udp | all | `tailscaled` | WireGuard |
+| 10001/udp | all | `discovery` (UniFi OS Server, runs on the host as `uosserver`) | UniFi device discovery |
+| 11002/tcp | loopback | `discovery` | Local control port |
 | high tcp port | Tailscale address | `tailscaled` | PeerAPI |
 
 ### Docker-published ports
