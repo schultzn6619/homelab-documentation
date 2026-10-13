@@ -38,16 +38,25 @@ sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin|pubkeyauthentica
 | Default outbound | ACCEPT |
 | Default forward | ACCEPT (required for the Tailscale subnet router and Docker) |
 
-Rule intent, from how the firewall was set up:
+Live rules on 2026-10-13 (`sudo ufw status verbose`), 20 in total:
 
-- Service ports are allowed from the LAN subnet only (`ufw allow from 192.168.1.0/24 to any port ...`), for example 80, 443, 81, 9000, 8091, 8080, 11443, and 3478/udp.
-- `ufw allow in on tailscale0` admits all tailnet traffic.
+| To | Action | From | Still meaningful? |
+|---|---|---|---|
+| 22/tcp | allow | anywhere, IPv4 and IPv6 | Yes. Broader than needed; see [finding 17](findings.md#17-firewall-rules-have-drifted) |
+| any port on `tailscale0` | allow | anywhere, IPv4 and IPv6 | Yes. Admits all tailnet traffic |
+| 8080/tcp | allow | LAN | Yes. UniFi device inform |
+| 3478/udp | allow | LAN | Yes. UniFi STUN |
+| 10001/udp | allow | LAN | Yes. UniFi discovery |
+| 11443/tcp | allow | `172.16.0.0/12` | Yes. Lets Nginx Proxy Manager reach the UniFi UI from the Docker network |
+| 443/tcp | allow | anywhere, IPv4 and IPv6 | No effect. The port is published by Docker |
+| 80, 81, 9000, 8091 | allow | LAN | No effect. Published by Docker |
+| 8097/tcp | allow | LAN and `172.16.0.0/12` | No effect. Published by Docker |
+| 1900/udp | allow | LAN | Nothing listens on it |
+| one retired service port (3 rules) | allow | LAN and `172.16.0.0/12` | Nothing listens on it |
 
-The live rule list needs root and is not reproduced here. Regenerate it with:
+The `DOCKER-USER` chain is empty for both IPv4 and IPv6, so nothing restricts Docker-published ports beyond their bind address.
 
-```bash
-sudo ufw status numbered
-```
+UniFi OS Server also listens on 8444, 8880 to 8882, 6789, 5671, 9543, 28082, 5514/udp, and 10003/udp. None of those is allowed, so they are reachable only over Tailscale. That is fine unless the hotspot portal, mobile speed test, or remote syslog features are wanted on the LAN.
 
 ### Docker and the firewall
 
@@ -77,7 +86,7 @@ Ports forwarded for UniFi OS Server are ordinary host sockets opened by a user-s
 | Backend | systemd journal |
 | Ban action | nftables |
 
-No bans are recorded in the current log, which is expected for a host with no internet-facing SSH.
+The jail is active with no bans and one failed attempt on record, which is expected for a host with no internet-facing SSH.
 
 ## Updates
 

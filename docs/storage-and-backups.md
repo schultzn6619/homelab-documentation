@@ -63,7 +63,7 @@ watch cat /sys/block/bcache0/bcache/dirty_data
 |---|---|---|
 | Immich photos, videos, thumbnails | `/mnt/storage/immich/library` (17 GB) | bcache |
 | Immich PostgreSQL | `/mnt/storage/immich/postgres` | bcache |
-| Nextcloud user files | `/mnt/storage/nextcloud` | bcache |
+| Nextcloud user files | `/mnt/storage/nextcloud` (213 MB) | bcache |
 | Nextcloud app code, PostgreSQL, Redis | volumes `nextcloud_aio_*` | NVMe |
 | Vaultwarden SQLite, attachments, keys | `/mnt/storage/vaultwarden/data` | bcache |
 | Trilium SQLite and its own rotating backups | `/mnt/storage/trilium/trilium-data` | bcache |
@@ -79,7 +79,19 @@ watch cat /sys/block/bcache0/bcache/dirty_data
 
 ## Health monitoring
 
-- `smartd` scans all three disks (`DEVICESCAN`) and mails `root` on problems. No mail transport is configured on the host, so those messages are only visible in the journal.
+SMART status on 2026-10-13:
+
+| Disk | Health | Power-on time | Wear | Errors | Notes |
+|---|---|---|---|---|---|
+| NVMe (boot) | Passed | 8,402 h | 6% used, 100% spare, 13.6 TB written | 0 media errors | 160 unsafe shutdowns over 1,301 power cycles |
+| SATA SSD (cache) | Passed | 8,620 h | 91% life left, 3.7 TB host writes | 0 uncorrectable, 0 CRC | Last extended self-test was aborted |
+| HDD (data) | Passed | 20,439 h | Load cycle count 485,123, past the drive's rating | 0 reallocated, 0 pending, 0 uncorrectable | No self-test has ever been run |
+
+bcache reports zero I/O errors on both the cache and backing device.
+
+The HDD's surface is healthy but its head-parking mechanism is heavily worn; see [finding 18](findings.md#18-data-disk-is-past-its-rated-load-cycles).
+
+- `smartd` scans all three disks (`DEVICESCAN`) and mails `root` on problems. No mail transport is configured on the host, so those messages are only visible in the journal. It does not schedule self-tests.
 - `fstrim.timer` trims weekly; `e2scrub_all.timer` checks ext4 metadata weekly.
 - The kernel log for the current boot shows no I/O, ext4, or bcache errors.
 
@@ -110,7 +122,7 @@ flowchart LR
 
 ### Current state
 
-**The job has failed every night since 2026-09-22.** The last successful run and the newest snapshot are from 2026-09-21. Details and the fix are in [finding 1](findings.md#1-nightly-backups-have-been-failing-since-2026-09-22).
+**The job has failed every night since 2026-09-22.** The repository holds three snapshots, from 2026-09-19, 09-20, and 09-21, each about 448 MiB of source data (179 MiB stored after deduplication and compression). Details and the fix are in [finding 1](findings.md#1-nightly-backups-have-been-failing-since-2026-09-22).
 
 ### Coverage
 
