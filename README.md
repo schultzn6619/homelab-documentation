@@ -22,7 +22,7 @@ A single self-hosted server I built, hardened, and maintain as a hands-on projec
 - **Remote access without open ports.** The host is a Tailscale subnet router for the LAN. Split-horizon DNS makes the same hostnames resolve to the proxy on and off the LAN.
 - **Tiered storage.** bcache puts a SATA SSD in front of a 4 TB HDD in writeback mode, so bulk data lives on cheap disk with SSD-speed hot paths.
 - **Thermal watchdog.** A bash service throttles, then pauses, the photo library's ML workload before the CPU reaches its shutdown limit.
-- **Host hardening.** UFW, fail2ban on SSH, root login disabled, a single allowed SSH user, unattended security updates.
+- **Host hardening.** Key-only SSH for a single allowed user, root login disabled, UFW, fail2ban, unattended security updates.
 - **Daily backups.** `pg_dump` plus restic on a systemd timer, with each source as an independent step so one failure cannot cancel the rest.
 
 ## Architecture
@@ -132,7 +132,7 @@ Full catalog with images, data paths, and update policy: [`docs/services.md`](do
 ```
 compose/    Docker Compose files as deployed (secrets replaced by .env.example)
 scripts/    Thermal watchdog, backup script, and their systemd units
-system/     sysctl drop-ins, Tailscale GRO unit, wait-for-internet unit, Docker and fail2ban config
+system/     sysctl drop-ins, Tailscale GRO unit, wait-for-internet unit, Docker, fail2ban, and sshd config
 docs/       Architecture, host, networking, services, storage, hardening, operations, findings
 ```
 

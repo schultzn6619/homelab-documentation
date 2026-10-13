@@ -10,20 +10,21 @@ What protects the host, how each control is configured, and where the limits are
 
 ## SSH
 
-`/etc/ssh/sshd_config` sets:
+Key-only. Effective settings, from `sudo sshd -T`:
 
 ```
-PermitRootLogin no
-PasswordAuthentication no
-PubkeyAuthentication yes
-KbdInteractiveAuthentication no
-AllowUsers admin
-X11Forwarding yes
+permitrootlogin no
+pubkeyauthentication yes
+passwordauthentication no
+kbdinteractiveauthentication no
+allowusers admin
+x11forwarding yes
 ```
 
 - Listens on port 22 on all interfaces; UFW decides who can connect.
-- One authorised key for the admin user.
-- `sshd_config` starts with `Include /etc/ssh/sshd_config.d/*.conf`. For most options sshd uses the first value it reads, so a drop-in (the installer leaves `50-cloud-init.conf`) wins over the main file. Always confirm the effective values rather than the file contents:
+- Each client device has its own key in the admin user's `authorized_keys`.
+- **Drop-ins win over `sshd_config`.** The main file starts with `Include /etc/ssh/sshd_config.d/*.conf`, and for most options sshd keeps the first value it reads. The Ubuntu installer leaves [`50-cloud-init.conf`](../system/sshd_config.d/50-cloud-init.conf) there, and until 2026-10-13 it contained `PasswordAuthentication yes`, which silently overrode the `no` in the main file ([finding 19](findings.md#19-ssh-password-login-was-enabled-by-a-drop-in)). cloud-init is disabled on this host, so the file will not be regenerated.
+- Always check the effective values rather than the file contents:
 
 ```bash
 sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin|pubkeyauthentication|allowusers'
