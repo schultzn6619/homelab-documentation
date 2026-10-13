@@ -1,0 +1,19 @@
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    networks:
+      - proxy
+    environment:
+      - DOMAIN=https://vault.example.duckdns.org
+      - SIGNUPS_ALLOWED=true    # flip to false once you've created your account
+      - WEBSOCKET_ENABLED=true
+    volumes:
+      - /mnt/storage/vaultwarden/data:/data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  proxy:
+    external: true

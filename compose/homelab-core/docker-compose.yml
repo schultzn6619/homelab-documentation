@@ -1,0 +1,78 @@
+networks:
+  proxy:
+    name: proxy
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+          gateway: 172.18.0.1
+        - subnet: fd00:dead:cafe::/64
+          gateway: fd00:dead:cafe::1
+
+volumes:
+  portainer_data:
+  npm_data:
+  npm_letsencrypt:
+
+services:
+  # --- Remote access: outbound-only, no ports needed ---
+  twingate:
+    container_name: twingate-connector
+    image: twingate/connector:latest
+    restart: unless-stopped
+    networks:
+      proxy:
+        ipv4_address: 172.18.0.3
+    env_file:
+      - .env
+    sysctls:
+      - net.ipv4.ping_group_range=0 2147483647
+
+  # --- Reverse proxy: routes to every future service by container name ---
+  npm:
+    container_name: npm
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    networks:
+      proxy:
+        ipv4_address: 172.18.0.10
+    ports:
+      - "192.168.1.10:81:81"     # admin UI, Twingate-only access
+      - "192.168.1.10:80:80"     # http
+      - "192.168.1.10:443:443"   # https
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # --- Container management UI ---
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    restart: unless-stopped
+    networks:
+      - proxy
+    ports:
+      - "192.168.1.10:9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  watchtower:
+    image: nickfedor/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_SCHEDULE=0 0 4 * * *
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_ROLLING_RESTART=true
+      - WATCHTOWER_TIMEOUT=60s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"

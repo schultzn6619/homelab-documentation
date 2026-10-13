@@ -1,0 +1,13 @@
+[Unit]
+Description=Tailscale UDP GRO forwarding tweak for eno1
+After=network-online.target
+Wants=network-online.target
+Before=tailscaled.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ethtool -K eno1 rx-udp-gro-forwarding on rx-gro-list off
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+# /etc/systemd/system/homelab-backup.service
+[Unit]
+Description=Homelab restic backup
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/homelab-backup.sh
