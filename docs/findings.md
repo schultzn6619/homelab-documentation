@@ -1,31 +1,33 @@
 # Audit findings
 
-Results of a full review of the live host on **2026-10-13**, roughly ordered by priority. Items 17 and 18 were added after a second pass with root access. Each item states what was observed, why it matters, and a recommended fix. Nothing here has been changed on the server yet.
+Results of a full review of the live host on **2026-10-13**, roughly ordered by priority. Items 17 and 18 were added after a second pass with root access. Each item states what was observed, why it matters, and a recommended fix. Fixes are recorded in the [changelog](../CHANGELOG.md) as they are made, and the status column below is kept current.
 
-| # | Finding | Priority |
-|---|---|---|
-| 1 | [Nightly backups have been failing since 2026-09-22](#1-nightly-backups-have-been-failing-since-2026-09-22) | High |
-| 2 | [Backups do not protect against losing the machine](#2-backups-do-not-protect-against-losing-the-machine) | High |
-| 3 | [Nothing alerts on failure](#3-nothing-alerts-on-failure) | High |
-| 4 | [Reboot pending for a kernel update](#4-reboot-pending-for-a-kernel-update) | Medium |
-| 5 | [`homelab-core` Compose file has drifted from what is deployed](#5-homelab-core-compose-file-has-drifted-from-what-is-deployed) | Medium |
-| 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium |
-| 7 | [Stale AAAA record in public DNS](#7-stale-aaaa-record-in-public-dns) | Medium |
-| 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium |
-| 9 | [Credentials written inline](#9-credentials-written-inline) | Medium |
-| 10 | [Vaultwarden still allows sign-ups](#10-vaultwarden-still-allows-sign-ups) | Medium |
-| 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low |
-| 12 | [Two units fail at every boot](#12-two-units-fail-at-every-boot) | Low |
-| 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low |
-| 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low |
-| 15 | [Thermal watchdog matches more than it should](#15-thermal-watchdog-matches-more-than-it-should) | Low |
-| 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low |
-| 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium |
-| 18 | [Data disk is past its rated load cycles](#18-data-disk-is-past-its-rated-load-cycles) | Medium |
+| # | Finding | Priority | Status |
+|---|---|---|---|
+| 1 | [Nightly backups have been failing since 2026-09-22](#1-nightly-backups-have-been-failing-since-2026-09-22) | High | **Fixed 2026-10-13** |
+| 2 | [Backups do not protect against losing the machine](#2-backups-do-not-protect-against-losing-the-machine) | High | Open |
+| 3 | [Nothing alerts on failure](#3-nothing-alerts-on-failure) | High | Open |
+| 4 | [Reboot pending for a kernel update](#4-reboot-pending-for-a-kernel-update) | Medium | Open |
+| 5 | [`homelab-core` Compose file has drifted from what is deployed](#5-homelab-core-compose-file-has-drifted-from-what-is-deployed) | Medium | Open |
+| 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium | Open |
+| 7 | [Stale AAAA record in public DNS](#7-stale-aaaa-record-in-public-dns) | Medium | Open |
+| 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium | Open |
+| 9 | [Credentials written inline](#9-credentials-written-inline) | Medium | Partly fixed 2026-10-13 |
+| 10 | [Vaultwarden still allows sign-ups](#10-vaultwarden-still-allows-sign-ups) | Medium | Open |
+| 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low | Open |
+| 12 | [Two units fail at every boot](#12-two-units-fail-at-every-boot) | Low | Open |
+| 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low | Open |
+| 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low | Open |
+| 15 | [Thermal watchdog matches more than it should](#15-thermal-watchdog-matches-more-than-it-should) | Low | Open |
+| 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low | Open |
+| 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium | Open |
+| 18 | [Data disk is past its rated load cycles](#18-data-disk-is-past-its-rated-load-cycles) | Medium | Open |
 
 ---
 
 ## 1. Nightly backups have been failing since 2026-09-22
+
+> **Fixed 2026-10-13.** The script was rewritten without the dead `mongodump` step and with independent steps; a full run succeeded and `restic check` is clean. See the [changelog](../CHANGELOG.md#fixed-the-nightly-backup-finding-1). The description below is kept as the record of what was wrong.
 
 **Observed.** `homelab-backup.service` has exited with status 1 on 22 consecutive nights. The last successful run, and the newest of the three restic snapshots, is from 2026-09-21.
 
@@ -135,6 +137,8 @@ Every other published port is bound to the LAN address. Docker-published ports b
 
 ## 9. Credentials written inline
 
+> **Partly fixed 2026-10-13.** The backup script no longer contains a password, and staging is now root-only (`umask 077`, mode 700). The Quartus Compose file and the Vaultwarden data directory permissions are still open.
+
 **Observed.**
 
 - The deployed Quartus Compose file contains the desktop username and password in plain text. The file is world-readable.
@@ -202,7 +206,7 @@ Images referenced by a stopped container, such as Quartus, are kept by `docker i
 
 **Observed.** Watchtower updates four containers unattended, all on the `latest` tag, including the reverse proxy and the password manager. `n8n` tracks `latest` but is not labelled, so it only changes when pulled by hand. Immich tracks `release`. Only two images are pinned by digest.
 
-**Impact.** A breaking upstream release lands at 04:00 with no review and no recorded previous version to roll back to. Because backups are not running, there is no pre-update restore point either.
+**Impact.** A breaking upstream release lands at 04:00 with no review and no recorded previous version to roll back to. Until 2026-10-13 backups were not running, so there was no pre-update restore point either.
 
 **Fix.** Pin a version tag for anything stateful and let Watchtower follow patch releases only, or switch Watchtower to notify-only (`WATCHTOWER_MONITOR_ONLY=true`) and update by hand. At minimum, run the backup before the update window: the timer already fires at 00:00, four hours ahead of Watchtower, once it works again.
 
@@ -258,11 +262,11 @@ Tailscale access to SSH is already covered by the `tailscale0` rule. To actually
 
 **Observed.** The 4 TB data disk passes SMART with no reallocated, pending, or uncorrectable sectors after 20,439 power-on hours. Its load cycle count is 485,123, and the normalised value for that attribute has reached its floor of 1. Desktop drives of this class are typically rated for about 300,000 cycles. The disk has been power-cycled only 44 times, so the count comes from the firmware parking the heads after a few seconds of idle, roughly 24 times an hour. No SMART self-test has ever been run on it.
 
-**Impact.** This is the only copy of the application data, behind a writeback cache, with backups not currently running (finding 1). Head-parking wear does not predict failure on its own, but it removes margin on a single-disk tier.
+**Impact.** This is the only copy of the application data, behind a writeback cache, and the photo library is not in any backup (finding 2). Head-parking wear does not predict failure on its own, but it removes margin on a single-disk tier.
 
 **Fix.**
 
-1. Restore working backups first (findings 1 and 2).
+1. Get the data on this disk into a backup that lives somewhere else (finding 2).
 2. Reduce parking. Try `sudo hdparm -B 254 /dev/sdb` and watch whether attribute 193 stops climbing; persist it in `/etc/hdparm.conf` if it does. Some firmware on this model ignores APM settings.
 3. Schedule self-tests in `/etc/smartd.conf`, for example a short test daily and a long test weekly:
 
