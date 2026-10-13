@@ -1,0 +1,26 @@
+services:
+  nextcloud-aio-mastercontainer:
+    image: nextcloud/all-in-one:latest
+    container_name: nextcloud-aio-mastercontainer
+    restart: always
+    ports:
+      - "192.168.1.10:8091:8092"
+    volumes:
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      APACHE_ADDITIONAL_NETWORK: "proxy"
+      APACHE_PORT: "11000"
+      NC_DOMAIN: "cloud.example.duckdns.org"
+      SKIP_DOMAIN_VALIDATION: "true"
+      NEXTCLOUD_DATADIR: "/mnt/storage/nextcloud"   # actual file storage goes here, not the boot drive
+    networks:
+      - proxy
+
+volumes:
+  nextcloud_aio_mastercontainer:
+    name: nextcloud_aio_mastercontainer
+
+networks:
+  proxy:
+    external: true

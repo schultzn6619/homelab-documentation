@@ -1,0 +1,17 @@
+services:
+  trilium:
+    image: triliumnext/trilium:latest
+    container_name: trilium
+    restart: unless-stopped
+    networks:
+      proxy:
+    volumes:
+      - ./trilium-data:/home/node/trilium-data
+    environment:
+      - TRILIUM_DATA_DIR=/home/node/trilium-data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  proxy:
+    external: true

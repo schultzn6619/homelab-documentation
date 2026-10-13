@@ -1,0 +1,14 @@
+# /etc/systemd/system/thermal-watchdog.service
+[Unit]
+Description=Immich thermal watchdog
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/thermal-watchdog.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

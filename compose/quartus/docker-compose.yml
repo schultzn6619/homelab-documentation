@@ -1,0 +1,21 @@
+services:
+  quartus:
+    build: .
+    container_name: quartus
+    restart: unless-stopped
+    shm_size: "1gb"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - CUSTOM_USER=${QUARTUS_USER}
+      - PASSWORD=${QUARTUS_PASSWORD}
+    volumes:
+      - /mnt/storage/quartus/config:/config
+      - /mnt/storage/quartus/projects:/config/projects
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
