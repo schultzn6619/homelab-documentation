@@ -1,6 +1,6 @@
 # Audit findings
 
-Results of a full review of the live host on **2026-10-13**, roughly ordered by priority. Items 17 and 18 were added after a second pass with root access. Each item states what was observed, why it matters, and a recommended fix. Fixes are recorded in the [changelog](../CHANGELOG.md) as they are made, and the status column below is kept current.
+Results of a full review of the live host on **2026-10-13**, roughly ordered by priority. Items 17 to 19 were added after a second pass with root access; 19 was published once it had been fixed. Each item states what was observed, why it matters, and a recommended fix. Fixes are recorded in the [changelog](../CHANGELOG.md) as they are made, and the status column below is kept current.
 
 | # | Finding | Priority | Status |
 |---|---|---|---|
@@ -22,6 +22,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low | Open |
 | 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium | Open |
 | 18 | [Data disk is past its rated load cycles](#18-data-disk-is-past-its-rated-load-cycles) | Medium | Open |
+| 19 | [SSH password login was enabled by a drop-in](#19-ssh-password-login-was-enabled-by-a-drop-in) | High | **Fixed 2026-10-13** |
 
 ---
 
@@ -229,7 +230,7 @@ Or set a permanent `cpus:` limit on the ML service in the Compose file so the wa
 - **Unsafe shutdowns:** the NVMe has recorded 160 over its life. With a writeback cache in front of the data disk, a small UPS with a clean-shutdown hook is worth considering.
 - **Firmware:** UEFI F50 is from 2019. Later releases for this board carry AGESA security and stability fixes.
 - **Unneeded services:** `ModemManager`, `multipathd`, and `open-iscsi` are enabled by default and serve no purpose here. `sudo systemctl disable --now ModemManager multipathd open-iscsi iscsid.socket`.
-- **SSH:** `X11Forwarding yes` is not needed on a headless server. Confirm effective settings with `sudo sshd -T`, because drop-in files override `sshd_config`.
+- **SSH:** `X11Forwarding yes` is not needed on a headless server. The admin user's `authorized_keys` also still holds an older key whose private half is not on any device in use; remove it.
 - **Container logs:** the json-file driver has no size limit. Add `"log-driver": "json-file", "log-opts": {"max-size": "10m", "max-file": "3"}` to `daemon.json`.
 - **Resource limits:** no container has memory or CPU limits.
 - **Host address:** the LAN address comes from DHCP while Compose files and proxy hosts hard-code it. Make sure the router has a static lease for it.
@@ -246,7 +247,7 @@ Or set a permanent `cpus:` limit on the ML service in the Compose file so the wa
 - Four rules are for ports nothing listens on any more.
 - The `DOCKER-USER` chain is empty.
 
-**Impact.** The host has a global IPv6 address, so the SSH rule relies on the upstream routers to keep the internet out. The stale and ineffective rules make the firewall harder to reason about.
+**Impact.** The host has a global IPv6 address, so the SSH rule relies on the upstream routers to keep the internet out. Since 2026-10-13 SSH accepts keys only (finding 19), which limits what that exposure is worth to an attacker, but the rule should still be scoped. The stale and ineffective rules make the firewall harder to reason about.
 
 **Fix.**
 
@@ -275,3 +276,18 @@ Tailscale access to SSH is already covered by the `tailscale0` rule. To actually
    ```
 
 4. Plan a replacement or a second disk to mirror onto, rather than waiting for a failure.
+
+## 19. SSH password login was enabled by a drop-in
+
+> **Fixed 2026-10-13.** See the [changelog](../CHANGELOG.md#disabled-ssh-password-login-finding-19).
+
+**Observed.** `/etc/ssh/sshd_config` said `PasswordAuthentication no`, and this repo described SSH as key-only. The running daemon disagreed: `sshd -T` reported `passwordauthentication yes`, and the server offered `publickey,password` to clients. The cause was `/etc/ssh/sshd_config.d/50-cloud-init.conf`, left by the Ubuntu installer with `PasswordAuthentication yes`. `sshd_config` includes that directory on its first line, and sshd keeps the first value it reads for an option, so the drop-in won.
+
+The log showed how long it had gone unnoticed: every login for the previous eight weeks had been by password, because the only authorised key belonged to no device in use.
+
+**Impact.** Combined with a firewall rule allowing port 22 from anywhere (finding 17), the only things between the internet and a password prompt were the upstream routers and fail2ban.
+
+**Fix.** Installed a key for the client actually in use, confirmed a key login in the server log, then set the drop-in to `PasswordAuthentication no` and reloaded sshd.
+
+**Takeaway.** A setting in a config file is a statement of intent. `sshd -T` is the statement of fact. Check the effective configuration after every change, and check which authentication method the log says was used.
+

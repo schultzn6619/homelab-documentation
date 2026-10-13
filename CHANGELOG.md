@@ -6,6 +6,24 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-10-13
 
+### Disabled SSH password login (finding 19)
+
+**Problem.** SSH was documented as key-only and `sshd_config` said `PasswordAuthentication no`, but the daemon was accepting passwords. An installer-generated drop-in, `/etc/ssh/sshd_config.d/50-cloud-init.conf`, set `PasswordAuthentication yes`, and drop-ins are read before the main file. Every login since mid-August had in fact used a password; the one authorised key did not belong to any device in use.
+
+**Changed.**
+
+- Generated a key on the laptop and added its public half to the admin user's `authorized_keys`, after checking that its fingerprint matched the one printed at generation.
+- Confirmed a successful key-only login from the laptop before touching the server configuration, to avoid a lockout.
+- Set [`50-cloud-init.conf`](system/sshd_config.d/50-cloud-init.conf) to `PasswordAuthentication no`, ran `sshd -t`, and reloaded `ssh`.
+
+**Verified.**
+
+- The server log shows `Accepted publickey` with the laptop key's fingerprint.
+- `sudo sshd -T` reports `passwordauthentication no` and `kbdinteractiveauthentication no`.
+- A probe that offers no key is refused with `Permission denied (publickey)`; before the change the same probe listed `publickey,password`.
+
+**Still open.** Port 22 is still allowed from anywhere in UFW (finding 17), `X11Forwarding` is still on, and an unused older key is still authorised (finding 16).
+
 ### Fixed the nightly backup (finding 1)
 
 **Problem.** `homelab-backup.service` had failed every night since 2026-09-22. The script ran `mongodump` in a Docker container, `unifi-db`, that stopped existing when UniFi moved to UniFi OS Server. Because of `set -e`, that one error aborted the run before anything was written to restic, so no service had been backed up for three weeks.
