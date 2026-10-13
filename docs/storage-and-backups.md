@@ -105,24 +105,26 @@ The HDD's surface is healthy but its head-parking mechanism is heavily worn; see
 flowchart LR
     A[pg_dump Immich] --> S["/var/backups/staging<br/>(NVMe)"]
     B[pg_dump Nextcloud] --> S
-    C[mongodump UniFi] --> S
+    C["cp UniFi autobackup files"] --> S
     D["cp -a Vaultwarden,<br/>Trilium, Nextcloud data"] --> S
     S --> R["restic backup<br/>/var/backups/restic-repo<br/>(NVMe)"]
-    R --> F["restic forget<br/>--keep-last 3 --prune"]
+    R --> F["restic forget<br/>--keep-last 3 --prune<br/>(only if every step succeeded)"]
     F --> X[empty staging]
 ```
 
 | Step | Detail |
 |---|---|
-| Database dumps | `pg_dump` inside `immich_postgres` and `nextcloud-aio-database`; `mongodump` inside a container named `unifi-db` |
+| Database dumps | `pg_dump` inside `immich_postgres` and `nextcloud-aio-database` |
+| UniFi | Copies the controller's own scheduled `.unf` backup files from the UniFi OS Server volume |
 | File copies | `/mnt/storage/vaultwarden`, `/mnt/storage/trilium`, `/mnt/storage/nextcloud` copied to staging |
 | Repository | restic 0.18, local repo on the NVMe, password in `/root/.restic-password` |
 | Retention | last 3 snapshots |
-| Failure handling | `set -euo pipefail`: the first failing command aborts the run |
+| Failure handling | Each source is an independent step. A failed step is logged and the rest still run; the script exits non-zero at the end, and pruning is skipped so a partial run cannot evict a good snapshot |
+| Staging | `/var/backups/staging`, mode 700, emptied before and after each run |
 
 ### Current state
 
-**The job has failed every night since 2026-09-22.** The repository holds three snapshots, from 2026-09-19, 09-20, and 09-21, each about 448 MiB of source data (179 MiB stored after deduplication and compression). Details and the fix are in [finding 1](findings.md#1-nightly-backups-have-been-failing-since-2026-09-22).
+Working as of 2026-10-13. The job failed every night from 2026-09-22 until it was fixed that day; see the [changelog](../CHANGELOG.md#fixed-the-nightly-backup-finding-1). The repository holds three snapshots (2026-09-20, 2026-09-21, 2026-10-13), and `restic check` reports no errors. There is a gap with no snapshots between 09-21 and 10-13.
 
 ### Coverage
 
@@ -134,7 +136,7 @@ flowchart LR
 | Nextcloud user files | Yes (copy) |
 | Vaultwarden | Yes (file copy of a live SQLite database) |
 | Trilium | Yes (file copy, includes Trilium's own backup files) |
-| UniFi | Intended, but targets a container that no longer exists |
+| UniFi | Yes (the controller's own backup files; the newest is dated 2026-10-01) |
 | n8n | **No** |
 | Nginx Proxy Manager, Portainer | **No** |
 | Compose files, `.env` files, scripts, systemd units | **No** (sanitised copies are in this repo; secrets are not) |

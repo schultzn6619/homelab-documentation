@@ -2,7 +2,7 @@
 
 A single self-hosted server I built, hardened, and maintain as a hands-on project in systems administration, networking, and containers. This repo documents it the way I'd hand it off to another engineer: what runs, how it is wired together, why it is set up that way, and what currently needs fixing.
 
-> **Snapshot:** this documentation reflects a full audit of the live host on **2026-10-13**. Open issues found during that audit are tracked in [`docs/findings.md`](docs/findings.md).
+> **Snapshot:** this documentation started from a full audit of the live host on **2026-10-13**. Open issues from that audit are tracked in [`docs/findings.md`](docs/findings.md), and each fix is recorded in the [`CHANGELOG`](CHANGELOG.md) with its own commit.
 
 ## At a glance
 
@@ -23,7 +23,7 @@ A single self-hosted server I built, hardened, and maintain as a hands-on projec
 - **Tiered storage.** bcache puts a SATA SSD in front of a 4 TB HDD in writeback mode, so bulk data lives on cheap disk with SSD-speed hot paths.
 - **Thermal watchdog.** A bash service throttles, then pauses, the photo library's ML workload before the CPU reaches its shutdown limit.
 - **Host hardening.** UFW, fail2ban on SSH, root login disabled, a single allowed SSH user, unattended security updates.
-- **Daily backups by design.** `pg_dump` plus restic on a systemd timer. This job is currently failing; see [findings](docs/findings.md#1-nightly-backups-have-been-failing-since-2026-09-22).
+- **Daily backups.** `pg_dump` plus restic on a systemd timer, with each source as an independent step so one failure cannot cancel the rest.
 
 ## Architecture
 
@@ -124,7 +124,8 @@ Full catalog with images, data paths, and update policy: [`docs/services.md`](do
 | [`docs/storage-and-backups.md`](docs/storage-and-backups.md) | Disk layout, bcache, data locations, backup design and restore |
 | [`docs/hardening.md`](docs/hardening.md) | SSH, firewall, fail2ban, updates, container exposure |
 | [`docs/operations.md`](docs/operations.md) | Runbook: health checks, updates, restarts, recovery |
-| [`docs/findings.md`](docs/findings.md) | Audit findings and recommended fixes, by priority |
+| [`docs/findings.md`](docs/findings.md) | Audit findings and recommended fixes, by priority, with status |
+| [`CHANGELOG.md`](CHANGELOG.md) | Dated record of every change made to the server |
 
 ## Repository layout
 
@@ -151,7 +152,7 @@ docs/       Architecture, host, networking, services, storage, hardening, operat
 - Failures can be masked by another layer. DNS problems only surfaced once a tool that had been intercepting DNS was replaced.
 - Keep the stack small. Fewer services doing their jobs well beats a sprawl of half-maintained ones.
 - Monitor before you need to. The thermal issue was caught only after a forced shutdown; the watchdog now handles it before that point.
-- A backup job that fails silently is not a backup. Migrating one service broke the nightly job for every service, and nothing alerted on it.
+- A backup job that fails silently is not a backup. Migrating one service broke the nightly job for every service for three weeks, and nothing alerted on it. Backup steps are now independent of each other.
 
 ## Notes
 

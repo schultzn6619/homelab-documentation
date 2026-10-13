@@ -75,7 +75,7 @@ Third-party APT sources: Docker, Tailscale, MongoDB 7.0, and Ubiquiti UniFi. No 
 |---|---|---|---|
 | `thermal-watchdog.service` | simple, always restarts | Runs the CPU temperature watchdog; requires `docker.service` | [`scripts/`](../scripts/thermal-watchdog.service) |
 | `homelab-backup.timer` | timer, `OnCalendar=daily`, persistent | Triggers the backup at midnight | [`scripts/`](../scripts/homelab-backup.timer) |
-| `homelab-backup.service` | oneshot | Runs `/usr/local/bin/homelab-backup.sh`. **Currently failing** | [`scripts/`](../scripts/homelab-backup.service) |
+| `homelab-backup.service` | oneshot | Runs `/usr/local/bin/homelab-backup.sh` | [`scripts/`](../scripts/homelab-backup.service) |
 | `tailscale-gro.service` | oneshot, before `tailscaled` | `ethtool -K eno1 rx-udp-gro-forwarding on rx-gro-list off` | [`system/`](../system/tailscale-gro.service) |
 | `wait-for-internet.service` | oneshot, before `docker` | Blocks up to 120 s until a public hostname resolves | [`system/`](../system/wait-for-internet.service) |
 | `uosserver.service` | simple, user `uosserver` | UniFi OS Server | Installed by vendor |
@@ -87,11 +87,12 @@ Third-party APT sources: Docker, Tailscale, MongoDB 7.0, and Ubiquiti UniFi. No 
 
 Also enabled by the Ubuntu Server defaults but not needed on this machine: `ModemManager`, `multipathd`, `open-iscsi`, `udisks2`, `upower`.
 
-### Failed units at audit
+### Failed units
+
+`homelab-backup.service` was also failing at the audit and was fixed on 2026-10-13.
 
 | Unit | Cause |
 |---|---|
-| `homelab-backup.service` | Script references a container that no longer exists. See [finding 1](findings.md#1-nightly-backups-have-been-failing-since-2026-09-22) |
 | `systemd-networkd-wait-online.service` | Timed out after 120 s at boot. `wait-for-internet.service` is the working substitute |
 | `openipmi.service` | No IPMI hardware on this board |
 
