@@ -6,6 +6,29 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-10-25
 
+### Restored the LiveSync database after an accidental overwrite; first client connected
+
+**Problem.** While setting up the first Obsidian client, the setup on the device rebuilt the server database from a new, empty vault (LiveSync's "Overwrite server data" path). CouchDB was left holding only Obsidian's default `Welcome.md`. The server's plain-Markdown copy in `vault/` was unaffected.
+
+**Changed.**
+
+- Stopped `livesync-cli` straight away so it could not mirror the empty state into `vault/`.
+- Confirmed `vault/` was still identical to the converted notes, and saved copies of it and of `couchdb-data/` before touching anything.
+- Rebuilt CouchDB from `vault/` with `livesync-cli rebuild --force`, then had the client run "Reset synchronisation on this device" (fetch).
+- Unlocked the remote with `livesync-cli unlock-remote` once both clients (the desktop vault and `livesync-cli`) had been accepted. A rebuild leaves the remote locked, and a locked remote refuses sync from any client the lock has not accepted.
+
+**Verified.**
+
+- After the rebuild, a fresh CLI fetch into an empty folder matched the original conversion (41/41 files).
+- Server → device: a note created in `vault/` appeared on the desktop client.
+- Device → server: an edit typed on the desktop reached CouchDB and then `vault/`.
+- A deletion in `vault/` was pushed to CouchDB.
+- `livesync-cli` syncs every 60 seconds (`periodicReplication`, the Setup URI default), not live, so changes reach `vault/` within about a minute.
+
+**Still open.** Phone client; retire Trilium.
+
+**Lesson.** On every device after the first, open the Setup URI in an empty vault and choose to fetch from the server. "Overwrite server data" / "Rebuild" replaces the server's contents with the device's vault.
+
 ### Added the `obsidian.` proxy host for LiveSync
 
 **Changed.** Created the `obsidian.example.duckdns.org` proxy host in NPM (by hand in the UI): backend `couchdb:5984` over http, wildcard certificate, Force SSL, websockets, block common exploits, and advanced config `proxy_buffering off`, `client_max_body_size 50M`, `proxy_read_timeout 3600s`.
