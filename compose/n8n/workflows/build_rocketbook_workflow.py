@@ -20,7 +20,9 @@ $input.all().forEach((item, email) => {
   // Rocketbook's default subject is "RB <scan time>.pdf-<send time>"; use the scan time and a plain title.
   const rb = (item.json.subject || '').match(/^RB (\d{4}-\d{2}-\d{2}) (\d{2})\.(\d{2})\.(\d{2})/);
   const scanned = rb ? DateTime.fromISO(`${rb[1]}T${rb[2]}:${rb[3]}:${rb[4]}`, { zone: 'America/New_York' }) : received;
-  const title = rb ? 'Rocketbook scan' : (sanitize(item.json.subject).slice(0, 80) || 'Rocketbook scan');
+  // Smart Title subjects can carry the same ".pdf-<send time>" suffix; drop it from the title.
+  const subjectTitle = (item.json.subject || '').replace(/\.(pdf|jpe?g|png)-[\d\/.: -]*$/i, '');
+  const title = rb ? 'Rocketbook scan' : (sanitize(subjectTitle).slice(0, 80) || 'Rocketbook scan');
   const stamp = scanned.toFormat('yyyy-MM-dd HHmmss');
   let base = `${stamp} ${title}`;
   for (let n = 2; usedBases.has(base); n++) base = `${stamp} ${title} ${n}`;
@@ -60,13 +62,28 @@ prepared.forEach((p, idx) => {
   if (j.isPdf && typeof t === 'string' && t.trim()) e.text.push(t.trim());
 });
 const callout = (title, text) => `> [!note]- ${title}\n` + text.split('\n').map(l => '> ' + l).join('\n');
+// Class codes written in a Smart Title, e.g. "##DE L3a##". The filer on the host moves the note
+// to "<class>/Lecture <n>/" based on the class and lecture properties set here.
+const CLASSES = { DE: 'Digital Electronics', LF: 'Linux Fundamentals', NA: 'Network Admin 1', STS: 'Science, Tech, and Society' };
+const CODE = new RegExp(`\\b(${Object.keys(CLASSES).join('|')})\\s*-?\\s*L(?:EC(?:TURE)?)?\\s*-?\\s*(\\d{1,2})\\s*([AB])?\\b`, 'i');
+const findCode = e => {
+  // The subject is a Smart Title when one was written; fall back to a ##...## code in the scanned text.
+  const tagged = [e.body, ...e.text].map(t => (t.match(/##([^#]{1,60})##/) || [])[1]).filter(Boolean);
+  for (const s of [e.subject, ...tagged]) {
+    const m = (s || '').match(CODE);
+    if (m) return { cls: CLASSES[m[1].toUpperCase()], lecture: `${Number(m[2])}${(m[3] || '').toLowerCase()}` };
+  }
+  return null;
+};
 return [...emails.values()].map(e => {
+  const code = findCode(e);
   const parts = [
     '---',
     `created: ${e.scanned}`,
     `received: ${e.received}`,
     'source: rocketbook',
     `email_subject: ${JSON.stringify(e.subject)}`,
+    ...(code ? [`class: ${JSON.stringify(code.cls)}`, `lecture: ${JSON.stringify(code.lecture)}`] : []),
     'tags:',
     '  - rocketbook',
     '---',
@@ -125,8 +142,13 @@ endstream endobj
 5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
 trailer<</Root 1 0 R>>
 %%EOF`;
-return [{ json: { subject: 'RB 2026-08-26 19.41.20.pdf-10/25/2026-16.25.20', date: new Date().toISOString(), text: 'Sent from Rocketbook.\nTranscription line one.' },
-  binary: { attachment_0: { data: Buffer.from(pdf).toString('base64'), mimeType: 'application/pdf', fileName: 'scan.pdf', fileExtension: 'pdf' } } }];
+const scan = () => ({ attachment_0: { data: Buffer.from(pdf).toString('base64'), mimeType: 'application/pdf', fileName: 'scan.pdf', fileExtension: 'pdf' } });
+// Three cases: Smart Title code, default subject (stays in the inbox), code only in the scanned text.
+return [
+  { json: { subject: 'DE L9b pipeline test.pdf-10/25/2026-16.40.00', date: new Date().toISOString(), text: '' }, binary: scan() },
+  { json: { subject: 'RB 2026-08-28 09.00.00.pdf-10/25/2026-16.40.30', date: new Date().toISOString(), text: 'Sent from Rocketbook.\nTranscription line one.' }, binary: scan() },
+  { json: { subject: 'RB 2026-08-27 10.00.00.pdf-10/25/2026-16.41.00', date: new Date().toISOString(), text: 'Sent from Rocketbook.\n##sts lecture 9## topic' }, binary: scan() },
+];
 """.strip()
 test = {'id': 'rbTestPipeline01', 'name': 'Rocketbook → Obsidian (test)', 'active': False, 'settings': settings,
         'nodes': [node('Manual', 'n8n-nodes-base.manualTrigger', 1, {}, [-220, 300]),

@@ -6,6 +6,25 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-10-25
 
+### Rocketbook notes filed by class and lecture
+
+**Problem.** Every Rocketbook scan landed in `Rocketbook Inbox`, while the vault's notes are organised as `<class>/Lecture <n>/`.
+
+**Changed.**
+
+- The workflow's "Build note" node reads a class and lecture code from the email subject (Rocketbook Smart Title, e.g. `##DE L3a##`) or from a `##...##` code in the scanned text, and sets `class` and `lecture` properties. Rocketbook's `.pdf-<send time>` suffix is now dropped from Smart Title subjects. Re-imported, re-published, restarted n8n.
+- New [`/usr/local/bin/rocketbook-filer.py`](scripts/rocketbook-filer.py), started by [`rocketbook-filer.path`](system/rocketbook-filer.path) whenever the inbox changes. It moves notes with both properties, plus their embedded scans, into `<class>/Lecture <n>/`. It accepts only existing top-level class folders and lecture values like `3` or `3a`, and creates the lecture folder if needed. n8n's mount is unchanged (inbox only).
+
+**Verified.** The test workflow sent three fake emails:
+
+- Subject `DE L9b pipeline test.pdf-…`: filed to `Digital Electronics/Lecture 9/` as `… DE L9b pipeline test.md` with `lecture: "9b"`.
+- Default `RB …` subject: stayed in the inbox.
+- `##sts lecture 9##` in the email text: filed to `Science, Tech, and Society/Lecture 9/`.
+
+In each case the PDF moved with the note, and the journal shows one `filed … -> …` line per note. Test files and folders were removed afterwards. The real workflow is active again after the restart.
+
+**Still open.** The exact subject format Rocketbook uses for Smart Titles has not yet been seen on a real scan.
+
 ### Rocketbook notes named by scan time
 
 **Problem.** The first real scan arrived and was handled correctly, but Rocketbook's default subject (`RB 2026-08-26 19.41.20.pdf-10/25/2026-16.25.20`) made the file name long and unreadable, and the note was dated by the email instead of the scan.
