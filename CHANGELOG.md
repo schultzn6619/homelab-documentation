@@ -6,6 +6,24 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-10-25
 
+### Rocketbook scans now go to the Obsidian vault through n8n
+
+**Problem.** The Rocketbook workflow in n8n targeted Trilium's ETAPI, and Trilium has been removed. It had never been activated.
+
+**Changed.**
+
+- Exported the old workflow as a backup, then replaced it (same ID, renamed "Rocketbook → Obsidian") with the flow described in [`docs/services.md`](docs/services.md#workflow-rocketbook--obsidian). It writes files into the vault instead of calling an API; LiveSync's server client syncs them.
+- Mounted the vault's `Rocketbook Inbox/` folder into n8n ([Compose file](compose/n8n/docker-compose.yml)); a backup of the previous Compose file is `~/n8n/docker-compose.yml.bak-2026-10-25` on the host.
+- Imported a test copy with a manual trigger.
+- Published the workflow with `n8n publish:workflow` and restarted n8n.
+
+**Verified.**
+
+- The test copy ran successfully. It wrote the PDF and a note with the embed, the email text and the PDF's text, and `livesync-cli` uploaded them to CouchDB. Test files were then deleted.
+- n8n logged `Activated workflow "Rocketbook → Obsidian"` with no IMAP errors. No unread mail was waiting, so nothing was imported.
+
+**Still open.** End-to-end test with a real Rocketbook scan. The unused Trilium ETAPI credential ("Header Auth account") can be deleted in the n8n UI.
+
 ### Deleted the Trilium archive; phone client connected
 
 **Changed.**

@@ -1,0 +1,158 @@
+{
+  "id": "222vE75UnIzLLH0z",
+  "name": "Rocketbook → Obsidian",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/New_York"
+  },
+  "nodes": [
+    {
+      "id": "4e6ef4d3-111a-5646-9513-16b651ebdfad",
+      "name": "Rocketbook email",
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "mailbox": "Rocketbook",
+        "postProcessAction": "read",
+        "format": "resolved",
+        "options": {}
+      },
+      "credentials": {
+        "imap": {
+          "id": "ErOWBxN7IR8dCcM5",
+          "name": "IMAP account"
+        }
+      }
+    },
+    {
+      "id": "e51c587a-6a67-5d4e-8fe6-10468fe452a6",
+      "name": "Prepare files",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// One item per scan attachment, named after the email's date and subject.\nconst sanitize = s => (s || '').replace(/[\\\\/]/g, '-').replace(/:/g, ' -')\n  .replace(/[*?\"<>|#^\\[\\]{}]/g, '').replace(/\\s+/g, ' ').trim();\nconst extFor = (b) => {\n  const fromName = ((b.fileName || '').match(/\\.([A-Za-z0-9]+)$/) || [])[1];\n  if (fromName) return fromName.toLowerCase();\n  return { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' }[b.mimeType] || 'bin';\n};\nconst usedBases = new Set();\nconst out = [];\n$input.all().forEach((item, email) => {\n  const received = DateTime.fromJSDate(new Date(item.json.date || Date.now())).setZone('America/New_York');\n  const title = sanitize(item.json.subject).slice(0, 80) || 'Rocketbook scan';\n  let base = `${received.toFormat('yyyy-MM-dd HHmmss')} ${title}`;\n  for (let n = 2; usedBases.has(base); n++) base = `${received.toFormat('yyyy-MM-dd HHmmss')} ${title} ${n}`;\n  usedBases.add(base);\n  const keys = Object.keys(item.binary || {}).sort();\n  keys.forEach((key, i) => {\n    const bin = item.binary[key];\n    const ext = extFor(bin);\n    const fileName = `${base}${keys.length > 1 ? ' ' + (i + 1) : ''}.${ext}`;\n    out.push({\n      json: {\n        email, base, fileName, isPdf: ext === 'pdf',\n        subject: item.json.subject || '',\n        received: received.toISO({ suppressMilliseconds: true }),\n        body: (item.json.text || '').trim(),\n      },\n      binary: { data: { ...bin, fileName } },\n      pairedItem: { item: email },\n    });\n  });\n});\nreturn out;"
+      }
+    },
+    {
+      "id": "ed84210c-3a03-516b-ad1f-d2b2ea9d1dbc",
+      "name": "Save scan",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        440,
+        200
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/.n8n-files/rocketbook/scans/{{ $json.fileName }}",
+        "dataPropertyName": "data",
+        "options": {}
+      }
+    },
+    {
+      "id": "fbd3f872-53e7-5bfe-871e-5cb6c4f114cc",
+      "name": "Extract PDF text",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        400
+      ],
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "data",
+        "options": {}
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "78961248-2812-5704-a5e4-caa9b78e99cd",
+      "name": "Build note",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        400
+      ],
+      "parameters": {
+        "jsCode": "// Group the files back by email and write one Markdown note per scan.\nconst prepared = $('Prepare files').all();\nconst extracted = $input.all();\nconst emails = new Map();\nprepared.forEach((p, idx) => {\n  const j = p.json;\n  if (!emails.has(j.email)) emails.set(j.email, { ...j, files: [], text: [] });\n  const e = emails.get(j.email);\n  e.files.push(j.fileName);\n  const t = extracted[idx] && extracted[idx].json && extracted[idx].json.text;\n  if (j.isPdf && typeof t === 'string' && t.trim()) e.text.push(t.trim());\n});\nconst callout = (title, text) => `> [!note]- ${title}\\n` + text.split('\\n').map(l => '> ' + l).join('\\n');\nreturn [...emails.values()].map(e => {\n  const parts = [\n    '---',\n    `created: ${e.received}`,\n    'source: rocketbook',\n    `email_subject: ${JSON.stringify(e.subject)}`,\n    'tags:',\n    '  - rocketbook',\n    '---',\n    '',\n    e.files.map(f => `![[${f}]]`).join('\\n\\n'),\n  ];\n  if (e.body) parts.push('', callout('Email text', e.body));\n  if (e.text.length) parts.push('', callout('Text from the scan', e.text.join('\\n\\n')));\n  const md = parts.join('\\n') + '\\n';\n  return {\n    json: { noteFile: `${e.base}.md` },\n    binary: { data: { data: Buffer.from(md, 'utf8').toString('base64'), mimeType: 'text/markdown', fileName: `${e.base}.md`, fileExtension: 'md' } },\n  };\n});"
+      }
+    },
+    {
+      "id": "8b5f601b-b79e-5d5e-95dc-cac78309f618",
+      "name": "Save note",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        880,
+        400
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/.n8n-files/rocketbook/{{ $json.noteFile }}",
+        "dataPropertyName": "data",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Rocketbook email": {
+      "main": [
+        [
+          {
+            "node": "Prepare files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare files": {
+      "main": [
+        [
+          {
+            "node": "Save scan",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract PDF text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract PDF text": {
+      "main": [
+        [
+          {
+            "node": "Build note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build note": {
+      "main": [
+        [
+          {
+            "node": "Save note",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
