@@ -1,0 +1,35 @@
+services:
+  couchdb:
+    image: couchdb:3
+    container_name: couchdb
+    restart: unless-stopped
+    user: "1000:1000"
+    env_file: .env
+    networks:
+      proxy:
+    volumes:
+      - ./couchdb-data:/opt/couchdb/data
+      - ./couchdb-etc:/opt/couchdb/etc/local.d
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # Headless LiveSync client: keeps a plain-Markdown copy of the vault in ./vault
+  livesync-cli:
+    image: ghcr.io/vrtmrz/livesync-cli:latest
+    container_name: livesync-cli
+    restart: unless-stopped
+    user: "1000:1000"
+    command: ["--vault", "/vault", "daemon"]
+    networks:
+      proxy:
+    volumes:
+      - ./cli-db:/data
+      - ./vault:/vault
+    depends_on:
+      - couchdb
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  proxy:
+    external: true

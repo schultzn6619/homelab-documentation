@@ -67,6 +67,7 @@ watch cat /sys/block/bcache0/bcache/dirty_data
 | Nextcloud app code, PostgreSQL, Redis | volumes `nextcloud_aio_*` | NVMe |
 | Vaultwarden SQLite, attachments, keys | `/mnt/storage/vaultwarden/data` | bcache |
 | Trilium SQLite and its own rotating backups | `/mnt/storage/trilium/trilium-data` | bcache |
+| Obsidian LiveSync: CouchDB data, CLI database, plain-Markdown vault copy, secrets | `/mnt/storage/obsidian-livesync` | bcache |
 | n8n SQLite, encryption key, workflows | `/mnt/storage/n8n` | bcache |
 | Quartus build context, desktop home, projects | `/mnt/storage/quartus` | bcache |
 | Nginx Proxy Manager config and certificates | volumes `homelab-core_npm_data`, `homelab-core_npm_letsencrypt` | NVMe |
@@ -74,7 +75,7 @@ watch cat /sys/block/bcache0/bcache/dirty_data
 | SnapOtter state | volume `SnapOtter-data` | NVMe |
 | Immich ML model cache | volume `immich_model-cache` | NVMe |
 | UniFi configuration and database | `uosserver` user's Podman storage | NVMe |
-| Compose files and `.env` files | `~/homelab-core`, `~/immich`, `~/n8n`, `~/nextcloud`, and beside the data for Trilium, Vaultwarden, Quartus | both |
+| Compose files and `.env` files | `~/homelab-core`, `~/immich`, `~/n8n`, `~/nextcloud`, and beside the data for Trilium, Obsidian LiveSync, Vaultwarden, Quartus | both |
 | restic repository | `/var/backups/restic-repo` | NVMe |
 
 ## Health monitoring
@@ -106,7 +107,7 @@ flowchart LR
     A[pg_dump Immich] --> S["/var/backups/staging<br/>(NVMe)"]
     B[pg_dump Nextcloud] --> S
     C["cp UniFi autobackup files"] --> S
-    D["cp -a Vaultwarden,<br/>Trilium, Nextcloud data"] --> S
+    D["cp -a Vaultwarden, Trilium,<br/>Obsidian LiveSync, Nextcloud data"] --> S
     S --> R["restic backup<br/>/var/backups/restic-repo<br/>(NVMe)"]
     R --> F["restic forget<br/>--keep-last 3 --prune<br/>(only if every step succeeded)"]
     F --> X[empty staging]
@@ -116,7 +117,7 @@ flowchart LR
 |---|---|
 | Database dumps | `pg_dump` inside `immich_postgres` and `nextcloud-aio-database` |
 | UniFi | Copies the controller's own scheduled `.unf` backup files from the UniFi OS Server volume |
-| File copies | `/mnt/storage/vaultwarden`, `/mnt/storage/trilium`, `/mnt/storage/nextcloud` copied to staging |
+| File copies | `/mnt/storage/vaultwarden`, `/mnt/storage/trilium`, `/mnt/storage/obsidian-livesync`, `/mnt/storage/nextcloud` copied to staging |
 | Repository | restic 0.18, local repo on the NVMe, password in `/root/.restic-password` |
 | Retention | last 3 snapshots |
 | Failure handling | Each source is an independent step. A failed step is logged and the rest still run; the script exits non-zero at the end, and pruning is skipped so a partial run cannot evict a good snapshot |
@@ -136,6 +137,7 @@ Working as of 2026-10-13. The job failed every night from 2026-09-22 until it wa
 | Nextcloud user files | Yes (copy) |
 | Vaultwarden | Yes (file copy of a live SQLite database) |
 | Trilium | Yes (file copy, includes Trilium's own backup files) |
+| Obsidian LiveSync | Yes (file copy of CouchDB data and of the plain-Markdown vault mirror) |
 | UniFi | Yes (the controller's own backup files; the newest is dated 2026-10-01) |
 | n8n | **No** |
 | Nginx Proxy Manager, Portainer | **No** |
@@ -169,3 +171,4 @@ restic restore latest --target /tmp/restore
 | Nextcloud database | Stop the containers from the AIO interface; restore `nextcloud-postgres.sql` into `nextcloud-aio-database`; copy `nextcloud-data` back to `/mnt/storage/nextcloud` preserving ownership (`www-data`); start containers and run `occ maintenance:data-fingerprint` |
 | Vaultwarden | Stop the container; replace `/mnt/storage/vaultwarden/data` with the restored copy; start |
 | Trilium | Stop the container; replace `trilium-data`; start |
+| Obsidian LiveSync | The `vault/` folder is an ordinary Obsidian vault and can be opened or copied directly. To restore the sync server: `docker compose down` in `/mnt/storage/obsidian-livesync`, replace the directory with the restored copy, `docker compose up -d`. If CouchDB itself is lost, start an empty one, rerun `couchdb-init.sh`, and run `livesync-cli --vault /vault rebuild --force` from the vault copy |

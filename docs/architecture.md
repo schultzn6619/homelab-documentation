@@ -11,7 +11,7 @@ How the host is put together and why. For exact values see [host](host.md), [net
 | Host services | SSH, UFW, fail2ban, Tailscale, chrony, smartd, unattended-upgrades, two custom units (thermal watchdog, backup timer) |
 | Container runtimes | Docker (root daemon) for everything self-managed; rootless Podman only for the vendor-packaged UniFi OS Server |
 | Edge | Nginx Proxy Manager is the single HTTP(S) entry point, bound to the LAN address |
-| Applications | Immich, Nextcloud AIO, Vaultwarden, Trilium, n8n, Portainer, IT-Tools, SnapOtter, Quartus, UniFi |
+| Applications | Immich, Nextcloud AIO, Vaultwarden, Trilium, Obsidian LiveSync (CouchDB), n8n, Portainer, IT-Tools, SnapOtter, Quartus, UniFi |
 | Data | OS, images, named volumes, and the backup repo on NVMe; application data on the bcache volume at `/mnt/storage` |
 
 ## Request path
