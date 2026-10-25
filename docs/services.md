@@ -12,7 +12,6 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 | Immich | 3.1.0 | Compose | `immich` (`~/immich`) | `/mnt/storage/immich` | always |
 | Nextcloud AIO | Nextcloud 34.0.4 | Compose + AIO | `nextcloud` (`~/nextcloud`) | `/mnt/storage/nextcloud`, AIO volumes | always |
 | Vaultwarden | 1.37.4 | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
-| Trilium | 0.106.0 | Compose | `trilium` (`/mnt/storage/trilium`) | `/mnt/storage/trilium/trilium-data` | unless-stopped |
 | Obsidian LiveSync (CouchDB + CLI) | CouchDB 3.5.3, LiveSync CLI `latest` | Compose | `obsidian-livesync` (`/mnt/storage/obsidian-livesync`) | `/mnt/storage/obsidian-livesync` | unless-stopped |
 | n8n | 2.36.7 | Compose | `n8n` (`~/n8n`) | `/mnt/storage/n8n` | unless-stopped |
 | IT-Tools | `latest` (image is 2 years old) | `docker run` | – | none | unless-stopped |
@@ -89,10 +88,10 @@ The Compose file only starts the AIO master container. The master then creates a
 - `SIGNUPS_ALLOWED=true` is still set from initial setup.
 - Updated automatically by Watchtower.
 
-## Trilium
+## Trilium (removed)
 
-- Image `triliumnext/trilium:latest`, data in `/mnt/storage/trilium/trilium-data`. Trilium writes its own daily, weekly, and monthly database backups inside that directory.
-- Updated automatically by Watchtower.
+- Removed on 2026-10-25 after the migration to Obsidian LiveSync: container and image deleted with `docker compose down` in `/mnt/storage/trilium`.
+- The data (`/mnt/storage/trilium/trilium-data`, 34 MB, including Trilium's own rotating backups) and the Compose file are kept on disk as an archive and are still in the nightly backup. To bring it back read-only for reference: `docker compose up -d` in that directory.
 
 ## Obsidian LiveSync
 
@@ -152,7 +151,7 @@ Not to be confused with the separate `mongod` service installed on the host, whi
 
 | Mechanism | Covers |
 |---|---|
-| Watchtower, 04:00 daily | `npm`, `portainer`, `vaultwarden`, `trilium`, `couchdb`, `livesync-cli` |
+| Watchtower, 04:00 daily | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli` |
 | Nextcloud AIO interface | All `nextcloud-aio-*` containers |
 | UniFi OS Server updater | UniFi OS Server |
 | `unattended-upgrades` | Ubuntu packages from the release and security pockets |

@@ -66,7 +66,7 @@ watch cat /sys/block/bcache0/bcache/dirty_data
 | Nextcloud user files | `/mnt/storage/nextcloud` (213 MB) | bcache |
 | Nextcloud app code, PostgreSQL, Redis | volumes `nextcloud_aio_*` | NVMe |
 | Vaultwarden SQLite, attachments, keys | `/mnt/storage/vaultwarden/data` | bcache |
-| Trilium SQLite and its own rotating backups | `/mnt/storage/trilium/trilium-data` | bcache |
+| Trilium SQLite and its own rotating backups (archive; service removed 2026-10-25) | `/mnt/storage/trilium/trilium-data` | bcache |
 | Obsidian LiveSync: CouchDB data, CLI database, plain-Markdown vault copy, secrets | `/mnt/storage/obsidian-livesync` | bcache |
 | n8n SQLite, encryption key, workflows | `/mnt/storage/n8n` | bcache |
 | Quartus build context, desktop home, projects | `/mnt/storage/quartus` | bcache |
@@ -136,7 +136,7 @@ Working as of 2026-10-13. The job failed every night from 2026-09-22 until it wa
 | Nextcloud database | Yes (dump) |
 | Nextcloud user files | Yes (copy) |
 | Vaultwarden | Yes (file copy of a live SQLite database) |
-| Trilium | Yes (file copy, includes Trilium's own backup files) |
+| Trilium (archive) | Yes (file copy, includes Trilium's own backup files) |
 | Obsidian LiveSync | Yes (file copy of CouchDB data and of the plain-Markdown vault mirror) |
 | UniFi | Yes (the controller's own backup files; the newest is dated 2026-10-01) |
 | n8n | **No** |
@@ -170,5 +170,5 @@ restic restore latest --target /tmp/restore
 | Immich database | Stop `immich_server` and `immich_machine_learning`; `docker exec -i immich_postgres psql -U immich -d immich < immich-postgres.sql` into an empty database; start the stack. Follow Immich's restore documentation for the exact drop and create steps for the running version |
 | Nextcloud database | Stop the containers from the AIO interface; restore `nextcloud-postgres.sql` into `nextcloud-aio-database`; copy `nextcloud-data` back to `/mnt/storage/nextcloud` preserving ownership (`www-data`); start containers and run `occ maintenance:data-fingerprint` |
 | Vaultwarden | Stop the container; replace `/mnt/storage/vaultwarden/data` with the restored copy; start |
-| Trilium | Stop the container; replace `trilium-data`; start |
+| Trilium (archive) | Replace `trilium-data` with the restored copy; `docker compose up -d` in `/mnt/storage/trilium` only if the old notes need to be browsed |
 | Obsidian LiveSync | The `vault/` folder is an ordinary Obsidian vault and can be opened or copied directly. To restore the sync server: `docker compose down` in `/mnt/storage/obsidian-livesync`, replace the directory with the restored copy, `docker compose up -d`. If CouchDB itself is lost, start an empty one, rerun `couchdb-init.sh`, and run `livesync-cli --vault /vault rebuild --force` from the vault copy |

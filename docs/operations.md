@@ -10,7 +10,7 @@ Day-to-day procedures for this host. Paths are the real ones on the server; `~` 
 | `immich` | `~/immich` |
 | `nextcloud` (AIO master) | `~/nextcloud` |
 | `n8n` | `~/n8n` |
-| `trilium` | `/mnt/storage/trilium` |
+| `obsidian-livesync` | `/mnt/storage/obsidian-livesync` |
 | `vaultwarden` | `/mnt/storage/vaultwarden` |
 | `quartus` | `/mnt/storage/quartus` |
 | Custom scripts | `/usr/local/bin/homelab-backup.sh`, `/usr/local/bin/thermal-watchdog.sh` |
@@ -89,7 +89,7 @@ Unattended-upgrades handles Ubuntu's own pockets. Docker Engine, containerd, and
 
 | Stack | Procedure |
 |---|---|
-| NPM, Portainer, Vaultwarden, Trilium | Automatic at 04:00 by Watchtower. To force: `docker compose pull && docker compose up -d` |
+| NPM, Portainer, Vaultwarden, CouchDB, LiveSync CLI | Automatic at 04:00 by Watchtower. To force: `docker compose pull && docker compose up -d` |
 | Immich | Read the release notes for breaking changes, then `cd ~/immich && docker compose pull && docker compose up -d` |
 | Nextcloud | AIO interface, "Update containers". Take a backup first |
 | n8n | `cd ~/n8n && docker compose pull && docker compose up -d` |
