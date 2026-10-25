@@ -6,6 +6,14 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-10-25
 
+### Rocketbook notes named by scan time
+
+**Problem.** The first real scan arrived and was handled correctly, but Rocketbook's default subject (`RB 2026-08-26 19.41.20.pdf-10/25/2026-16.25.20`) made the file name long and unreadable, and the note was dated by the email instead of the scan.
+
+**Changed.** "Prepare files" now recognises the default subject: the name becomes `<scan time> Rocketbook scan` and `created` is the scan time, with a new `received` field for the email time. Other subjects are unchanged. Re-imported, re-published, restarted n8n. Renamed the first scan's note and PDF to the new scheme and fixed its embed.
+
+**Verified.** The real scan (execution 32) produced the PDF and a note with the scan's text and was synced. The test copy, run with a default-style subject, produced `2026-08-26 194120 Rocketbook scan.md` with `created: 2026-08-26T19:41:20-04:00`. n8n logged the workflow as activated after the restart.
+
 ### Rocketbook scans now go to the Obsidian vault through n8n
 
 **Problem.** The Rocketbook workflow in n8n targeted Trilium's ETAPI, and Trilium has been removed. It had never been activated.
@@ -22,7 +30,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 - The test copy ran successfully. It wrote the PDF and a note with the embed, the email text and the PDF's text, and `livesync-cli` uploaded them to CouchDB. Test files were then deleted.
 - n8n logged `Activated workflow "Rocketbook → Obsidian"` with no IMAP errors. No unread mail was waiting, so nothing was imported.
 
-**Still open.** End-to-end test with a real Rocketbook scan. The unused Trilium ETAPI credential ("Header Auth account") can be deleted in the n8n UI.
+**Still open.** ~~End-to-end test with a real Rocketbook scan~~ (done, see above). The unused Trilium ETAPI credential ("Header Auth account") can be deleted in the n8n UI.
 
 ### Deleted the Trilium archive; phone client connected
 
