@@ -1,0 +1,8 @@
+[Unit]
+Description=File Rocketbook notes into class/lecture folders of the Obsidian vault
+
+[Service]
+Type=oneshot
+User=admin
+Group=admin
+ExecStart=/usr/local/bin/rocketbook-filer.py

@@ -118,9 +118,13 @@ Source: [`compose/n8n/workflows/rocketbook-obsidian.json`](../compose/n8n/workfl
 2. Each attachment is saved to `Rocketbook Inbox/scans/` as `YYYY-MM-DD HHmmss <title>.pdf` (or `.jpg`). Rocketbook's default subject, `RB <scan time>.pdf-<send time>`, becomes the scan time plus the title "Rocketbook scan"; any other subject (for example a Smart Title) is used as the title with the email's arrival time.
 3. Text is extracted from each PDF (failures are tolerated, e.g. for images).
 4. One note per email, `Rocketbook Inbox/YYYY-MM-DD HHmmss <title>.md`, with front matter (`created` = scan time, `received`, `source: rocketbook`, `email_subject`, tag `rocketbook`), an embed of each scan, and collapsed callouts holding the email text and the PDF text.
-5. `livesync-cli` notices the new files and syncs them to every device.
+5. If the subject (a Rocketbook Smart Title such as `##DE L3a##`) or a `##...##` code in the scanned text names a class and lecture, the note also gets `class` and `lecture` properties. Codes: `DE` Digital Electronics, `LF` Linux Fundamentals, `NA` Network Admin 1, `STS` Science, Tech, and Society; the lecture is `L<n>` with an optional `a`/`b` (`L3a`, `Lec 3`, `lecture 3b`). The table is `CLASSES` in the "Build note" node.
+6. `rocketbook-filer.path` notices the change in the inbox and runs [`rocketbook-filer.py`](../scripts/rocketbook-filer.py), which moves every inbox note with both properties, and its embedded scans, into `<class>/Lecture <n>/`, creating the lecture folder if needed. It only files into class folders that already exist; anything else stays in the inbox. Adding the two properties by hand on any device files a note the same way.
+7. `livesync-cli` syncs the resulting files to every device.
 
-A copy with a manual trigger and a fake email, "Rocketbook → Obsidian (test)", exercises steps 2 to 4 without mail: `docker exec -e N8N_RUNNERS_BROKER_PORT=5699 n8n n8n execute --id=rbTestPipeline01` (the alternate broker port avoids a clash with the running instance). Delete the test note and PDF afterwards.
+n8n can still only write to `Rocketbook Inbox`; the moving happens in the filer because n8n's file node cannot create folders. The filer runs as the admin user (`rocketbook-filer.service`, [unit files](../system/)).
+
+A copy with a manual trigger and three fake emails (a Smart Title code, a default subject, a code only in the text), "Rocketbook → Obsidian (test)", exercises steps 2 to 6 without mail: `docker exec -e N8N_RUNNERS_BROKER_PORT=5699 n8n n8n execute --id=rbTestPipeline01` (the alternate broker port avoids a clash with the running instance). It writes into `Lecture 9` of two classes and into the inbox; delete those test files and the two `Lecture 9` folders afterwards.
 
 ## IT-Tools and SnapOtter
 

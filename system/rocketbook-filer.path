@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch the Obsidian Rocketbook inbox for notes to file
+
+[Path]
+PathChanged=/mnt/storage/obsidian-livesync/vault/Rocketbook Inbox
+Unit=rocketbook-filer.service
+
+[Install]
+WantedBy=multi-user.target
