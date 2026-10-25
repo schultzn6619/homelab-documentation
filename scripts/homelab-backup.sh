@@ -43,6 +43,7 @@ step "unifi autobackups" cp -a "$UNIFI_BACKUPS" "$STAGING/unifi-autobackup"
 # --- Flat-file services (read from HDD, written to SSD staging) ---
 step "vaultwarden files" cp -a /mnt/storage/vaultwarden "$STAGING/vaultwarden"
 step "trilium files"     cp -a /mnt/storage/trilium "$STAGING/trilium"
+step "obsidian livesync" cp -a /mnt/storage/obsidian-livesync "$STAGING/obsidian-livesync"
 step "nextcloud files"   cp -a /mnt/storage/nextcloud "$STAGING/nextcloud-data"
 
 # --- Back up staging with restic (writes land on the SSD) ---
