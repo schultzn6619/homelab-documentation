@@ -56,7 +56,7 @@ Consequence: any other static address on that network must be kept free. See [fi
 
 ### TLS by DNS-01 with a wildcard certificate
 
-Because nothing is reachable from the internet, HTTP-01 validation is impossible. Nginx Proxy Manager uses the DuckDNS DNS-01 plugin to obtain one certificate for `*.example.duckdns.org` (ECDSA, Let's Encrypt), shared by all 11 proxy hosts. Public DNS only needs to hold the TXT challenge.
+Because nothing is reachable from the internet, HTTP-01 validation is impossible. Nginx Proxy Manager uses the DuckDNS DNS-01 plugin to obtain one certificate for `*.example.duckdns.org` (ECDSA, Let's Encrypt), shared by all 12 proxy hosts. Public DNS only needs to hold the TXT challenge.
 
 ### Tailscale subnet router rather than a per-service VPN
 
