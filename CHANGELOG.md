@@ -6,6 +6,21 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-10-25
 
+### Deleted the Trilium archive; phone client connected
+
+**Changed.**
+
+- Removed the `trilium files` step from [`homelab-backup.sh`](scripts/homelab-backup.sh) before deleting the data, so the nightly run cannot fail on a missing source (a failed step would also skip pruning). Deployed to `/usr/local/bin`.
+- Deleted `/mnt/storage/trilium` (data, Trilium's own backups, Compose file). Copies remain in the existing restic snapshots until retention (last 3) rotates them out.
+- The phone joined LiveSync from the Setup URI and fetched from the server.
+
+**Verified.**
+
+- The deployed backup script matches the repo copy, passes `bash -n`, and no longer mentions Trilium.
+- CouchDB logs show the phone's initial `_changes` and `_bulk_get` reads with no database delete or rebuild; the document count rose only by normal edits (373 to 398).
+
+**Still open.** Delete the `notes.` proxy host in the NPM UI.
+
 ### Removed Trilium; deleted the proxy test database
 
 **Problem.** Notes now live in Obsidian with LiveSync, and the desktop client has been verified to sync in both directions, so Trilium is no longer needed. A leftover test database, `zz_proxytest`, was also sitting in CouchDB.
