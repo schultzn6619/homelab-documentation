@@ -17,9 +17,13 @@ const usedBases = new Set();
 const out = [];
 $input.all().forEach((item, email) => {
   const received = DateTime.fromJSDate(new Date(item.json.date || Date.now())).setZone('America/New_York');
-  const title = sanitize(item.json.subject).slice(0, 80) || 'Rocketbook scan';
-  let base = `${received.toFormat('yyyy-MM-dd HHmmss')} ${title}`;
-  for (let n = 2; usedBases.has(base); n++) base = `${received.toFormat('yyyy-MM-dd HHmmss')} ${title} ${n}`;
+  // Rocketbook's default subject is "RB <scan time>.pdf-<send time>"; use the scan time and a plain title.
+  const rb = (item.json.subject || '').match(/^RB (\d{4}-\d{2}-\d{2}) (\d{2})\.(\d{2})\.(\d{2})/);
+  const scanned = rb ? DateTime.fromISO(`${rb[1]}T${rb[2]}:${rb[3]}:${rb[4]}`, { zone: 'America/New_York' }) : received;
+  const title = rb ? 'Rocketbook scan' : (sanitize(item.json.subject).slice(0, 80) || 'Rocketbook scan');
+  const stamp = scanned.toFormat('yyyy-MM-dd HHmmss');
+  let base = `${stamp} ${title}`;
+  for (let n = 2; usedBases.has(base); n++) base = `${stamp} ${title} ${n}`;
   usedBases.add(base);
   const keys = Object.keys(item.binary || {}).sort();
   keys.forEach((key, i) => {
@@ -30,6 +34,7 @@ $input.all().forEach((item, email) => {
       json: {
         email, base, fileName, isPdf: ext === 'pdf',
         subject: item.json.subject || '',
+        scanned: scanned.toISO({ suppressMilliseconds: true }),
         received: received.toISO({ suppressMilliseconds: true }),
         body: (item.json.text || '').trim(),
       },
@@ -58,7 +63,8 @@ const callout = (title, text) => `> [!note]- ${title}\n` + text.split('\n').map(
 return [...emails.values()].map(e => {
   const parts = [
     '---',
-    `created: ${e.received}`,
+    `created: ${e.scanned}`,
+    `received: ${e.received}`,
     'source: rocketbook',
     `email_subject: ${JSON.stringify(e.subject)}`,
     'tags:',
@@ -119,7 +125,7 @@ endstream endobj
 5 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
 trailer<</Root 1 0 R>>
 %%EOF`;
-return [{ json: { subject: 'n8n pipeline test: Weekly plan', date: new Date().toISOString(), text: 'Sent from Rocketbook.\nTranscription line one.' },
+return [{ json: { subject: 'RB 2026-08-26 19.41.20.pdf-10/25/2026-16.25.20', date: new Date().toISOString(), text: 'Sent from Rocketbook.\nTranscription line one.' },
   binary: { attachment_0: { data: Buffer.from(pdf).toString('base64'), mimeType: 'application/pdf', fileName: 'scan.pdf', fileExtension: 'pdf' } } }];
 """.strip()
 test = {'id': 'rbTestPipeline01', 'name': 'Rocketbook → Obsidian (test)', 'active': False, 'settings': settings,
