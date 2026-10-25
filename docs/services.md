@@ -91,7 +91,7 @@ The Compose file only starts the AIO master container. The master then creates a
 ## Trilium (removed)
 
 - Removed on 2026-10-25 after the migration to Obsidian LiveSync: container and image deleted with `docker compose down` in `/mnt/storage/trilium`.
-- The data (`/mnt/storage/trilium/trilium-data`, 34 MB, including Trilium's own rotating backups) and the Compose file are kept on disk as an archive and are still in the nightly backup. To bring it back read-only for reference: `docker compose up -d` in that directory.
+- The archived data in `/mnt/storage/trilium` was deleted later the same day and removed from the nightly backup. The notes themselves live on in the Obsidian vault.
 
 ## Obsidian LiveSync
 
