@@ -6,6 +6,19 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-10-25
 
+### Added the `obsidian.` proxy host for LiveSync
+
+**Changed.** Created the `obsidian.example.duckdns.org` proxy host in NPM (by hand in the UI): backend `couchdb:5984` over http, wildcard certificate, Force SSL, websockets, block common exploits, and advanced config `proxy_buffering off`, `client_max_body_size 50M`, `proxy_read_timeout 3600s`.
+
+**Verified.**
+
+- HTTPS presents a valid certificate; plain HTTP redirects with 301; an anonymous request gets 401 from CouchDB.
+- With credentials, `/obsidiannotes` is reachable through the proxy.
+- A CORS preflight from origin `app://obsidian.md` returns 204 with `Access-Control-Allow-Origin: app://obsidian.md` and credentials allowed.
+- A 15-second long-poll on `_changes` was held open for the full time and not cut off by the proxy.
+
+**Still open.** Set up the Obsidian clients from the Setup URI, then retire Trilium.
+
 ### Migrated notes from Trilium to Obsidian with Self-hosted LiveSync
 
 **Problem.** Notes were kept in Trilium. The goal was to move them to an Obsidian vault and sync it between devices through [Self-hosted LiveSync](https://github.com/vrtmrz/obsidian-livesync), with this host as the sync server.
@@ -31,7 +44,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 **Still open.**
 
-- The `obsidian.` proxy host still has to be created in the NPM UI; until then clients cannot reach the server.
+- ~~The `obsidian.` proxy host still has to be created in the NPM UI.~~ Done, see above.
 - Obsidian clients (laptop, phone) still have to be set up from the Setup URI.
 - Retire Trilium once the clients are syncing: stop the container and remove the `notes.` proxy host. The data stays in the backups.
 - An inactive n8n workflow ("My workflow") still targets Trilium's ETAPI for a Rocketbook inbox.
