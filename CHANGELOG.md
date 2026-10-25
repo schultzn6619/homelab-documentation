@@ -6,6 +6,20 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-10-25
 
+### Removed Trilium; deleted the proxy test database
+
+**Problem.** Notes now live in Obsidian with LiveSync, and the desktop client has been verified to sync in both directions, so Trilium is no longer needed. A leftover test database, `zz_proxytest`, was also sitting in CouchDB.
+
+**Changed.**
+
+- `docker compose down` in `/mnt/storage/trilium` removed the container; the `triliumnext/trilium` image was deleted.
+- Kept `/mnt/storage/trilium` (data, Trilium's own backups, Compose file) as an archive. It stays in the nightly backup.
+- Deleted the CouchDB database `zz_proxytest`.
+
+**Verified.** `docker ps -a` shows no `trilium` container. `notes.example.duckdns.org` returns 502. CouchDB's `_all_dbs` lists only `_replicator`, `_users`, `obsidiannotes`.
+
+**Still open.** Delete the `notes.` proxy host in the NPM UI. Decide whether to delete the Trilium archive. Phone client, when wanted.
+
 ### Restored the LiveSync database after an accidental overwrite; first client connected
 
 **Problem.** While setting up the first Obsidian client, the setup on the device rebuilt the server database from a new, empty vault (LiveSync's "Overwrite server data" path). CouchDB was left holding only Obsidian's default `Welcome.md`. The server's plain-Markdown copy in `vault/` was unaffected.

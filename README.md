@@ -63,7 +63,6 @@ flowchart TB
             Immich
             Nextcloud[Nextcloud AIO]
             Vaultwarden
-            Trilium
             CouchDB["CouchDB<br/>(Obsidian LiveSync)"]
             n8n
             Portainer
@@ -104,7 +103,6 @@ More detail: [`docs/architecture.md`](docs/architecture.md)
 | Immich 3.1 | Photo library with ML search | Compose `immich` | `immich.` |
 | Nextcloud AIO (Nextcloud 34) | Files and documents | Compose `nextcloud` + AIO-managed containers | `cloud.` |
 | Vaultwarden 1.37 | Password manager | Compose `vaultwarden` | `vault.` |
-| Trilium 0.106 | Notes (being retired; migrated to Obsidian) | Compose `trilium` | `notes.` |
 | Obsidian LiveSync (CouchDB 3.5) | Sync server for the Obsidian notes vault | Compose `obsidian-livesync` | `obsidian.` |
 | n8n 2.36 | Workflow automation | Compose `n8n` | `n8n.` |
 | IT-Tools | Developer utilities | `docker run` | `it.` |

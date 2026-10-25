@@ -68,7 +68,6 @@ Addresses on `proxy` at audit time. Only NPM's is static; the rest are assigned 
 | Container | Address |
 |---|---|
 | `npm` | `172.18.0.10` (static) |
-| `trilium` | `172.18.0.2` |
 | `n8n` | `172.18.0.3` |
 | `immich_postgres` | `172.18.0.4` |
 | `portainer` | `172.18.0.5` |
@@ -92,7 +91,7 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | `immich.` | `immich_server:2283` | http | |
 | `cloud.` | `nextcloud-aio-apache:11000` | http | |
 | `vault.` | `vaultwarden:80` | http | |
-| `notes.` | `trilium:8080` | http | |
+| `notes.` | `trilium:8080` | http | Trilium was removed on 2026-10-25, so this returns 502. Delete the host in the NPM UI |
 | `obsidian.` | `couchdb:5984` | http | Obsidian LiveSync. Advanced config: `proxy_buffering off`, `client_max_body_size 50M`, long read timeout |
 | `n8n.` | `n8n:5678` | http | |
 | `quartus.` | `quartus:3000` | http | Backend container is stopped, so this returns 502 |
