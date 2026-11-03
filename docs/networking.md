@@ -148,7 +148,7 @@ Because these are forwarded by a user-space process, UFW applies to them like an
 
 ## Boot ordering
 
-`systemd-networkd-wait-online` times out on this host, so `network-online.target` is reached late and without a real guarantee. Two units compensate:
+`systemd-networkd-wait-online` waits for `eno1` only (netplan's generated override) and finishes within a second. Until October 2026 it timed out at boot, and two units were added to compensate. They are kept, because `network-online.target` still does not guarantee working DNS:
 
 1. `tailscale-gro.service` runs after `network-online.target` and before `tailscaled`.
 2. `wait-for-internet.service` runs before `docker.service` and loops until `getent hosts` can resolve a public name, for up to 120 seconds.

@@ -62,7 +62,7 @@ cat /sys/block/bcache0/bcache/dirty_data     # let writeback settle if large
 sudo reboot
 ```
 
-After boot, expect about two minutes of delay while `systemd-networkd-wait-online` times out. Then:
+After boot:
 
 ```bash
 findmnt /mnt/storage                 # the data volume must be mounted

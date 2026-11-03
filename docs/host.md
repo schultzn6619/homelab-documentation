@@ -62,7 +62,6 @@ Largest memory users are `immich_server` (1.4 GiB), `n8n` (485 MiB), and `SnapOt
 | Security | `ufw` 0.36.2, `fail2ban` 1.1.0, `unattended-upgrades`, `debsums` |
 | Storage and backup | `bcache-tools`, `restic` 0.18.1, `smartmontools` |
 | Monitoring and tuning | `lm-sensors`, `cpulimit`, `sysstat`, `btop`, `stress-ng`, `fastfetch` |
-| Left over from earlier setups | `ipmitool` |
 | Shell tooling | `neovim`, `ripgrep`, `fzf`, `net-tools`, `netcat-traditional` |
 
 Third-party APT sources: Docker and Tailscale. No snaps are installed.
@@ -89,12 +88,7 @@ Also enabled by the Ubuntu Server defaults but not needed on this machine: `Mode
 
 ### Failed units
 
-`homelab-backup.service` was also failing at the audit and was fixed on 2026-10-13.
-
-| Unit | Cause |
-|---|---|
-| `systemd-networkd-wait-online.service` | Timed out after 120 s at boot. `wait-for-internet.service` is the working substitute |
-| `openipmi.service` | No IPMI hardware on this board |
+None on 2026-11-03. At the audit, `homelab-backup.service` (fixed 2026-10-13), `systemd-networkd-wait-online.service` and `openipmi.service` were failing; see [finding 12](findings.md#12-two-units-fail-at-every-boot).
 
 ### Timers
 

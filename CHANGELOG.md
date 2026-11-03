@@ -6,6 +6,18 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Cleared the units that failed at boot (finding 12)
+
+**Problem.** The audit found two units failing at every boot. `systemd-networkd-wait-online` timed out after 120 seconds, and `openipmi` failed because the board has no BMC.
+
+**Changed.**
+
+- `systemd-networkd-wait-online` needed no change. The journal shows it timed out only on the boot that ended 2026-10-13. On every boot since, it has finished within a second, because netplan's generated override (`/run/systemd/generator.late/.../10-netplan.conf`) waits for `eno1` only. `wait-for-internet.service` is kept, because `network-online.target` still does not guarantee working DNS.
+- Purged `openipmi`, `ipmitool` and `libopenipmi0t64`. Nothing depended on them, and `/dev/ipmi*` does not exist.
+- Emptied `NOTIFY_IGNORE_UNITS` in `/etc/discord-notify.env`, so a failure of either unit would now alert like any other.
+
+**Verified.** `systemctl --failed` is empty and no IPMI unit files remain. On the current boot, `systemd-networkd-wait-online` took 60 ms.
+
 ### Discord alerts for failures (finding 3)
 
 **Problem.** Nothing alerted on failure. The backup once failed silently for three weeks, and `livesync-cli` restart-looped for 40 hours without anyone noticing.

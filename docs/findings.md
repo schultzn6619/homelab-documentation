@@ -15,7 +15,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 9 | [Credentials written inline](#9-credentials-written-inline) | Medium | Partly fixed 2026-10-13 |
 | 10 | [Vaultwarden still allows sign-ups](#10-vaultwarden-still-allows-sign-ups) | Medium | Open |
 | 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low | **Fixed 2026-11-03** |
-| 12 | [Two units fail at every boot](#12-two-units-fail-at-every-boot) | Low | Open |
+| 12 | [Two units fail at every boot](#12-two-units-fail-at-every-boot) | Low | **Fixed 2026-11-03** |
 | 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low | Open |
 | 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low | Partly fixed 2026-11-03 |
 | 15 | [Thermal watchdog matches more than it should](#15-thermal-watchdog-matches-more-than-it-should) | Low | Open |
@@ -187,6 +187,8 @@ sudo ufw status numbered               # delete rules for retired ports
 Images referenced by a stopped container are kept by `docker image prune -a`. Review what each command lists before confirming.
 
 ## 12. Two units fail at every boot
+
+> **Fixed 2026-11-03.** `systemd-networkd-wait-online` had already stopped failing: on every boot since 2026-10-13 it has finished within a second, because netplan's generated override waits for `eno1` only. `openipmi`, `ipmitool` and `libopenipmi0t64` were purged. See the [changelog](../CHANGELOG.md#cleared-the-units-that-failed-at-boot-finding-12). The description below is kept as the record of what was wrong.
 
 **Observed.**
 

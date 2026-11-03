@@ -139,7 +139,7 @@ docs/       Architecture, host, networking, services, storage, hardening, operat
 | Pin the `proxy` network subnet | An auto-assigned range changed after a daemon state reset and broke containers with static addresses ("address already in use") | [`compose/homelab-core`](compose/homelab-core/docker-compose.yml) |
 | Tiered throttle/pause watchdog | An ML workload drove the CPU to its thermal shutdown limit | [`scripts/thermal-watchdog.sh`](scripts/thermal-watchdog.sh) |
 | Split-horizon DNS | Double NAT and inherited WAN DNS broke name resolution after moving to Tailscale | [`docs/networking.md`](docs/networking.md#dns) |
-| Hold Docker back until public DNS resolves | `systemd-networkd-wait-online` is not a reliable signal on this network, so a small unit gates `docker.service` on a real lookup | [`system/wait-for-internet.service`](system/wait-for-internet.service) |
+| Hold Docker back until public DNS resolves | `network-online.target` does not guarantee working DNS, so a small unit gates `docker.service` on a real lookup | [`system/wait-for-internet.service`](system/wait-for-internet.service) |
 | UniFi on UniFi OS Server, outside Docker | The controller used to run as a Docker container, where Layer 2 device discovery does not cross the bridge and adoption needed a manual `set-inform`. The vendor package publishes its ports on the host directly | [`docs/services.md`](docs/services.md#unifi-os-server) |
 
 ## Lessons learned
