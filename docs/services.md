@@ -8,7 +8,6 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 |---|---|---|---|---|---|
 | Nginx Proxy Manager | 2.16.0 (pinned) | Compose | `homelab-core` (`~/homelab/homelab-core`) | volumes `npm_data`, `npm_letsencrypt` | unless-stopped |
 | Portainer CE | 2.45.3 (pinned) | Compose | `homelab-core` | volume `portainer_data` | unless-stopped |
-| Watchtower | 1.21.2 (`nickfedor/watchtower`), no containers opted in | Compose | `homelab-core` | none | unless-stopped |
 | Immich | 3.1.0 | Compose | `immich` (`~/immich`) | `/mnt/storage/immich` | always |
 | Nextcloud AIO | Nextcloud 34.0.4 | Compose + AIO | `nextcloud` (`~/nextcloud`) | `/mnt/storage/nextcloud`, AIO volumes | always |
 | Vaultwarden | 1.37.5 (pinned) | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
@@ -37,12 +36,6 @@ Defines the shared `proxy` network and the three infrastructure containers.
 
 - Image `portainer/portainer-ce:2.45.3`, UI on 9000 (LAN address and `ptnr.`).
 - Mounts the Docker socket read-write.
-
-### Watchtower
-
-- Image `nickfedor/watchtower`, a maintained fork of the original project.
-- Runs at 04:00 daily, label opt-in, rolling restarts, removes old images.
-- Since 2026-11-03 no container carries the opt-in label, because every image it used to update is pinned to a version tag. It still runs, so a service can opt back in by setting `com.centurylinklabs.watchtower.enable=true`.
 
 ### Twingate connector (defined, not deployed)
 
@@ -109,7 +102,7 @@ Replaces Trilium as the notes system (migrated 2026-10-25). Notes are an Obsidia
 
 - Image `n8nio/n8n:latest`, state (SQLite database, credentials encryption key, workflows) in `/mnt/storage/n8n`.
 - Configured for `https://n8n.example.duckdns.org`.
-- Not labelled for Watchtower, so it stays on the pulled image until updated by hand. Not included in the backup script.
+- Tracks `latest` but stays on the pulled image until updated by hand. Not included in the backup script.
 - Bind-mounts the vault folder `/mnt/storage/obsidian-livesync/vault/Rocketbook Inbox` at `/home/node/.n8n-files/rocketbook`. n8n 2.x only lets file nodes use `~/.n8n-files`, and mounting just this folder keeps n8n out of the rest of the vault.
 
 ### Workflow "Rocketbook → Obsidian"
@@ -190,7 +183,6 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 
 | Mechanism | Covers |
 |---|---|
-| Watchtower, 04:00 daily | Nothing (no container is labelled) |
 | Manual, pinned version tags | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd` |
 | Nextcloud AIO interface | All `nextcloud-aio-*` containers |
 | UniFi OS Server updater | UniFi OS Server |
@@ -198,4 +190,4 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 | Tailscale auto-update | Tailscale |
 | Manual | `immich_*`, `n8n`, `it-tools`, `SnapOtter`, Docker Engine and other third-party APT packages |
 
-The services above that were updated by Watchtower are pinned to the version tag they were running on 2026-11-03. Immich tracks `release`, n8n, IT-Tools and SnapOtter track `latest`, and the Immich database and cache images are pinned by digest.
+There is no unattended image updater; Watchtower was removed on 2026-11-03. The services it used to update are pinned to the version tag they were running that day. Immich tracks `release`, n8n, IT-Tools and SnapOtter track `latest`, and the Immich database and cache images are pinned by digest.

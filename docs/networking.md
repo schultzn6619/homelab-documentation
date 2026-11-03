@@ -60,7 +60,6 @@ The earlier remote-access tool was Twingate. Its connector is still defined in t
 | `proxy` | `172.18.0.0/16`, gateway `.1` | `fd00:dead:cafe::/64` | 11 containers: NPM and every proxied app. External network, created by `homelab-core` |
 | `bridge` (default) | `172.17.0.0/16` | `fd00:dead:beef::/64` | IT-Tools, SnapOtter |
 | `nextcloud-aio` | `172.19.0.0/16` | – | Nextcloud AIO child containers. Created by AIO |
-| `homelab-core_default` | `172.21.0.0/16` | – | Watchtower |
 | two unused networks | `172.20.0.0/24`, `172.22.0.0/16` | – | Left over from retired stacks; no containers attached |
 
 Addresses on `proxy` at audit time. Only NPM's is static; the rest are assigned at start and can change.

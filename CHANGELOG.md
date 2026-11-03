@@ -6,6 +6,14 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Removed Watchtower
+
+**Problem.** After every image it updated was pinned, Watchtower had nothing to update, but it still mounted the Docker socket read-write.
+
+**Changed.** Stopped and removed the `watchtower` container, deleted its service from the `homelab-core` [Compose file](compose/homelab-core/docker-compose.yml), and removed the `nickfedor/watchtower` image and the `homelab-core_default` network, which only Watchtower used. The `watchtower.enable=false` labels are left on the other services; they do nothing now. Nextcloud AIO's own `nextcloud-aio-watchtower` is separate and unchanged.
+
+**Verified.** `docker compose config` accepts the edited file, no `watchtower` container or image remains, and NPM and Portainer kept running.
+
 ### Pinned every Watchtower-managed image (finding 14)
 
 **Problem.** Watchtower updated six containers every night at 04:00 from `latest`-style tags, with no record of the previous version to roll back to. Among them were the reverse proxy and the password manager. Earlier the same day, an update of that kind broke `livesync-cli` for about 40 hours.

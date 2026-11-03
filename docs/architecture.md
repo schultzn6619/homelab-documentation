@@ -44,7 +44,7 @@ Three kinds of backend sit behind the proxy:
 - **Internet to host:** no inbound path. The ISP uses CGNAT, nothing is port-forwarded, and Tailscale connections are outbound.
 - **LAN and tailnet to host:** UFW filters traffic to host processes (SSH and the UniFi OS Server ports). Docker-published ports are filtered by Docker's own rules, not UFW, so their bind address is what scopes them. See [hardening](hardening.md#docker-and-the-firewall).
 - **Proxy to apps:** plain HTTP inside the `proxy` bridge network. Every container on that network can reach every other one.
-- **Docker socket:** Portainer and Watchtower mount it read-write, and the Nextcloud AIO master container read-only. Any of these is equivalent to root on the host if compromised.
+- **Docker socket:** Portainer mounts it read-write, and the Nextcloud AIO master container read-only. Any of these is equivalent to root on the host if compromised.
 
 ## Design decisions
 
@@ -77,7 +77,7 @@ Immich's machine-learning jobs can pin all 12 threads for long periods. `thermal
 
 ### Opt-in automatic updates
 
-Watchtower runs daily at 04:00 with `WATCHTOWER_LABEL_ENABLE=true`, so only containers that carry the enable label are updated. Since 2026-11-03 none do: the images it used to update are pinned to version tags and updated by hand. Immich is not labelled, and Nextcloud AIO marks its own containers as excluded because it has its own upgrade procedure. The exact coverage is in [services](services.md#update-policy).
+No container images are updated unattended. Watchtower used to update a labelled set every night at 04:00, but on 2026-11-03 those images were pinned to version tags and Watchtower was removed. Nextcloud AIO updates its own containers through its interface. The exact coverage is in [services](services.md#update-policy).
 
 ### UniFi OS Server on the host
 

@@ -108,7 +108,7 @@ Also enabled by the Ubuntu Server defaults but not needed on this machine: `Mode
 | `sysstat-collect.timer` | every 10 min | `sar` performance history |
 | `fwupd-refresh.timer` | periodic | Firmware metadata |
 
-There are no user crontabs. Watchtower's 04:00 schedule runs inside its container, not from systemd or cron.
+There are no user crontabs.
 
 ## Kernel parameters
 

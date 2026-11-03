@@ -71,7 +71,6 @@ flowchart TB
             ITTools[IT-Tools]
             SnapOtter
         end
-        Watchtower -. "04:00 image updates<br/>(none opted in)" .-> Proxy
     end
 
     subgraph Podman["Rootless Podman (uosserver user)"]
@@ -98,7 +97,6 @@ More detail: [`docs/architecture.md`](docs/architecture.md)
 |---|---|---|---|
 | Nginx Proxy Manager 2.16 | Reverse proxy, wildcard TLS | Compose `homelab-core` | `npm.` |
 | Portainer CE 2.45 | Container management UI | Compose `homelab-core` | `ptnr.` |
-| Watchtower 1.21 | Scheduled image updates (opt-in by label) | Compose `homelab-core` | – |
 | Immich 3.1 | Photo library with ML search | Compose `immich` | `immich.` |
 | Nextcloud AIO (Nextcloud 34) | Files and documents | Compose `nextcloud` + AIO-managed containers | `cloud.` |
 | Vaultwarden 1.37 | Password manager | Compose `vaultwarden` | `vault.` |

@@ -205,7 +205,7 @@ Images referenced by a stopped container are kept by `docker image prune -a`. Re
 
 ## 14. Update coverage and image pinning are uneven
 
-> **Partly fixed 2026-11-03.** Every image Watchtower used to update is now pinned to a version tag and updated by hand, and none carries the Watchtower label. See the [changelog](../CHANGELOG.md#pinned-every-watchtower-managed-image-finding-14). n8n, Immich, IT-Tools and SnapOtter still track `latest` or `release`.
+> **Partly fixed 2026-11-03.** Every image Watchtower used to update is now pinned to a version tag and updated by hand, and Watchtower has been removed. See the [changelog](../CHANGELOG.md#pinned-every-watchtower-managed-image-finding-14). n8n, Immich, IT-Tools and SnapOtter still track `latest` or `release`.
 
 **Observed.** Watchtower updates four containers unattended, all on the `latest` tag, including the reverse proxy and the password manager. `n8n` tracks `latest` but is not labelled, so it only changes when pulled by hand. Immich tracks `release`. Only two images are pinned by digest.
 

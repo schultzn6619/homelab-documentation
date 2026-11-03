@@ -61,18 +61,3 @@ services:
       - portainer_data:/data
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
-
-  watchtower:
-    image: nickfedor/watchtower
-    container_name: watchtower
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - WATCHTOWER_SCHEDULE=0 0 4 * * *
-      - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_LABEL_ENABLE=true
-      - WATCHTOWER_ROLLING_RESTART=true
-      - WATCHTOWER_TIMEOUT=60s
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"

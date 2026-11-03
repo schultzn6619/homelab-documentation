@@ -106,11 +106,11 @@ The jail is active with no bans and one failed attempt on record, which is expec
 
 ## Containers
 
-- **Docker socket mounts:** Portainer (read-write), Watchtower (read-write), Nextcloud AIO master (read-only), and the on-demand AIO watchtower. Each is a path to full control of the host.
+- **Docker socket mounts:** Portainer (read-write), Nextcloud AIO master (read-only), and the on-demand AIO watchtower. Each is a path to full control of the host.
 - **Shared network:** everything on `proxy` can reach everything else on it, including the Immich database and cache. No inter-container filtering is applied.
 - **Privileges:** no container runs with `--privileged` or host networking. No container has a memory or CPU limit, so one runaway workload can starve the rest; the thermal watchdog is the only brake.
 - **Secrets:** Immich and Twingate values live in `.env` files inside a home directory with mode 750. See [finding 9](findings.md#9-credentials-written-inline) for the exceptions.
-- **Image provenance:** images come from Docker Hub and GHCR by mutable tag. Since 2026-11-03 the stateful services are pinned to version tags, and Watchtower updates nothing unattended.
+- **Image provenance:** images come from Docker Hub and GHCR by mutable tag. Since 2026-11-03 the stateful services are pinned to version tags and nothing updates images unattended.
 
 ## TLS
 

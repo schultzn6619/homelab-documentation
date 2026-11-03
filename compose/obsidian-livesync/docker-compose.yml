@@ -17,7 +17,7 @@ services:
   livesync-cli:
     # Pinned: 1.0.44 (2026-11-01) refuses to start the daemon on state written by
     # earlier versions ("[Legacy state] ... owner is unknown"), and its fetch --force
-    # fails at random. Excluded from Watchtower; update by hand after checking a release.
+    # fails at random. Update by hand after checking a release.
     image: ghcr.io/vrtmrz/livesync-cli:1.0.43-cli
     container_name: livesync-cli
     restart: unless-stopped
