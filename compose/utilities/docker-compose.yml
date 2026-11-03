@@ -4,6 +4,8 @@ services:
     image: corentinth/it-tools:2024.10.22-7ca5933   # same image as latest; upstream unchanged since 2024
     container_name: it-tools
     restart: unless-stopped
+    environment:
+      - TZ=America/New_York
     networks:
       proxy:
 
@@ -11,6 +13,8 @@ services:
     image: snapotter/snapotter:2.2.0
     container_name: SnapOtter
     restart: unless-stopped
+    environment:
+      - TZ=America/New_York
     networks:
       proxy:
         aliases: [snapotter]

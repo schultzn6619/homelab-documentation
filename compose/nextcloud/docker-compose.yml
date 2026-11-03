@@ -14,6 +14,7 @@ services:
       APACHE_IP_BINDING: "@INTERNAL"   # no host port; NPM reaches nextcloud-aio-apache on proxy
       NC_DOMAIN: "cloud.example.duckdns.org"
       SKIP_DOMAIN_VALIDATION: "true"
+      TZ: "America/New_York"
       NEXTCLOUD_DATADIR: "/mnt/storage/nextcloud"   # actual file storage goes here, not the boot drive
     networks:
       - proxy

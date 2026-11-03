@@ -5,6 +5,8 @@ services:
     restart: unless-stopped
     user: "1000:1000"
     env_file: .env
+    environment:
+      - TZ=America/New_York
     networks:
       proxy:
     volumes:
@@ -23,6 +25,8 @@ services:
     restart: unless-stopped
     user: "1000:1000"
     command: ["--vault", "/vault", "daemon"]
+    environment:
+      - TZ=America/New_York
     networks:
       proxy:
     volumes:

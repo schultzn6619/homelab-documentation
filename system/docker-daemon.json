@@ -1,5 +1,10 @@
 {
   "ipv6": true,
   "fixed-cidr-v6": "fd00:dead:beef::/64",
-  "ip6tables": true
+  "ip6tables": true,
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
 }

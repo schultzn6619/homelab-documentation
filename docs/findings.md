@@ -19,7 +19,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low | **Fixed 2026-11-03** |
 | 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low | Partly fixed 2026-11-03 |
 | 15 | [Thermal watchdog matches more than it should](#15-thermal-watchdog-matches-more-than-it-should) | Low | Open |
-| 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low | Open |
+| 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low | Partly fixed 2026-11-03 |
 | 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium | Partly fixed 2026-11-03 |
 | 18 | [Data disk is past its rated load cycles](#18-data-disk-is-past-its-rated-load-cycles) | Medium | Open |
 | 19 | [SSH password login was enabled by a drop-in](#19-ssh-password-login-was-enabled-by-a-drop-in) | High | **Fixed 2026-10-13** |
@@ -235,6 +235,12 @@ docker update --cpus 12 immich_machine_learning   # clear
 Or set a permanent `cpus:` limit on the ML service in the Compose file so the watchdog is only a last resort. Log with `logger -t thermal-watchdog` so entries go to the journal.
 
 ## 16. Minor host hygiene
+
+> **Partly fixed 2026-11-03.** See the [changelog](../CHANGELOG.md#host-hygiene-finding-16).
+>
+> - **Done:** the unneeded services are disabled, X11 forwarding is off, the old SSH key is removed, container logs are capped, and every container uses America/New_York. Fan speeds cannot be read in software, so the health check now alerts on CPU temperature instead.
+> - **Still open, and need hands-on or a decision:** memory, the UPS, the firmware, a static DHCP lease, and backing up the proxy host definitions (finding 2).
+> - **Not done on purpose:** blanket container resource limits. The one container that needs a limit is Immich's ML container, which finding 15 covers.
 
 - **Memory:** the four 8 GB modules come from two different kits and run at 2666 MT/s. It works, but a matched set at its rated profile would be faster and is the first thing to rule out if unexplained instability appears.
 - **Unsafe shutdowns:** the NVMe has recorded 160 over its life. With a writeback cache in front of the data disk, a small UPS with a clean-shutdown hook is worth considering.

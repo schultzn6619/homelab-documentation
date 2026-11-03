@@ -33,6 +33,8 @@ services:
 
   redis:
     container_name: immich_redis
+    environment:
+      TZ: America/New_York
     image: docker.io/valkey/valkey:9@sha256:4963247afc4cd33c7d3b2d2816b9f7f8eeebab148d29056c2ca4d7cbc966f2d9
     healthcheck:
       test: redis-cli ping || exit 1
@@ -49,6 +51,7 @@ services:
       POSTGRES_DB: ${DB_DATABASE_NAME}
       POSTGRES_INITDB_ARGS: '--data-checksums'
       DB_STORAGE_TYPE: 'HDD'
+      TZ: America/New_York
     volumes:
       - ${DB_DATA_LOCATION}:/var/lib/postgresql/data
     shm_size: 128mb

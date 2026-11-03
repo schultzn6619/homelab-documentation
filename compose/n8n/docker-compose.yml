@@ -9,6 +9,7 @@ services:
       - N8N_PROTOCOL=https
       - N8N_PORT=5678
       - GENERIC_TIMEZONE=America/New_York
+      - TZ=America/New_York
     volumes:
       - /mnt/storage/n8n:/home/node/.n8n
       # Rocketbook scans land in the Obsidian vault; LiveSync syncs them to devices

@@ -13,7 +13,9 @@ services:
       - ND_LOGLEVEL=info
       - ND_ENABLESHARING=false
       - ND_LISTENBRAINZ_ENABLED=true
+      - TZ=America/New_York
     volumes:
+      - /usr/share/zoneinfo:/usr/share/zoneinfo:ro   # the image has no tzdata, so TZ is ignored without it
       - /mnt/storage/music/navidrome:/data
       - /mnt/storage/music/library:/music:ro
     labels:
@@ -36,6 +38,7 @@ services:
       - SLSKD_DOWNLOADS_DIR=/music/soulseek
       - SLSKD_INCOMPLETE_DIR=/incomplete
       - SLSKD_SLSK_LISTEN_PORT=50300
+      - TZ=America/New_York
     volumes:
       - /mnt/storage/music/slskd:/app
       - /mnt/storage/music/library:/music

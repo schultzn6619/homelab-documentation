@@ -18,11 +18,12 @@ pubkeyauthentication yes
 passwordauthentication no
 kbdinteractiveauthentication no
 allowusers admin
-x11forwarding yes
+x11forwarding no
 ```
 
 - Listens on port 22 on all interfaces; UFW decides who can connect.
-- Each client device has its own key in the admin user's `authorized_keys`.
+- Each client device has its own key in the admin user's `authorized_keys`: the laptop and the phone. An older key from the host's first setup was removed on 2026-11-03.
+- X11 forwarding is turned off by [`20-no-x11.conf`](../system/sshd_config.d/20-no-x11.conf).
 - **Drop-ins win over `sshd_config`.** The main file starts with `Include /etc/ssh/sshd_config.d/*.conf`, and for most options sshd keeps the first value it reads. The Ubuntu installer leaves [`50-cloud-init.conf`](../system/sshd_config.d/50-cloud-init.conf) there, and until 2026-10-13 it contained `PasswordAuthentication yes`, which silently overrode the `no` in the main file ([finding 19](findings.md#19-ssh-password-login-was-enabled-by-a-drop-in)). cloud-init is disabled on this host, so the file will not be regenerated.
 - Always check the effective values rather than the file contents:
 
@@ -125,6 +126,6 @@ The jail is active with no bans and one failed attempt on record, which is expec
 | Performance history | `sysstat` (`sar`), 10-minute samples |
 | Disk health | `smartd` to the journal |
 | Thermal events | `/var/log/thermal-watchdog.log` |
-| Container logs | `docker logs` (json-file driver with no size limit configured, so logs grow until the container is recreated) |
+| Container logs | `docker logs`. json-file driver capped at 3 × 10 MB per container by [`daemon.json`](../system/docker-daemon.json) |
 
 There is no alerting. Nothing notifies anyone when a unit fails, a disk reports errors, or a backup does not run. See [finding 3](findings.md#3-nothing-alerts-on-failure).

@@ -9,6 +9,7 @@ services:
       - DOMAIN=https://vault.example.duckdns.org
       - SIGNUPS_ALLOWED=true    # flip to false once you've created your account
       - WEBSOCKET_ENABLED=true
+      - TZ=America/New_York
     volumes:
       - /mnt/storage/vaultwarden/data:/data
     labels:

@@ -6,6 +6,25 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Host hygiene (finding 16)
+
+**Changed.**
+
+- **Unneeded services.** Disabled and stopped `ModemManager`, `multipathd` (with its socket), `open-iscsi` and `iscsid.socket`. The host has no modem, no multipath devices (`multipath -ll` lists nothing) and no iSCSI targets.
+- **SSH.** Added [`20-no-x11.conf`](system/sshd_config.d/20-no-x11.conf) (`X11Forwarding no`) and reloaded sshd after `sshd -t`. Removed the old `authorized_keys` entry from the host's first setup. Its private key is not on the host, and the journal shows no login with it since at least 2026-10-01. The laptop and phone keys, which are the ones in use, remain.
+- **Container logs.** Added `log-driver: json-file` with `max-size: 10m` and `max-file: 3` to [`daemon.json`](system/docker-daemon.json) and restarted Docker. Logs totalled 20 MB, the largest being `immich_server` at 11 MB.
+- **Time zones.** Set `TZ=America/New_York` on every container in the [Compose files](compose/). That covers NPM, Portainer, Vaultwarden, CouchDB, LiveSync CLI, Navidrome, slskd, IT-Tools, SnapOtter, n8n, the Immich server, ML, Redis and Postgres, and the Nextcloud master. Immich's `.env` changed from America/Detroit, which keeps the same clock. Navidrome's Alpine image has no tzdata, so the host's `/usr/share/zoneinfo` is mounted read-only into it. The Nextcloud AIO child containers already used America/New_York.
+- **Recreating the containers.** Log options and environment only apply to new containers, so every stack was recreated one at a time. The AIO children were recreated with AIO's own script, as in finding 6. NPM was recreated last and on its own, so it kept `172.18.0.10`. No images were pulled. The health check timer was paused during the work.
+- **Fans.** The primary sensor chip is not detected, even with `ignore_resource_conflict=1 force_id=0x8686`, so fan speeds cannot be read. The [health check](scripts/homelab-health-check.py) now alerts when the CPU (`k10temp` Tctl) reaches 85 °C, the thermal watchdog's critical level.
+
+**Verified.**
+
+- Every running container has `max-size: 10m` and `max-file: 3`, and every container that has a `date` command reports EST.
+- Every proxy host answers through NPM as before. n8n's "Rocketbook → Obsidian" workflow is still active, and a LiveSync round trip succeeded.
+- The temperature check fires when its threshold is forced to 30 °C.
+
+**Still open.** These need hands-on work or a decision: matched memory, a UPS, a firmware update (UEFI F50 is from 2019), a static DHCP lease for the host, and backing up NPM's proxy definitions (finding 2). Blanket resource limits were not added; Immich ML is handled under finding 15. The AIO master container reports UTC because its image has no tzdata, which does not matter here because its backup schedule is set in the AIO interface.
+
 ### Stopped publishing Nextcloud's Apache port (finding 6)
 
 **Problem.** `nextcloud-aio-apache` published port 11000 on every interface, IPv4 and IPv6. That bypassed UFW and let anyone reach Nextcloud without going through the proxy or TLS. NPM already reached it by name on `proxy`, so the published port was not needed.

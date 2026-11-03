@@ -8,6 +8,8 @@ Checks:
   - free space below DISK_MIN_FREE_PCT on each path in DISK_PATHS
   - the TLS certificate at CERT_CHECK_ADDR for CERT_CHECK_HOST: invalid, or
     expiring within CERT_MIN_DAYS
+  - CPU temperature (k10temp Tctl) at or above CPU_MAX_C. The board's fan
+    inputs cannot be read, so this is how a failed fan would show up.
 
 New problems are posted to Discord with a ping; cleared problems are posted
 without one. State is kept in STATE_DIR so each problem is reported once.
@@ -31,6 +33,7 @@ DISK_MIN_FREE_PCT = float(os.environ.get("DISK_MIN_FREE_PCT", "10"))
 CERT_HOST = os.environ.get("CERT_CHECK_HOST", "")
 CERT_ADDR = os.environ.get("CERT_CHECK_ADDR", "")
 CERT_MIN_DAYS = int(os.environ.get("CERT_MIN_DAYS", "14"))
+CPU_MAX_C = float(os.environ.get("CPU_MAX_C", "85"))
 IGNORE_CONTAINERS = set(os.environ.get("IGNORE_CONTAINERS", "").split())
 
 
@@ -124,6 +127,23 @@ def check_cert():
     return {}
 
 
+def check_cpu_temp():
+    for hw in sorted(os.listdir("/sys/class/hwmon")):
+        base = os.path.join("/sys/class/hwmon", hw)
+        try:
+            with open(os.path.join(base, "name")) as f:
+                if f.read().strip() != "k10temp":
+                    continue
+            with open(os.path.join(base, "temp1_input")) as f:
+                temp = int(f.read()) / 1000
+        except OSError:
+            continue
+        if temp >= CPU_MAX_C:
+            return {"cpu-temp": f"CPU temperature is {temp:.0f} C (alert at {CPU_MAX_C:.0f} C)"}
+        return {}
+    return {"cpu-temp": "Cannot read the CPU temperature (no k10temp sensor)"}
+
+
 def main():
     dry = "--dry-run" in sys.argv
     try:
@@ -133,7 +153,7 @@ def main():
         state = {}
     old = state.get("problems", {})
     problems, counts = check_containers(state.get("restart_counts", {}))
-    for check in (check_backup, check_disks, check_cert):
+    for check in (check_backup, check_disks, check_cert, check_cpu_temp):
         problems.update(check())
 
     new = {k: v for k, v in problems.items() if k not in old}

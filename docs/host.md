@@ -16,7 +16,7 @@ Hardware, operating system, and everything that runs directly on the host. Value
 | Network | Realtek RTL8111 1 GbE (`eno1`) |
 | Form factor | Desktop chassis, no BMC or IPMI |
 
-Sensors come from `lm-sensors`: `k10temp` for the CPU (`Tctl`, which the thermal watchdog reads), `amdgpu`, and the NVMe composite temperature. The motherboard's secondary `it8792` chip is detected but its fan inputs read 0 RPM, so fan speeds are not monitored.
+Sensors come from `lm-sensors`: `k10temp` for the CPU (`Tctl`, which the thermal watchdog reads), `amdgpu`, and the NVMe composite temperature. The motherboard's secondary `it8792` chip is detected but its fan inputs read 0 RPM. The primary chip (an IT8686E on this board), which the fan headers are wired to, is not detected even with `it87 ignore_resource_conflict=1 force_id=0x8686`. Fan speeds therefore cannot be monitored. A failed fan would show up as CPU temperature, which the [health check](services.md#alerts) alerts on at 85 °C.
 
 At idle the CPU sits around 48 °C and the NVMe around 28 °C.
 
@@ -84,7 +84,7 @@ Third-party APT sources: Docker and Tailscale. No snaps are installed.
 
 `docker`, `containerd`, `tailscaled`, `ssh`, `fail2ban`, `ufw`, `chrony`, `smartmontools`, `unattended-upgrades`, `rsyslog`, `cron`, `fwupd`, `sysstat`.
 
-Also enabled by the Ubuntu Server defaults but not needed on this machine: `ModemManager`, `multipathd`, `open-iscsi`, `udisks2`, `upower`.
+`ModemManager`, `multipathd` and `open-iscsi` were enabled by the Ubuntu Server defaults and were disabled on 2026-11-03 (no modem, multipath devices or iSCSI targets). `udisks2` and `upower` are still enabled.
 
 ### Failed units
 
