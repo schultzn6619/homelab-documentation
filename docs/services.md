@@ -8,7 +8,7 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 |---|---|---|---|---|---|
 | Nginx Proxy Manager | 2.16.0 (pinned) | Compose | `homelab-core` (`~/homelab/homelab-core`) | volumes `npm_data`, `npm_letsencrypt` | unless-stopped |
 | Portainer CE | 2.45.3 (pinned) | Compose | `homelab-core` | volume `portainer_data` | unless-stopped |
-| Immich | 3.1.0 | Compose | `immich` (`~/immich`) | `/mnt/storage/immich` | always |
+| Immich | 3.1.0 (pinned) | Compose | `immich` (`~/homelab/immich`) | `/mnt/storage/immich` | always |
 | Nextcloud AIO | Nextcloud 34.0.4 | Compose + AIO | `nextcloud` (`~/nextcloud`) | `/mnt/storage/nextcloud`, AIO volumes | always |
 | Vaultwarden | 1.37.5 (pinned) | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
 | Obsidian LiveSync (CouchDB + CLI) | CouchDB 3.5.3, LiveSync CLI 1.0.43 (both pinned) | Compose | `obsidian-livesync` (`/mnt/storage/obsidian-livesync`) | `/mnt/storage/obsidian-livesync` | unless-stopped |
@@ -47,15 +47,15 @@ Photo and video library with face and object search.
 
 | Container | Image | Role |
 |---|---|---|
-| `immich_server` | `ghcr.io/immich-app/immich-server:release` | API, web UI, background jobs (port 2283) |
-| `immich_machine_learning` | `ghcr.io/immich-app/immich-machine-learning:release` | CPU inference; model cache in volume `immich_model-cache` |
+| `immich_server` | `ghcr.io/immich-app/immich-server:v3.1.0` | API, web UI, background jobs (port 2283) |
+| `immich_machine_learning` | `ghcr.io/immich-app/immich-machine-learning:v3.1.0` | CPU inference; model cache in volume `immich_model-cache` |
 | `immich_postgres` | `ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0` (digest-pinned) | Database with vector extensions |
 | `immich_redis` | `valkey/valkey:9` (digest-pinned) | Job queue |
 
 - Library at `/mnt/storage/immich/library` (17 GB), database at `/mnt/storage/immich/postgres`. The database is tuned for spinning disk (`DB_STORAGE_TYPE: HDD`).
 - Inference runs on the CPU; the installed GPU is not usable for it. This workload is what the thermal watchdog guards.
 - All four containers are on the `proxy` network.
-- Upgrades are manual: read the release notes, then `docker compose pull && docker compose up -d`.
+- Pinned with `IMMICH_VERSION=v3.1.0` in `.env`. Upgrades are manual: read the release notes, change `IMMICH_VERSION`, then `docker compose pull && docker compose up -d`. The weekly update check reports new releases.
 
 ## Nextcloud AIO
 
@@ -63,7 +63,7 @@ The Compose file only starts the AIO master container. The master then creates a
 
 | Container | Role |
 |---|---|
-| `nextcloud-aio-mastercontainer` | AIO admin interface (listens on 8080 inside the container; the published port mapping is wrong, see [finding 8](findings.md#8-nextcloud-aio-admin-interface-is-not-reachable)) |
+| `nextcloud-aio-mastercontainer` | AIO admin interface, `https://192.168.1.10:8091` (container port 8080, self-signed certificate) |
 | `nextcloud-aio-apache` | Web front end on port 11000, joined to `proxy`, no host port |
 | `nextcloud-aio-nextcloud` | PHP application |
 | `nextcloud-aio-database` | PostgreSQL |
@@ -100,9 +100,9 @@ Replaces Trilium as the notes system (migrated 2026-10-25). Notes are an Obsidia
 
 ## n8n
 
-- Image `n8nio/n8n:latest`, state (SQLite database, credentials encryption key, workflows) in `/mnt/storage/n8n`.
+- Image `n8nio/n8n:2.36.7` (pinned), state (SQLite database, credentials encryption key, workflows) in `/mnt/storage/n8n`.
 - Configured for `https://n8n.example.duckdns.org`.
-- Tracks `latest` but stays on the pulled image until updated by hand. Not included in the backup script.
+- Updated by hand; the weekly update check reports new releases. Not included in the backup script.
 - Bind-mounts the vault folder `/mnt/storage/obsidian-livesync/vault/Rocketbook Inbox` at `/home/node/.n8n-files/rocketbook`. n8n 2.x only lets file nodes use `~/.n8n-files`, and mounting just this folder keeps n8n out of the rest of the vault.
 
 ### Workflow "Rocketbook → Obsidian"
@@ -181,14 +181,14 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 
 | Mechanism | Covers |
 |---|---|
-| Manual, pinned version tags, weekly update check | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd`, `SnapOtter`, `it-tools` (its date-style tag is not checked) |
+| Manual, pinned version tags, weekly update check | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd`, `SnapOtter`, `n8n`, `immich_server`, `immich_machine_learning`, `it-tools` (its date-style tag is not checked) |
 | Nextcloud AIO interface | All `nextcloud-aio-*` containers |
 | UniFi OS Server updater | UniFi OS Server |
 | `unattended-upgrades` | Ubuntu packages from the release and security pockets |
 | Tailscale auto-update | Tailscale |
-| Manual | `immich_*`, `n8n`, Docker Engine and other third-party APT packages |
+| Manual | Docker Engine and other third-party APT packages |
 
-There is no unattended image updater; Watchtower was removed on 2026-11-03. The services it used to update are pinned to the version tag they were running that day. Immich tracks `release`, n8n tracks `latest`, and the Immich database and cache images are pinned by digest.
+There is no unattended image updater; Watchtower was removed on 2026-11-03. The services it used to update are pinned to the version tag they were running that day. n8n and Immich were pinned the same way on 2026-11-03. The Immich database and cache images are pinned by digest. The Nextcloud AIO master tracks `latest` and is updated through its own interface.
 
 ### Image update check
 

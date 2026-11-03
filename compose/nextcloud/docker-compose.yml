@@ -4,7 +4,7 @@ services:
     container_name: nextcloud-aio-mastercontainer
     restart: always
     ports:
-      - "192.168.1.10:8091:8092"
+      - "192.168.1.10:8091:8080"   # AIO interface (self-signed HTTPS)
     volumes:
       - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
       - /var/run/docker.sock:/var/run/docker.sock:ro

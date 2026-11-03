@@ -31,6 +31,10 @@ RELEASE_NOTES = {
     "deluan/navidrome": "https://github.com/navidrome/navidrome/releases",
     "slskd/slskd": "https://github.com/slskd/slskd/releases",
     "ghcr.io/vrtmrz/livesync-cli": "https://github.com/vrtmrz/obsidian-livesync/releases",
+    "ghcr.io/immich-app/immich-server": "https://github.com/immich-app/immich/releases",
+    "ghcr.io/immich-app/immich-machine-learning": "https://github.com/immich-app/immich/releases",
+    "n8nio/n8n": "https://github.com/n8n-io/n8n/releases",
+    "snapotter/snapotter": "https://github.com/snapotter-hq/SnapOtter/releases",
 }
 
 

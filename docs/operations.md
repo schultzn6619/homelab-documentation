@@ -51,7 +51,7 @@ Start order after a full stop: `homelab-core` first, because it creates the exte
 Exceptions:
 
 - **`homelab-core`:** do not run a bare `docker compose up -d` until the `twingate` service is removed from the file. Target services by name: `docker compose up -d npm portainer`. See [finding 5](findings.md#5-homelab-core-compose-file-has-drifted-from-what-is-deployed).
-- **Nextcloud:** start and stop the application containers from the AIO interface. `docker compose` in `~/nextcloud` only manages the master container. The published port for the interface is currently wrong ([finding 8](findings.md#8-nextcloud-aio-admin-interface-is-not-reachable)); until it is fixed the interface answers only on the container address, `https://172.18.0.7:8080` from the host, for example through an SSH tunnel.
+- **Nextcloud:** start and stop the application containers from the AIO interface. `docker compose` in `~/homelab/nextcloud` only manages the master container. The interface is at `https://192.168.1.10:8091` (self-signed certificate), reached by address and port rather than through the proxy. Without the interface, `docker exec -e DAILY_BACKUP=0 -e STOP_CONTAINERS=1 -e START_CONTAINERS=1 -e AUTOMATIC_UPDATES=0 nextcloud-aio-mastercontainer /daily-backup.sh` stops and recreates the containers without updating them.
 - **IT-Tools and SnapOtter:** Compose project `utilities` in `~/homelab/utilities`.
 - **UniFi OS Server:** `sudo systemctl restart uosserver`.
 

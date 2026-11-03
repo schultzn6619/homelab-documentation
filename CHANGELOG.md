@@ -6,6 +6,25 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Fixed the AIO interface port and pinned n8n and Immich (findings 8 and 14)
+
+**Problem.**
+
+- The Nextcloud AIO master published `8091` to container port `8092`, where nothing listens, so the AIO interface could not be reached. Maintenance needed workarounds, such as the `daily-backup.sh` call used for findings 6 and 16.
+- n8n tracked `latest` and Immich tracked `release`. They were the last service images without a version pin, and the update check could not see them.
+
+**Changed.**
+
+- Changed the mapping to `192.168.1.10:8091:8080` in `~/homelab/nextcloud/docker-compose.yml` ([copy](compose/nextcloud/docker-compose.yml)) and recreated the master container. The Nextcloud containers kept running.
+- Pinned n8n to `n8nio/n8n:2.36.7` ([Compose file](compose/n8n/docker-compose.yml)), and Immich to `IMMICH_VERSION=v3.1.0` in `~/homelab/immich/.env` ([example](compose/immich/.env.example)). Before switching, checked that each tag's registry digest matched the running image, so no version changed. Recreated both and removed the old `latest` and `release` tags.
+- Added release-notes links for Immich, n8n and SnapOtter to the [update check](scripts/image-update-check.py).
+
+**Verified.**
+
+- `https://192.168.1.10:8091` redirects to the AIO login page.
+- n8n and Immich are healthy on their pinned tags. `immich.` reports 3.1.0, and n8n's "Rocketbook → Obsidian" workflow is still active.
+- A dry run of the update check now also covers n8n and Immich. It reports Immich v3.3.5, n8n 3.1.0 (a major version) and SnapOtter 2.3.0 as available.
+
 ### Locked down Vaultwarden (findings 9 and 10)
 
 **Problem.** Vaultwarden's data directory, which holds the database and the RSA signing key, was readable by every local account (mode 755, files 644). The server also still allowed anyone who could reach it to create an account.

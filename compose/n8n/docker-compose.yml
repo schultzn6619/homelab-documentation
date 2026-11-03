@@ -1,7 +1,7 @@
 # ~/n8n/docker-compose.yml
 services:
   n8n:
-    image: n8nio/n8n:latest
+    image: n8nio/n8n:2.36.7
     container_name: n8n
     restart: unless-stopped
     environment:

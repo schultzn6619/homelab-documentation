@@ -11,13 +11,13 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 5 | [`homelab-core` Compose file has drifted from what is deployed](#5-homelab-core-compose-file-has-drifted-from-what-is-deployed) | Medium | Open |
 | 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium | **Fixed 2026-11-03** |
 | 7 | [Stale AAAA record in public DNS](#7-stale-aaaa-record-in-public-dns) | Medium | Open |
-| 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium | Open |
+| 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium | **Fixed 2026-11-03** |
 | 9 | [Credentials written inline](#9-credentials-written-inline) | Medium | **Fixed 2026-11-03** |
 | 10 | [Vaultwarden still allows sign-ups](#10-vaultwarden-still-allows-sign-ups) | Medium | **Fixed 2026-11-03** |
 | 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low | **Fixed 2026-11-03** |
 | 12 | [Two units fail at every boot](#12-two-units-fail-at-every-boot) | Low | **Fixed 2026-11-03** |
 | 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low | **Fixed 2026-11-03** |
-| 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low | Partly fixed 2026-11-03 |
+| 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low | **Fixed 2026-11-03** |
 | 15 | [Thermal watchdog matches more than it should](#15-thermal-watchdog-matches-more-than-it-should) | Low | Open |
 | 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low | Partly fixed 2026-11-03 |
 | 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium | Partly fixed 2026-11-03 |
@@ -134,6 +134,8 @@ Every other published port is bound to the LAN address. Docker-published ports b
 
 ## 8. Nextcloud AIO admin interface is not reachable
 
+> **Fixed 2026-11-03.** The mapping is now `192.168.1.10:8091:8080`, and the interface's login page loads. See the [changelog](../CHANGELOG.md#fixed-the-aio-interface-port-and-pinned-n8n-and-immich-findings-8-and-14). The description below is kept as the record of what was wrong.
+
 **Observed.** The Compose file publishes `192.168.1.10:8091` to container port `8092`. The AIO master container listens on 80, 8080, and 8443; nothing listens on 8092, and connections to 8091 are refused. The interface answers only on the container's own address.
 
 **Impact.** Nextcloud updates, AIO backups, and container start and stop cannot be driven from a browser without a workaround.
@@ -215,7 +217,7 @@ Images referenced by a stopped container are kept by `docker image prune -a`. Re
 
 ## 14. Update coverage and image pinning are uneven
 
-> **Partly fixed 2026-11-03.** Every image Watchtower used to update is now pinned to a version tag and updated by hand, and Watchtower has been removed. See the [changelog](../CHANGELOG.md#pinned-every-watchtower-managed-image-finding-14). n8n and Immich still track `latest` or `release`; IT-Tools and SnapOtter were pinned when they moved into Compose.
+> **Fixed 2026-11-03.** Every service image is pinned to a version tag or a digest and updated by hand. Watchtower has been removed, and a [weekly update check](services.md#image-update-check) reports new releases. The exception is the Nextcloud AIO master, which manages its own updates. See the changelog entries for [the Watchtower images](../CHANGELOG.md#pinned-every-watchtower-managed-image-finding-14) and for [n8n and Immich](../CHANGELOG.md#fixed-the-aio-interface-port-and-pinned-n8n-and-immich-findings-8-and-14). The description below is kept as the record of what was wrong.
 
 **Observed.** Watchtower updates four containers unattended, all on the `latest` tag, including the reverse proxy and the password manager. `n8n` tracks `latest` but is not labelled, so it only changes when pulled by hand. Immich tracks `release`. Only two images are pinned by digest.
 
