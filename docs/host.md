@@ -25,7 +25,7 @@ At idle the CPU sits around 48 °C and the NVMe around 28 °C.
 | | |
 |---|---|
 | Distribution | Ubuntu Server 26.04.1 LTS (Resolute Raccoon) |
-| Kernel | 7.0.0-34-generic running; 7.0.0-38 installed and waiting for a reboot |
+| Kernel | 7.0.0-42-generic, the newest installed |
 | Boot | UEFI, GRUB, ext4 root on NVMe |
 | Init / network | systemd, systemd-networkd via netplan (`eno1` with DHCPv4 and DHCPv6), systemd-resolved (stub resolver) |
 | Time | chrony, synchronized to Ubuntu NTS servers; time zone America/New_York |

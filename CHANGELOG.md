@@ -6,6 +6,20 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Rebooted onto the current kernel (finding 4)
+
+**Problem.** The host was running an older kernel than the one installed, and `/var/run/reboot-required` was set. Several packages, including `docker-ce`, `containerd.io`, `openssh-server` and `tailscale`, were waiting for an upgrade.
+
+**Changed.** unattended-upgrades installed kernel 7.0.0-42, and the host was rebooted onto it on 2026-11-03 (at 12:05, 12:10 and 17:29, the last to test the data-disk service for finding 18).
+
+**Verified.**
+
+- `uname -r` reports `7.0.0-42-generic`, the newest kernel in `/boot`, and `/var/run/reboot-required` is gone.
+- `docker-ce`, `containerd.io`, `openssh-server` and `tailscale` are no longer upgradable. Five packages remain: three security updates that unattended-upgrades will install, and two `software-properties` updates.
+- After the 17:29 reboot, every container came back up, all with health checks report healthy, and no systemd unit failed.
+
+**Still open.** The suggestion to add the Docker and Tailscale origins to unattended-upgrades was not done. Their updates still need a manual `apt upgrade`.
+
 ### Fixed the AIO interface port and pinned n8n and Immich (findings 8 and 14)
 
 **Problem.**
