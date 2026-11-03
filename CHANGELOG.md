@@ -6,6 +6,14 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Removed restic snapshots left over from the old hostname
+
+**Problem.** The host's name changed from `nath-serv` to `singularity`. restic groups snapshots by host, so `forget --keep-last 3` never pruned the three `nath-serv` snapshots (2026-10-23, 2026-10-24, 2026-10-25).
+
+**Changed.** Ran `restic forget 57654b60 fdb06452 d0cfca0d --prune`.
+
+**Verified.** `restic check` found no errors. The repository now holds the three newest `homelab-daily` snapshots and one `homelab-music` snapshot. Only 11.5 MiB was freed, because nearly all of the old snapshots' data was shared with the newer ones.
+
 ### Music added to the nightly backup
 
 **Problem.** Nothing under `/mnt/storage/music` was backed up. That includes the Navidrome database, which holds stars, play counts and playlists.
@@ -25,7 +33,6 @@ Also removed a `__pycache__` directory that had been committed by mistake, and a
 **Still open.**
 
 - The repository is still on the same machine (see [finding 2](docs/findings.md#2-backups-do-not-protect-against-losing-the-machine)), and the library will compete with the OS for NVMe space as it grows.
-- The host's name changed from `nath-serv` to `singularity`. restic groups snapshots by host, so the two old `nath-serv` snapshots (2026-10-24 and 2026-10-25) are never pruned.
 
 ### Discover Weekly playlist from ListenBrainz recommendations
 
