@@ -33,6 +33,7 @@ ARTISTS = {  # canonical name -> lower-case patterns that identify them
     "Playboi Carti": [r"playboi\s*carti", r"\bcarti\b"],
     "Travis Scott": [r"travis\s*scott", r"\btravis\b"],
     "Yeat": [r"\byeat\b"],
+    "Lil Uzi Vert": [r"lil\s*uzi(\s*vert)?", r"\buzi\b"],
 }
 LEAK_WORDS = re.compile(r"\b(unreleased|leaks?|leaked|snippets?|og\s*files?|cdq)\b", re.I)
 AUDIO = {".flac", ".mp3", ".m4a", ".ogg", ".opus"}

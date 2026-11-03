@@ -6,6 +6,12 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Lil Uzi Vert added to the leaks organiser
+
+**Changed.** Added Lil Uzi Vert (matched by "lil uzi", "lil uzi vert" or "uzi") to [`leaks-organize.py`](scripts/leaks-organize.py), reinstalled it, and created `library/leaks/Lil Uzi Vert/`.
+
+**Verified.** A dry run against the current downloads moved nothing, and a run through systemd succeeded.
+
 ### Folder and auto-tagging for unreleased music
 
 **Problem.** Leaked or unreleased songs downloaded through slskd land next to official albums, usually with messy or missing tags. In Navidrome that shows up as "Unknown Artist", scattered one-song albums, or songs merged into official albums.
