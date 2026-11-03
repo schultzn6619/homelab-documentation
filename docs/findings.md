@@ -250,7 +250,7 @@ Or set a permanent `cpus:` limit on the ML service in the Compose file so the wa
 
 ## 17. Firewall rules have drifted
 
-> **Partly fixed 2026-11-03.** The four rules for ports nothing listens on were deleted (finding 11), leaving 16 rules. The SSH scoping and the no-effect rules for Docker-published ports are still open.
+> **Partly fixed 2026-11-03.** The four rules for ports nothing listens on were deleted (finding 11), and the two no-effect rules for 8097 when IT-Tools stopped publishing it (finding 13), leaving 14 rules. The SSH scoping and the no-effect rules for Docker-published ports are still open.
 
 **Observed.** UFW is active with default-deny inbound and 20 rules. The full table is in [hardening](hardening.md#firewall-ufw).
 

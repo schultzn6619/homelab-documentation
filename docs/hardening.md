@@ -39,7 +39,7 @@ sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin|pubkeyauthentica
 | Default outbound | ACCEPT |
 | Default forward | ACCEPT (required for the Tailscale subnet router and Docker) |
 
-Live rules on 2026-11-03 (`sudo ufw status verbose`), 16 in total:
+Live rules on 2026-11-03 (`sudo ufw status verbose`), 14 in total:
 
 | To | Action | From | Still meaningful? |
 |---|---|---|---|
