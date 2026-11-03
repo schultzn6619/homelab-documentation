@@ -6,6 +6,19 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Removed the Quartus webtop
+
+**Problem.** The Quartus FPGA desktop had been stopped since 2026-10-03 and was no longer needed. It still used 40.5 GB of images, and its deployed Compose file held a password written inline (finding 9).
+
+**Changed.**
+
+- Ran `docker compose down --rmi local` for the stack, which removed the container and the locally built 14.1 GB image.
+- Removed the `raetro/quartus:13.0sp1` and `raetro/quartus:17.1` images (26.4 GB).
+- Deleted `/mnt/storage/quartus`. The projects folder held only one empty folder.
+- Its NPM proxy host had already been deleted, so nothing needed changing there.
+
+**Verified.** `docker ps -a`, `docker images` and `docker network ls` show nothing left for Quartus, and the directory is gone.
+
 ### Lil Uzi Vert added to the leaks organiser
 
 **Changed.** Added Lil Uzi Vert (matched by "lil uzi", "lil uzi vert" or "uzi") to [`leaks-organize.py`](scripts/leaks-organize.py), reinstalled it, and created `library/leaks/Lil Uzi Vert/`.
