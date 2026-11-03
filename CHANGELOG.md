@@ -16,6 +16,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 - A throwaway container with `--restart unless-stopped`, stopped with `docker stop`, was reported with `STOPPED_GRACE_MIN=0` ("stopped for 0 min (status exited, exit code 137)"), was not reported at the default 15 minutes, and was not reported when listed in `IGNORE_CONTAINERS`. It was then removed.
 - Deployed to `/usr/local/bin`. A run of `homelab-health-check.service` succeeded with "All checks passed".
+- End-to-end test on Discord: a stopped throwaway container `alert-test`, checked once with `STOPPED_GRACE_MIN=0`, produced a pinged alert with its last log line. Removing it and running the service produced the "Resolved" message. Both arrived.
 
 ### Unattended-upgrades for Docker and Tailscale (finding 4)
 
