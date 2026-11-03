@@ -183,7 +183,7 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 
 | Mechanism | Covers |
 |---|---|
-| Manual, pinned version tags | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd` |
+| Manual, pinned version tags, weekly update check | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd` |
 | Nextcloud AIO interface | All `nextcloud-aio-*` containers |
 | UniFi OS Server updater | UniFi OS Server |
 | `unattended-upgrades` | Ubuntu packages from the release and security pockets |
@@ -191,3 +191,12 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 | Manual | `immich_*`, `n8n`, `it-tools`, `SnapOtter`, Docker Engine and other third-party APT packages |
 
 There is no unattended image updater; Watchtower was removed on 2026-11-03. The services it used to update are pinned to the version tag they were running that day. Immich tracks `release`, n8n, IT-Tools and SnapOtter track `latest`, and the Immich database and cache images are pinned by digest.
+
+### Image update check
+
+[`image-update-check.py`](../scripts/image-update-check.py), installed as `/usr/local/bin/image-update-check.py`, is run by `image-update-check.timer` every Monday at 09:00 ([unit files](../system/)) as the admin user. It pulls nothing and changes nothing.
+
+- It finds every running container whose image tag is a version number, so a newly pinned service is covered automatically. It then lists that repository's tags on Docker Hub or GHCR and keeps newer tags of the same form. `2.45.3` is compared only with plain `x.y.z` tags, and `1.0.43-cli` only with `x.y.z-cli`, so variants such as `-alpine`, per-architecture and `pr-123` tags are ignored.
+- When something is newer, it posts a list to a Discord channel through a webhook. Each entry gives the current tag, the newest tag, a note when the major version changes, and a release-notes link. If nothing is newer it stays quiet. If a lookup fails, it posts the error.
+- Settings are in `/etc/image-update-check.env` (root, mode 600; [example](../system/image-update-check.env.example)). `DISCORD_WEBHOOK_URL` is the webhook. `IGNORE_TAGS` lists releases known to be bad as `container:tag`; it currently holds `livesync-cli:1.0.44-cli`.
+- Run by hand: `sudo systemctl start image-update-check`, or `python3 -I /usr/local/bin/image-update-check.py --dry-run` to print the report instead of posting it. `--test` posts a test message. Logs: `journalctl -u image-update-check`.

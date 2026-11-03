@@ -6,6 +6,21 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Weekly update check for the pinned images
+
+**Problem.** With every image pinned and Watchtower removed, nothing would show when NPM, Vaultwarden or the other pinned services had a new release, security fixes included.
+
+**Changed.** Added [`image-update-check.py`](scripts/image-update-check.py) and [`image-update-check.timer`](system/image-update-check.timer), which runs every Monday at 09:00. It compares each running container's pinned version tag with newer tags of the same form in its registry and posts any newer releases to a Discord webhook. It never pulls or changes anything. The webhook and an ignore list (`livesync-cli:1.0.44-cli`) are in `/etc/image-update-check.env`, which only root can read. Details are in [services](docs/services.md#image-update-check).
+
+**Verified.**
+
+- A dry run found all seven pinned containers.
+- It reported `livesync-cli` 1.0.44 as the only newer release, and nothing once that tag was ignored. That is correct: the other six were checked earlier today and are on their newest releases.
+- Test cases picked the right tags. `3.5.2` matched `3.5.2.1`, `3.5.3` and `4.0.0` but not `3.5.3-nouveau`. `1.0.43-cli` skipped `-sha-` builds. `2.45.3` skipped `-alpine` and per-architecture tags.
+- A run through systemd succeeded.
+
+**Still open.** The Discord webhook URL has not been added yet, so posting has not been tested.
+
 ### Removed Watchtower
 
 **Problem.** After every image it updated was pinned, Watchtower had nothing to update, but it still mounted the Docker socket read-write.

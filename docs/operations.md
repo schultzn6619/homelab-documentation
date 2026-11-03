@@ -88,7 +88,7 @@ Unattended-upgrades handles Ubuntu's own pockets. Docker Engine, containerd, and
 
 | Stack | Procedure |
 |---|---|
-| NPM, Portainer, Vaultwarden, CouchDB, Navidrome, slskd | Pinned to a version tag. Read the release notes, change the tag in the Compose file, `docker compose pull <service> && docker compose up -d <service>`. Recreate NPM on its own, not together with other containers on `proxy` (see below) |
+| NPM, Portainer, Vaultwarden, CouchDB, Navidrome, slskd | Pinned to a version tag. The [weekly image update check](services.md#image-update-check) posts new releases to Discord. Read the release notes, change the tag in the Compose file, `docker compose pull <service> && docker compose up -d <service>`. Recreate NPM on its own, not together with other containers on `proxy` (see below) |
 | LiveSync CLI | Pinned to a version tag. Back up `cli-db/` and `vault/`, change the tag in `/mnt/storage/obsidian-livesync/docker-compose.yml`, `docker compose up -d livesync-cli`, and check the log reaches "LiveSync active" |
 | Immich | Read the release notes for breaking changes, then `cd ~/immich && docker compose pull && docker compose up -d` |
 | Nextcloud | AIO interface, "Update containers". Take a backup first |

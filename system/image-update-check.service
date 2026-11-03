@@ -1,0 +1,13 @@
+[Unit]
+Description=Check pinned container images for newer releases and post to Discord
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=admin
+Group=admin
+EnvironmentFile=/etc/image-update-check.env
+ExecStart=/usr/bin/python3 -I /usr/local/bin/image-update-check.py
+TimeoutStartSec=10min
+Nice=10
