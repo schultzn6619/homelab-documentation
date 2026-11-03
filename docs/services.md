@@ -151,6 +151,15 @@ The week is named by its Monday, so a rerun in the same week only tops up to 25 
 
 - Updated automatically by Watchtower.
 
+### Leaks organiser
+
+[`leaks-organize.py`](../scripts/leaks-organize.py), installed as `/usr/local/bin/leaks-organize.py`, run every 15 minutes by `leaks-organize.timer` as the admin user ([unit files](../system/)). Needs `python3-mutagen` (apt).
+
+1. **Sort.** A folder in `library/soulseek/` is moved to `library/leaks/<Artist>/` if its name or tags contain *unreleased*, *leak(s)*, *leaked*, *snippet(s)*, *OG file(s)* or *CDQ* (whole words, so "Luh Leakyz" doesn't count) and match exactly one of: Juice WRLD, Playboi Carti, Travis Scott, Yeat. Folders touched in the last 5 minutes are skipped, and later files are merged into the same folder.
+2. **Tag.** Every audio file under `library/leaks/<Artist>/` gets album artist = the artist, genre = Unreleased, and an album name built from its sub-folder names with quality labels like `[FLAC 16bit]` stripped and `(Unreleased)` appended. The artist is set unless the existing tag already names them. The title is rebuilt from the file name if it is empty or a placeholder like "Track 07". MusicBrainz album IDs are removed so leaks never merge with official albums. Files are only rewritten when something changes.
+
+Options: `--dry-run`. Logs: `journalctl -u leaks-organize`. The Discover Weekly cleanup never touches `library/leaks/`.
+
 ## IT-Tools and SnapOtter
 
 Two utility containers started by hand with `docker run`, so there is no Compose file for them.

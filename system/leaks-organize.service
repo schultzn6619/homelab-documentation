@@ -1,0 +1,9 @@
+[Unit]
+Description=Sort leaked/unreleased downloads into library/leaks and tidy their tags
+
+[Service]
+Type=oneshot
+User=admin
+Group=admin
+ExecStart=/usr/bin/python3 -I /usr/local/bin/leaks-organize.py
+Nice=10

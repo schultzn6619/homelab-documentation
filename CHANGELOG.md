@@ -6,6 +6,22 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Folder and auto-tagging for unreleased music
+
+**Problem.** Leaked or unreleased songs downloaded through slskd land next to official albums, usually with messy or missing tags. In Navidrome that shows up as "Unknown Artist", scattered one-song albums, or songs merged into official albums.
+
+**Changed.**
+
+- Installed `python3-mutagen`.
+- Created `library/leaks/{Juice WRLD,Playboi Carti,Travis Scott,Yeat}`.
+- Added [`leaks-organize.py`](scripts/leaks-organize.py) and [`leaks-organize.timer`](system/leaks-organize.timer), which runs every 15 minutes. It moves leak folders out of `library/soulseek/` by artist and normalises their tags. Details are in [`docs/services.md`](docs/services.md#leaks-organiser).
+
+**Verified.**
+
+- A dry run against the current downloads moved nothing. "Luh Leakyz Vol. 1" and the official albums were correctly ignored.
+- A test folder `Carti Unreleased 2019 [FLAC 16bit]` holding a copied FLAC with its title set to "Track 07" was moved to `leaks/Playboi Carti/`. It was tagged album "Carti Unreleased 2019", title "Kid Cudi", genre Unreleased. Navidrome showed it as its own album, while the official "Whole Lotta Red" kept 24 songs. A second run changed nothing. The test file was then deleted.
+- The timer's first run through systemd succeeded.
+
 ### Removed restic snapshots left over from the old hostname
 
 **Problem.** The host's name changed from `nath-serv` to `singularity`. restic groups snapshots by host, so `forget --keep-last 3` never pruned the three `nath-serv` snapshots (2026-10-23, 2026-10-24, 2026-10-25).
