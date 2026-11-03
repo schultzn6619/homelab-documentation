@@ -9,14 +9,14 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 3 | [Nothing alerts on failure](#3-nothing-alerts-on-failure) | High | **Fixed 2026-11-03** |
 | 4 | [Reboot pending for a kernel update](#4-reboot-pending-for-a-kernel-update) | Medium | Open |
 | 5 | [`homelab-core` Compose file has drifted from what is deployed](#5-homelab-core-compose-file-has-drifted-from-what-is-deployed) | Medium | Open |
-| 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium | Open |
+| 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium | Partly fixed 2026-11-03 |
 | 7 | [Stale AAAA record in public DNS](#7-stale-aaaa-record-in-public-dns) | Medium | Open |
 | 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium | Open |
 | 9 | [Credentials written inline](#9-credentials-written-inline) | Medium | Partly fixed 2026-10-13 |
 | 10 | [Vaultwarden still allows sign-ups](#10-vaultwarden-still-allows-sign-ups) | Medium | Open |
 | 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low | **Fixed 2026-11-03** |
 | 12 | [Two units fail at every boot](#12-two-units-fail-at-every-boot) | Low | **Fixed 2026-11-03** |
-| 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low | Open |
+| 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low | **Fixed 2026-11-03** |
 | 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low | Partly fixed 2026-11-03 |
 | 15 | [Thermal watchdog matches more than it should](#15-thermal-watchdog-matches-more-than-it-should) | Low | Open |
 | 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low | Open |
@@ -105,6 +105,8 @@ Add `OnFailure=notify-failure@%n.service` to `homelab-backup.service` and `therm
 **Fix.** Delete the `twingate` service and its `.env` entries, revoke the connector tokens in the Twingate admin console, remove the unused `twingate/connector` image, and correct the comments.
 
 ## 6. Three containers publish ports on every interface
+
+> **Partly fixed 2026-11-03.** IT-Tools and SnapOtter no longer publish ports; NPM reaches them by name on `proxy`. `nextcloud-aio-apache` still publishes 11000 on every interface.
 
 **Observed.**
 
@@ -199,6 +201,8 @@ Images referenced by a stopped container are kept by `docker image prune -a`. Re
 
 ## 13. Unmanaged and stopped containers
 
+> **Fixed 2026-11-03.** IT-Tools and SnapOtter now run from the Compose project `utilities` on the `proxy` network, pinned to version tags, with restart policy `unless-stopped`. SnapOtter is running again with its existing data. See the [changelog](../CHANGELOG.md#moved-it-tools-and-snapotter-into-compose-findings-13-and-6). IT-Tools is still unmaintained upstream. The description below is kept as the record of what was wrong.
+
 **Observed.**
 
 - `it-tools` and `SnapOtter` were created with `docker run`. Their configuration exists only in the running containers.
@@ -209,7 +213,7 @@ Images referenced by a stopped container are kept by `docker image prune -a`. Re
 
 ## 14. Update coverage and image pinning are uneven
 
-> **Partly fixed 2026-11-03.** Every image Watchtower used to update is now pinned to a version tag and updated by hand, and Watchtower has been removed. See the [changelog](../CHANGELOG.md#pinned-every-watchtower-managed-image-finding-14). n8n, Immich, IT-Tools and SnapOtter still track `latest` or `release`.
+> **Partly fixed 2026-11-03.** Every image Watchtower used to update is now pinned to a version tag and updated by hand, and Watchtower has been removed. See the [changelog](../CHANGELOG.md#pinned-every-watchtower-managed-image-finding-14). n8n and Immich still track `latest` or `release`; IT-Tools and SnapOtter were pinned when they moved into Compose.
 
 **Observed.** Watchtower updates four containers unattended, all on the `latest` tag, including the reverse proxy and the password manager. `n8n` tracks `latest` but is not labelled, so it only changes when pulled by hand. Immich tracks `release`. Only two images are pinned by digest.
 
@@ -251,7 +255,7 @@ Or set a permanent `cpus:` limit on the ML service in the Compose file so the wa
 **Observed.** UFW is active with default-deny inbound and 20 rules. The full table is in [hardening](hardening.md#firewall-ufw).
 
 - SSH (22/tcp) is allowed from anywhere on IPv4 and IPv6. Every other host service is scoped to the LAN or to Tailscale.
-- Eight rules cover ports that Docker publishes (80, 81, 443, 9000, 8091, 8097). They have no effect, because Docker's rules are evaluated first, and they give a false impression that those ports are filtered.
+- Eight rules cover ports that Docker publishes (80, 81, 443, 9000, 8091, 8097). The two for 8097 were deleted on 2026-11-03 when IT-Tools stopped publishing it. They have no effect, because Docker's rules are evaluated first, and they give a false impression that those ports are filtered.
 - Four rules are for ports nothing listens on any more.
 - The `DOCKER-USER` chain is empty.
 

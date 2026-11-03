@@ -74,7 +74,7 @@ watch cat /sys/block/bcache0/bcache/dirty_data
 | SnapOtter state | volume `SnapOtter-data` | NVMe |
 | Immich ML model cache | volume `immich_model-cache` | NVMe |
 | UniFi configuration and database | `uosserver` user's Podman storage | NVMe |
-| Compose files and `.env` files | `~/homelab-core`, `~/immich`, `~/n8n`, `~/nextcloud`, `~/homelab/music`, and beside the data for Obsidian LiveSync and Vaultwarden | both |
+| Compose files and `.env` files | `~/homelab/homelab-core`, `~/immich`, `~/n8n`, `~/nextcloud`, `~/homelab/music`, `~/homelab/utilities`, and beside the data for Obsidian LiveSync and Vaultwarden | both |
 | restic repository | `/var/backups/restic-repo` | NVMe |
 
 ## Health monitoring

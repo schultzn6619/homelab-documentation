@@ -7,6 +7,7 @@ Day-to-day procedures for this host. Paths are the real ones on the server; `~` 
 | Stack | Directory |
 |---|---|
 | `homelab-core` (NPM, Portainer) | `~/homelab/homelab-core` |
+| `utilities` (IT-Tools, SnapOtter) | `~/homelab/utilities` |
 | `immich` | `~/immich` |
 | `nextcloud` (AIO master) | `~/nextcloud` |
 | `n8n` | `~/n8n` |
@@ -51,7 +52,7 @@ Exceptions:
 
 - **`homelab-core`:** do not run a bare `docker compose up -d` until the `twingate` service is removed from the file. Target services by name: `docker compose up -d npm portainer`. See [finding 5](findings.md#5-homelab-core-compose-file-has-drifted-from-what-is-deployed).
 - **Nextcloud:** start and stop the application containers from the AIO interface. `docker compose` in `~/nextcloud` only manages the master container. The published port for the interface is currently wrong ([finding 8](findings.md#8-nextcloud-aio-admin-interface-is-not-reachable)); until it is fixed the interface answers only on the container address, `https://172.18.0.7:8080` from the host, for example through an SSH tunnel.
-- **IT-Tools and SnapOtter:** not in Compose. Use `docker start|stop|restart it-tools` and `SnapOtter`. SnapOtter has no restart policy and must be started by hand after a reboot.
+- **IT-Tools and SnapOtter:** Compose project `utilities` in `~/homelab/utilities`.
 - **UniFi OS Server:** `sudo systemctl restart uosserver`.
 
 ## Reboot
@@ -68,7 +69,6 @@ After boot:
 findmnt /mnt/storage                 # the data volume must be mounted
 systemctl --failed
 docker ps -a --format 'table {{.Names}}\t{{.Status}}'
-docker start SnapOtter               # no restart policy
 systemctl is-active uosserver tailscaled thermal-watchdog
 ethtool -k eno1 | grep rx-udp-gro-forwarding     # on
 ```
@@ -95,7 +95,7 @@ Unattended-upgrades handles Ubuntu's own pockets. Docker Engine, containerd, and
 | Immich | Read the release notes for breaking changes, then `cd ~/immich && docker compose pull && docker compose up -d` |
 | Nextcloud | AIO interface, "Update containers". Take a backup first |
 | n8n | `cd ~/n8n && docker compose pull && docker compose up -d` |
-| IT-Tools, SnapOtter | `docker pull <image>`, then remove and re-create the container with the same `docker run` arguments |
+| IT-Tools, SnapOtter | Pinned to a version tag in `~/homelab/utilities/docker-compose.yml`. Change the tag, then `docker compose pull && docker compose up -d`. The update check covers SnapOtter. IT-Tools's date-style tag is not recognised, but its upstream has not published since 2024 |
 | UniFi OS Server | Automatic through `uosserver-updater.service` |
 
 NPM has a static address (`172.18.0.10`) on `proxy`, but every other container there gets the next free address. If another container is recreated at the same moment, it can take `.10` and NPM then fails to start with "Address already in use". To recover, stop the container holding `.10` (`docker network inspect proxy`), `docker start npm`, then start the other container again.

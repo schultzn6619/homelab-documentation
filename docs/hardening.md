@@ -51,7 +51,6 @@ Live rules on 2026-11-03 (`sudo ufw status verbose`), 16 in total:
 | 11443/tcp | allow | `172.16.0.0/12` | Yes. Lets Nginx Proxy Manager reach the UniFi UI from the Docker network |
 | 443/tcp | allow | anywhere, IPv4 and IPv6 | No effect. The port is published by Docker |
 | 80, 81, 9000, 8091 | allow | LAN | No effect. Published by Docker |
-| 8097/tcp | allow | LAN and `172.16.0.0/12` | No effect. Published by Docker |
 
 The `DOCKER-USER` chain is empty for both IPv4 and IPv6, so nothing restricts Docker-published ports beyond their bind address.
 

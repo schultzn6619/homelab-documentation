@@ -57,8 +57,8 @@ The earlier remote-access tool was Twingate. Its connector is still defined in t
 
 | Network | Subnet | IPv6 | Used by |
 |---|---|---|---|
-| `proxy` | `172.18.0.0/16`, gateway `.1` | `fd00:dead:cafe::/64` | 11 containers: NPM and every proxied app. External network, created by `homelab-core` |
-| `bridge` (default) | `172.17.0.0/16` | `fd00:dead:beef::/64` | IT-Tools, SnapOtter |
+| `proxy` | `172.18.0.0/16`, gateway `.1` | `fd00:dead:cafe::/64` | NPM and every proxied app. External network, created by `homelab-core` |
+| `bridge` (default) | `172.17.0.0/16` | `fd00:dead:beef::/64` | No containers |
 | `nextcloud-aio` | `172.19.0.0/16` | – | Nextcloud AIO child containers. Created by AIO |
 | two unused networks | `172.20.0.0/24`, `172.22.0.0/16` | – | Left over from retired stacks; no containers attached |
 
@@ -93,8 +93,8 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | `notes.` | `trilium:8080` | http | Trilium was removed on 2026-10-25, so this returns 502. Delete the host in the NPM UI |
 | `obsidian.` | `couchdb:5984` | http | Obsidian LiveSync. Advanced config: `proxy_buffering off`, `client_max_body_size 50M`, long read timeout |
 | `n8n.` | `n8n:5678` | http | |
-| `it.` | `192.168.1.10:8097` | http | Backend on default bridge, reached through its host port |
-| `tools.` | `192.168.1.10:1349` | http | Same pattern (SnapOtter) |
+| `it.` | `it-tools:80` | http | |
+| `tools.` | `snapotter:1349` | http | SnapOtter, by its network alias |
 | `music.` | `navidrome:4533` | http | Navidrome |
 | `slskd.` | `slskd:5030` | http | slskd web UI, websockets on |
 | `unifi.` | `192.168.1.10:11443` | https | UniFi OS Server; "block common exploits" is off for this host |
@@ -122,8 +122,6 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | 9000/tcp | LAN address | `portainer` | Portainer UI (direct) |
 | 8091/tcp | LAN address | `nextcloud-aio-mastercontainer` | Intended for the AIO admin interface, but mapped to container port 8092 where nothing listens. See [finding 8](findings.md#8-nextcloud-aio-admin-interface-is-not-reachable) |
 | 11000/tcp | all, IPv4 and IPv6 | `nextcloud-aio-apache` | Nextcloud backend for NPM |
-| 8097/tcp | all, IPv4 and IPv6 | `it-tools` | IT-Tools |
-| 1349/tcp | all, IPv4 and IPv6 | `SnapOtter` | SnapOtter |
 | 50300/tcp | all, IPv4 and IPv6 | `slskd` | Soulseek peer connections. Not forwarded on the router |
 | 5030/tcp | loopback | `slskd` | slskd API for the Discover Weekly job |
 

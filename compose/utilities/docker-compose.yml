@@ -1,0 +1,27 @@
+# Utility web apps, reached only through Nginx Proxy Manager on the proxy network.
+services:
+  it-tools:
+    image: corentinth/it-tools:2024.10.22-7ca5933   # same image as latest; upstream unchanged since 2024
+    container_name: it-tools
+    restart: unless-stopped
+    networks:
+      proxy:
+
+  snapotter:
+    image: snapotter/snapotter:2.2.0
+    container_name: SnapOtter
+    restart: unless-stopped
+    networks:
+      proxy:
+        aliases: [snapotter]
+    volumes:
+      - snapotter-data:/data
+
+volumes:
+  snapotter-data:
+    name: SnapOtter-data
+    external: true
+
+networks:
+  proxy:
+    external: true

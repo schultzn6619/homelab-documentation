@@ -15,8 +15,8 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 | n8n | 2.36.7 | Compose | `n8n` (`~/n8n`) | `/mnt/storage/n8n` | unless-stopped |
 | Navidrome | 0.64.2 (pinned) | Compose | `music` (`~/homelab/music`) | `/mnt/storage/music/navidrome`, library `/mnt/storage/music/library` | unless-stopped |
 | slskd (Soulseek client) | 0.26.2 (pinned) | Compose | `music` | `/mnt/storage/music/slskd` | unless-stopped |
-| IT-Tools | `latest` (image is 2 years old) | `docker run` | – | none | unless-stopped |
-| SnapOtter | 2.2.0 | `docker run` | – | volume `SnapOtter-data` | **no** |
+| IT-Tools | `2024.10.22-7ca5933` (pinned; upstream unchanged since 2024) | Compose | `utilities` (`~/homelab/utilities`) | none | unless-stopped |
+| SnapOtter | 2.2.0 (pinned) | Compose | `utilities` | volume `SnapOtter-data` | unless-stopped |
 | UniFi OS Server | 5.1.42 | systemd + rootless Podman | – | `uosserver` user's Podman storage | on-failure |
 
 Sanitised copies of every Compose file are in [`compose/`](../compose).
@@ -155,18 +155,16 @@ Options: `--dry-run`. Logs: `journalctl -u leaks-organize`. The Discover Weekly 
 
 ## IT-Tools and SnapOtter
 
-Two utility containers started by hand with `docker run`, so there is no Compose file for them.
+Two utility containers in the Compose project `utilities` ([Compose file](../compose/utilities/docker-compose.yml)), moved there from `docker run` on 2026-11-03. Neither publishes a port; NPM reaches them on `proxy`.
 
 | | IT-Tools | SnapOtter |
 |---|---|---|
-| Image | `corentinth/it-tools:latest` | `snapotter/snapotter:latest` (12.3 GB) |
+| Image | `corentinth/it-tools:2024.10.22-7ca5933` | `snapotter/snapotter:2.2.0` (12.3 GB) |
 | What it is | Collection of developer utilities | File conversion, compression, OCR, transcription, and local AI tools |
-| Network | default bridge | default bridge |
-| Port | `0.0.0.0:8097 -> 80` | `0.0.0.0:1349 -> 1349` |
-| State | none | volume `SnapOtter-data` |
-| Restart policy | unless-stopped | none: will not start after a reboot |
-
-Equivalent Compose definitions on the `proxy` network would remove both published ports. See [finding 6](findings.md#6-three-containers-publish-ports-on-every-interface).
+| Network | `proxy`, as `it-tools` | `proxy`, as `SnapOtter` with the alias `snapotter` |
+| State | none | external volume `SnapOtter-data` (the data from the earlier container) |
+| Restart policy | unless-stopped | unless-stopped |
+| Health check | none | built into the image, `/api/v1/health` |
 
 ## UniFi OS Server
 
@@ -183,14 +181,14 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 
 | Mechanism | Covers |
 |---|---|
-| Manual, pinned version tags, weekly update check | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd` |
+| Manual, pinned version tags, weekly update check | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd`, `SnapOtter`, `it-tools` (its date-style tag is not checked) |
 | Nextcloud AIO interface | All `nextcloud-aio-*` containers |
 | UniFi OS Server updater | UniFi OS Server |
 | `unattended-upgrades` | Ubuntu packages from the release and security pockets |
 | Tailscale auto-update | Tailscale |
-| Manual | `immich_*`, `n8n`, `it-tools`, `SnapOtter`, Docker Engine and other third-party APT packages |
+| Manual | `immich_*`, `n8n`, Docker Engine and other third-party APT packages |
 
-There is no unattended image updater; Watchtower was removed on 2026-11-03. The services it used to update are pinned to the version tag they were running that day. Immich tracks `release`, n8n, IT-Tools and SnapOtter track `latest`, and the Immich database and cache images are pinned by digest.
+There is no unattended image updater; Watchtower was removed on 2026-11-03. The services it used to update are pinned to the version tag they were running that day. Immich tracks `release`, n8n tracks `latest`, and the Immich database and cache images are pinned by digest.
 
 ### Image update check
 

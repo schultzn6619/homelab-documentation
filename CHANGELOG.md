@@ -6,6 +6,22 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Moved IT-Tools and SnapOtter into Compose (findings 13 and 6)
+
+**Problem.** IT-Tools and SnapOtter had been started with `docker run`, so their configuration existed only in the containers. Both published ports on every interface, IPv4 and IPv6 (8097 and 1349). SnapOtter had restart policy `no` and had been down since the reboot on 2026-10-13.
+
+**Changed.**
+
+- Checked that neither container had settings beyond its image defaults: environment, command and entrypoint all matched the image.
+- Created the Compose project `utilities` in `~/homelab/utilities` ([Compose file](compose/utilities/docker-compose.yml)). Both services are on `proxy` with no published ports and `restart: unless-stopped`. They are pinned to the versions they were running: `corentinth/it-tools:2024.10.22-7ca5933` (the same image as `latest`) and `snapotter/snapotter:2.2.0`. SnapOtter reuses its existing volume `SnapOtter-data` as an external volume and has the network alias `snapotter`.
+- Replaced the two containers. IT-Tools was down for about two minutes, because the old container was removed before the new project directory had been created.
+- Pointed the NPM proxy hosts `it.` and `tools.` at `it-tools:80` and `snapotter:1349`. The change was made in NPM's database and in the generated nginx config together, and checked with `nginx -t` before reloading. The previous database and config files were backed up first.
+- Deleted the two UFW rules for 8097/tcp, which had no effect, and removed the now-unused `latest` tags.
+
+**Verified.** `it.` and `tools.` both return 200 through NPM. SnapOtter's health check reports healthy, and its data volume was reused. Nothing listens on 8097 or 1349 on the host any more. UFW now has 14 rules.
+
+**Still open.** `nextcloud-aio-apache` still publishes 11000 on every interface (finding 6). The update check posts SnapOtter releases (2.3.0 is already out), but it cannot read IT-Tools's date-style tag.
+
 ### Cleared the units that failed at boot (finding 12)
 
 **Problem.** The audit found two units failing at every boot. `systemd-networkd-wait-online` timed out after 120 seconds, and `openipmi` failed because the board has no BMC.

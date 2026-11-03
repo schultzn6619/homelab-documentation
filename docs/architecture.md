@@ -33,11 +33,10 @@ sequenceDiagram
 
 A remote client follows the same path. Tailscale routes `192.168.1.0/24` through the host (subnet router), and Tailscale Split DNS forwards queries for the domain to the router, so the hostname resolves to the same LAN address and the same certificate is valid.
 
-Three kinds of backend sit behind the proxy:
+Two kinds of backend sit behind the proxy:
 
-1. **Containers on the `proxy` network**, addressed by container name. No host port is published. This is the default pattern.
-2. **Containers on Docker's default bridge** (IT-Tools, SnapOtter), addressed through a published host port. These were started with `docker run` and have not been moved into Compose.
-3. **UniFi OS Server**, which is not a Docker container. The proxy reaches it at the host address on port 11443 over HTTPS.
+1. **Containers on the `proxy` network**, addressed by container name. No host port is published. Every Docker backend follows this pattern since 2026-11-03; Nextcloud's Apache container also still publishes a port (finding 6).
+2. **UniFi OS Server**, which is not a Docker container. The proxy reaches it at the host address on port 11443 over HTTPS.
 
 ## Trust boundaries
 

@@ -66,8 +66,6 @@ flowchart TB
             CouchDB["CouchDB<br/>(Obsidian LiveSync)"]
             n8n
             Portainer
-        end
-        subgraph Bridge["default bridge (host port)"]
             ITTools[IT-Tools]
             SnapOtter
         end
@@ -102,8 +100,8 @@ More detail: [`docs/architecture.md`](docs/architecture.md)
 | Vaultwarden 1.37 | Password manager | Compose `vaultwarden` | `vault.` |
 | Obsidian LiveSync (CouchDB 3.5) | Sync server for the Obsidian notes vault | Compose `obsidian-livesync` | `obsidian.` |
 | n8n 2.36 | Workflow automation | Compose `n8n` | `n8n.` |
-| IT-Tools | Developer utilities | `docker run` | `it.` |
-| SnapOtter 2.2 | File conversion, OCR, local AI tools | `docker run` | `tools.` |
+| IT-Tools | Developer utilities | Compose `utilities` | `it.` |
+| SnapOtter 2.2 | File conversion, OCR, local AI tools | Compose `utilities` | `tools.` |
 | UniFi OS Server 5.1 | UniFi network controller | Rootless Podman, systemd | `unifi.` |
 | Tailscale 1.102 | Remote access, subnet router | Host package | – |
 
