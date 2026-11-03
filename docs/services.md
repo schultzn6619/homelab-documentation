@@ -136,7 +136,19 @@ Self-hosted replacement for Spotify. Navidrome is the player (Subsonic API; iPho
 - slskd shares nothing (no shared directories configured). Some Soulseek users refuse uploads to peers that share nothing.
 - The Soulseek peer port 50300/tcp is published on the host but not forwarded on the router, so peers can't connect in directly; searches and downloads still work.
 - ListenBrainz scrobbling is enabled server-wide; each user links a token in Navidrome's personal settings.
-- Planned: a weekly job that turns ListenBrainz recommendations into downloads and a "Discover Weekly" playlist.
+- slskd's API is also published on `127.0.0.1:5030` for the Discover Weekly job.
+
+### Discover Weekly job
+
+[`discover-weekly.py`](../scripts/discover-weekly.py), installed as `/usr/local/bin/discover-weekly.py`, run by `discover-weekly.timer` every Monday at 08:00 ([unit files](../system/)) as the admin user, with the slskd login from the music `.env`.
+
+1. **Cleanup.** Songs it fetched more than 28 days ago are deleted unless the Navidrome user starred them, rated them 4+, or played them at least twice (read from Navidrome's database, read-only). Kept songs stay where they are.
+2. **Pick.** The newest ListenBrainz "Weekly Exploration" playlist if it hasn't expired, then ListenBrainz collaborative-filtering recommendations the user has never listened to. Skips songs already in the library or tried before, and takes at most 2 per artist.
+3. **Download.** Searches slskd for each song and ranks results: the title and artist must appear in the path, the length must be within 10 s, remixes/instrumentals/sped-up versions are rejected, FLAC beats MP3 (MP3 must be ≥256 kbps), and free upload slots and short queues are preferred. A source that hasn't started after 10 minutes, or stalls for 5, is cancelled and the next one is tried. 2-hour limit.
+4. **Playlist.** Finished files are moved to `library/discover/<Monday's date>/<Artist> - <Title>.<ext>` and listed in `library/discover/Discover Weekly.m3u`, which Navidrome imports as a synced "Discover Weekly" playlist owned by the first admin.
+
+The week is named by its Monday, so a rerun in the same week only tops up to 25 songs. State (what was fetched, kept, removed, not found) is in `/mnt/storage/music/discover-state/state.json`. Logs: `journalctl -u discover-weekly`. Options: `--dry-run`, `--count N`, `--no-cleanup`.
+
 - Updated automatically by Watchtower.
 
 ## IT-Tools and SnapOtter

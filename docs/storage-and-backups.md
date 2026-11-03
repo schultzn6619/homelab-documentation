@@ -68,7 +68,7 @@ watch cat /sys/block/bcache0/bcache/dirty_data
 | Vaultwarden SQLite, attachments, keys | `/mnt/storage/vaultwarden/data` | bcache |
 | Obsidian LiveSync: CouchDB data, CLI database, plain-Markdown vault copy, secrets | `/mnt/storage/obsidian-livesync` | bcache |
 | n8n SQLite, encryption key, workflows | `/mnt/storage/n8n` | bcache |
-| Music library, Navidrome database, slskd state | `/mnt/storage/music` | bcache |
+| Music library, Navidrome database, slskd state, Discover Weekly state | `/mnt/storage/music` | bcache |
 | Quartus build context, desktop home, projects | `/mnt/storage/quartus` | bcache |
 | Nginx Proxy Manager config and certificates | volumes `homelab-core_npm_data`, `homelab-core_npm_letsencrypt` | NVMe |
 | Portainer state | volume `homelab-core_portainer_data` | NVMe |

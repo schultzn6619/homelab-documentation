@@ -28,6 +28,7 @@ services:
       - proxy
     ports:
       - "50300:50300"          # Soulseek peer port (only matters if forwarded on the router)
+      - "127.0.0.1:5030:5030"  # slskd API for the discover-weekly job (host only)
     env_file:
       - .env
     environment:

@@ -1,0 +1,14 @@
+[Unit]
+Description=Discover Weekly: fetch ListenBrainz recommendations into Navidrome
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=admin
+Group=admin
+EnvironmentFile=/home/admin/homelab/music/.env
+Environment=LB_USER=admin ND_USER=admin
+ExecStart=/usr/bin/python3 -I /usr/local/bin/discover-weekly.py
+TimeoutStartSec=3h
+Nice=10

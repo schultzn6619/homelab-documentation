@@ -6,6 +6,25 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Discover Weekly playlist from ListenBrainz recommendations
+
+**Problem.** The music server only plays what is already in the library, so it had no way to suggest new music the way Spotify's radios and Discover Weekly do.
+
+**Changed.**
+
+- New [`discover-weekly.py`](scripts/discover-weekly.py) at `/usr/local/bin/`, run every Monday at 08:00 by [`discover-weekly.timer`](system/discover-weekly.timer). It takes ListenBrainz's Weekly Exploration playlist and unheard recommendations, downloads 25 new songs through slskd, files them under `library/discover/<week>/`, and writes `Discover Weekly.m3u`, which Navidrome imports as a synced playlist. After 28 days it deletes the songs that weren't starred, rated 4+, or played twice. How it chooses and matches songs is in [`docs/services.md`](docs/services.md#discover-weekly-job).
+- slskd's API is now also published on `127.0.0.1:5030` for the job ([Compose file](compose/music/docker-compose.yml)). slskd was recreated with no transfers in progress.
+- The `music.` and `slskd.` proxy hosts were added in the NPM UI.
+
+**Verified.**
+
+- A dry run picked 6 songs and found FLAC sources for all of them.
+- A 3-song run downloaded, moved, and listed the songs, and Navidrome logged `Adding synced playlist` for "Discover Weekly", owned by the admin user.
+- The first full run, through the systemd unit, took 14 minutes and ended with 25/25 songs. Three sources rejected or stalled and the next source was used. Navidrome shows the playlist with 25 songs (75 minutes). No files or empty folders were left in `library/soulseek/`.
+- The timer's next run is Monday 2026-11-09 08:00.
+
+**Still open.** The ListenBrainz Weekly Exploration playlist last generated on 2026-09-14 and has expired, so this week's songs all came from the general recommendations. The music data is still not in the restic backup.
+
 ### Music server: Navidrome and slskd
 
 **Problem.** Replacing a Spotify subscription needs a player, a source of music, and a way to discover new music. This change covers the first two.

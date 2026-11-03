@@ -97,8 +97,8 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | `quartus.` | `quartus:3000` | http | Backend container is stopped, so this returns 502 |
 | `it.` | `192.168.1.10:8097` | http | Backend on default bridge, reached through its host port |
 | `tools.` | `192.168.1.10:1349` | http | Same pattern (SnapOtter) |
-| `music.` | `navidrome:4533` | http | Navidrome (to be added in the NPM UI) |
-| `slskd.` | `slskd:5030` | http | slskd web UI (to be added in the NPM UI) |
+| `music.` | `navidrome:4533` | http | Navidrome |
+| `slskd.` | `slskd:5030` | http | slskd web UI, websockets on |
 | `unifi.` | `192.168.1.10:11443` | https | UniFi OS Server; "block common exploits" is off for this host |
 
 ## Listening ports on the host
@@ -128,6 +128,7 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | 8097/tcp | all, IPv4 and IPv6 | `it-tools` | IT-Tools |
 | 1349/tcp | all, IPv4 and IPv6 | `SnapOtter` | SnapOtter |
 | 50300/tcp | all, IPv4 and IPv6 | `slskd` | Soulseek peer connections. Not forwarded on the router |
+| 5030/tcp | loopback | `slskd` | slskd API for the Discover Weekly job |
 
 ### UniFi OS Server (rootless Podman, forwarded by `pasta`)
 
