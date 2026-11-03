@@ -6,7 +6,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 |---|---|---|---|
 | 1 | [Nightly backups have been failing since 2026-09-22](#1-nightly-backups-have-been-failing-since-2026-09-22) | High | **Fixed 2026-10-13** |
 | 2 | [Backups do not protect against losing the machine](#2-backups-do-not-protect-against-losing-the-machine) | High | Open |
-| 3 | [Nothing alerts on failure](#3-nothing-alerts-on-failure) | High | Open |
+| 3 | [Nothing alerts on failure](#3-nothing-alerts-on-failure) | High | **Fixed 2026-11-03** |
 | 4 | [Reboot pending for a kernel update](#4-reboot-pending-for-a-kernel-update) | Medium | Open |
 | 5 | [`homelab-core` Compose file has drifted from what is deployed](#5-homelab-core-compose-file-has-drifted-from-what-is-deployed) | Medium | Open |
 | 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium | Open |
@@ -71,6 +71,8 @@ The script runs `mongodump` inside a Docker container called `unifi-db`. That co
 6. Schedule a quarterly restore test into a scratch directory.
 
 ## 3. Nothing alerts on failure
+
+> **Fixed 2026-11-03.** Failed units, SMART warnings, container restart loops, backup age, disk space and certificate expiry now alert on Discord. See [alerts](services.md#alerts) and the [changelog](../CHANGELOG.md#discord-alerts-for-failures-finding-3). The description below is kept as the record of what was wrong.
 
 **Observed.** The backup failed silently for three weeks. `smartd` is configured to mail `root`, but the host has no mail transport. There is no monitoring of units, disks, certificates, or container health.
 

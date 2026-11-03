@@ -1,0 +1,10 @@
+[Unit]
+Description=Discord alert for failed unit %i
+
+[Service]
+Type=oneshot
+User=admin
+Group=admin
+EnvironmentFile=/etc/discord-notify.env
+StateDirectory=homelab-alerts
+ExecStart=/bin/sh /usr/local/bin/notify-unit-failure.sh %i

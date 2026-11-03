@@ -7,6 +7,7 @@ Wants=network-online.target
 Type=oneshot
 User=admin
 Group=admin
+EnvironmentFile=/etc/discord-notify.env
 EnvironmentFile=/etc/image-update-check.env
 ExecStart=/usr/bin/python3 -I /usr/local/bin/image-update-check.py
 TimeoutStartSec=10min

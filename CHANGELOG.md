@@ -6,6 +6,33 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Discord alerts for failures (finding 3)
+
+**Problem.** Nothing alerted on failure. The backup once failed silently for three weeks, and `livesync-cli` restart-looped for 40 hours without anyone noticing.
+
+**Changed.** Alerts now go to the Discord webhook that the image update check uses, with a mention of the admin. Details are in [services](docs/services.md#alerts).
+
+- Moved the webhook to `/etc/discord-notify.env` (root, mode 600), which all three jobs share. Added [`discord-notify.py`](scripts/discord-notify.py) to send the messages.
+- **Failed units.** A global drop-in, [`service.d/10-notify-failure.conf`](system/service.d/10-notify-failure.conf), adds `OnFailure=notify-failure@%n.service` to every service. The [alert unit](system/notify-failure@.service) posts the unit's status and log, at most once an hour per unit. It skips `openipmi` and `systemd-networkd-wait-online`, which fail at every boot (finding 12).
+- **Health check every 5 minutes.** [`homelab-health-check.py`](scripts/homelab-health-check.py) and [its timer](system/homelab-health-check.timer) cover:
+  - containers that are restart-looping or unhealthy
+  - the backup failing, or not succeeding for 26 hours
+  - less than 10% free space on `/` or `/mnt/storage`
+  - the NPM certificate being invalid or within 14 days of expiry
+
+  It posts each problem once, and again when the problem clears.
+- **SMART warnings.** Added [`20-discord-notify`](system/smartd-discord-notify) to `/etc/smartmontools/run.d/`.
+
+**Verified.**
+
+- A deliberately failing transient unit (`systemd-run ... exit 3`) produced a Discord alert within seconds.
+- A throwaway container with `--restart always` that exits 1 was reported as restart-looping on the next check. Removing it produced a "Resolved" post.
+- With thresholds forced past their limits (certificate 400 days, disk 99.5%, backup age 0.01 h), each check reported a problem. With normal thresholds all checks pass.
+- Stopped containers that keep an old "unhealthy" status are not reported.
+- The image update check still runs with the webhook moved.
+
+**Still open.** `DISCORD_PING_USER_ID` is not set yet, so alerts post without a mention.
+
 ### Weekly update check for the pinned images
 
 **Problem.** With every image pinned and Watchtower removed, nothing would show when NPM, Vaultwarden or the other pinned services had a new release, security fixes included.

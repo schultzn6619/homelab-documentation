@@ -1,0 +1,13 @@
+[Unit]
+Description=Homelab health check (containers, backup age, disk space, certificate)
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=admin
+Group=admin
+EnvironmentFile=/etc/discord-notify.env
+StateDirectory=homelab-alerts
+ExecStart=/usr/bin/python3 -I /usr/local/bin/homelab-health-check.py
+TimeoutStartSec=5min

@@ -19,6 +19,8 @@ Day-to-day procedures for this host. Paths are the real ones on the server; `~` 
 
 ## Daily health check
 
+The checks that matter most run automatically and alert on Discord (see [alerts](services.md#alerts)). This list is for a manual look.
+
 ```bash
 systemctl --failed                                   # should be empty
 docker ps -a --format 'table {{.Names}}\t{{.Status}}' # everything Up, healthy where reported

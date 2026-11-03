@@ -1,0 +1,6 @@
+#!/bin/sh
+# /etc/smartmontools/run.d/20-discord-notify, run by smartd-runner as root on a
+# SMART warning. Posts the warning to Discord with a ping, once a day per device.
+title="SMART warning on $(hostname): ${SMARTD_DEVICE:-unknown device} (${SMARTD_FAILTYPE:-unknown})"
+printf '%s\n' "${SMARTD_FULLMESSAGE:-$SMARTD_MESSAGE}" | /usr/bin/python3 -I /usr/local/bin/discord-notify.py \
+    --ping --key "smart-${SMARTD_DEVICESTRING:-$SMARTD_DEVICE}-${SMARTD_FAILTYPE}" --cooldown 86400 "$title"
