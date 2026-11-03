@@ -1,0 +1,13 @@
+[Unit]
+Description=Stop aggressive head parking on the data disk (APM 254)
+# Ubuntu's hdparm udev hook skips this disk: udev does not report ID_ATA_FEATURE_SET_APM for it.
+After=local-fs-pre.target
+Requires=dev-disk-by\x2did-ata\x2dST4000DM000\x2d1F2168_W300JZLJ.device
+After=dev-disk-by\x2did-ata\x2dST4000DM000\x2d1F2168_W300JZLJ.device
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/hdparm -B 254 /dev/disk/by-id/ata-ST4000DM000-1F2168_W300JZLJ
+
+[Install]
+WantedBy=multi-user.target
