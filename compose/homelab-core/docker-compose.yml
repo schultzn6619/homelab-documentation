@@ -32,7 +32,7 @@ services:
   # --- Reverse proxy: routes to every future service by container name ---
   npm:
     container_name: npm
-    image: jc21/nginx-proxy-manager:latest
+    image: jc21/nginx-proxy-manager:2.16.0
     restart: unless-stopped
     networks:
       proxy:
@@ -45,12 +45,12 @@ services:
       - npm_data:/data
       - npm_letsencrypt:/etc/letsencrypt
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.enable=false"
 
   # --- Container management UI ---
   portainer:
     container_name: portainer
-    image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:2.45.3
     restart: unless-stopped
     networks:
       - proxy
@@ -60,7 +60,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.enable=false"
 
   watchtower:
     image: nickfedor/watchtower

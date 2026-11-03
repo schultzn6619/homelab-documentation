@@ -17,7 +17,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low | **Fixed 2026-11-03** |
 | 12 | [Two units fail at every boot](#12-two-units-fail-at-every-boot) | Low | Open |
 | 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low | Open |
-| 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low | Open |
+| 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low | Partly fixed 2026-11-03 |
 | 15 | [Thermal watchdog matches more than it should](#15-thermal-watchdog-matches-more-than-it-should) | Low | Open |
 | 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low | Open |
 | 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium | Partly fixed 2026-11-03 |
@@ -204,6 +204,8 @@ Images referenced by a stopped container are kept by `docker image prune -a`. Re
 **Fix.** Put both `docker run` services into Compose (see finding 6).
 
 ## 14. Update coverage and image pinning are uneven
+
+> **Partly fixed 2026-11-03.** Every image Watchtower used to update is now pinned to a version tag and updated by hand, and none carries the Watchtower label. See the [changelog](../CHANGELOG.md#pinned-every-watchtower-managed-image-finding-14). n8n, Immich, IT-Tools and SnapOtter still track `latest` or `release`.
 
 **Observed.** Watchtower updates four containers unattended, all on the `latest` tag, including the reverse proxy and the password manager. `n8n` tracks `latest` but is not labelled, so it only changes when pulled by hand. Immich tracks `release`. Only two images are pinned by digest.
 

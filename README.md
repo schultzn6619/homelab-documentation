@@ -71,7 +71,7 @@ flowchart TB
             ITTools[IT-Tools]
             SnapOtter
         end
-        Watchtower -. "04:00 image updates<br/>(labelled containers)" .-> Proxy
+        Watchtower -. "04:00 image updates<br/>(none opted in)" .-> Proxy
     end
 
     subgraph Podman["Rootless Podman (uosserver user)"]

@@ -77,7 +77,7 @@ Immich's machine-learning jobs can pin all 12 threads for long periods. `thermal
 
 ### Opt-in automatic updates
 
-Watchtower runs daily at 04:00 with `WATCHTOWER_LABEL_ENABLE=true`, so only containers that carry the enable label are updated. Immich is not labelled, and Nextcloud AIO marks its own containers as excluded because it has its own upgrade procedure. The exact coverage is in [services](services.md#update-policy).
+Watchtower runs daily at 04:00 with `WATCHTOWER_LABEL_ENABLE=true`, so only containers that carry the enable label are updated. Since 2026-11-03 none do: the images it used to update are pinned to version tags and updated by hand. Immich is not labelled, and Nextcloud AIO marks its own containers as excluded because it has its own upgrade procedure. The exact coverage is in [services](services.md#update-policy).
 
 ### UniFi OS Server on the host
 

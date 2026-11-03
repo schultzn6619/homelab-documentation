@@ -1,6 +1,6 @@
 services:
   couchdb:
-    image: couchdb:3
+    image: couchdb:3.5.3
     container_name: couchdb
     restart: unless-stopped
     user: "1000:1000"
@@ -11,7 +11,7 @@ services:
       - ./couchdb-data:/opt/couchdb/data
       - ./couchdb-etc:/opt/couchdb/etc/local.d
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.enable=false"
 
   # Headless LiveSync client: keeps a plain-Markdown copy of the vault in ./vault
   livesync-cli:

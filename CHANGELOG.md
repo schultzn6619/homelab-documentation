@@ -6,6 +6,29 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Pinned every Watchtower-managed image (finding 14)
+
+**Problem.** Watchtower updated six containers every night at 04:00 from `latest`-style tags, with no record of the previous version to roll back to. Among them were the reverse proxy and the password manager. Earlier the same day, an update of that kind broke `livesync-cli` for about 40 hours.
+
+**Changed.** Pinned each image to the version tag it was already running, after checking that the tag's registry digest matched the running image, so no version changed. Set each one's Watchtower label to `false`.
+
+| Container | Was | Now |
+|---|---|---|
+| `npm` | `jc21/nginx-proxy-manager:latest` | `2.16.0` |
+| `portainer` | `portainer/portainer-ce:latest` | `2.45.3` |
+| `vaultwarden` | `vaultwarden/server:latest` | `1.37.5` |
+| `couchdb` | `couchdb:3` | `3.5.3` |
+| `navidrome` | `deluan/navidrome:latest` | `0.64.2` |
+| `slskd` | `slskd/slskd:latest` | `0.26.2` |
+
+The [Compose copies](compose/) match. Watchtower still runs but has nothing to update. The update procedure is in [operations](docs/operations.md).
+
+**Problem found while doing it.** Recreating `npm` and `portainer` together made Portainer take NPM's static address `172.18.0.10`, so NPM failed to start ("Address already in use"). It was fixed by stopping Portainer, starting NPM and starting Portainer again. The reverse proxy was down for about a minute. The recovery steps are now in [operations](docs/operations.md).
+
+**Verified.** All six containers run on their pinned tags, and Vaultwarden and slskd report healthy. Every proxy host answers through NPM with its usual status: 200 for most, a login redirect from `cloud.` and `music.`, and 401 from CouchDB. `tools.` does not answer because SnapOtter has been stopped since before this change (finding 13). A LiveSync round trip after the CouchDB restart succeeded.
+
+**Still open.** NPM's fixed address can still be taken whenever several containers on `proxy` are recreated at the same time.
+
 ### Pinned livesync-cli after a broken update
 
 **Problem.** At 04:01 on 2026-11-02, Watchtower updated `livesync-cli` from 1.0.43 to 1.0.44. The new version refuses to start `daemon` when it finds state files written by older versions ("[Legacy state] ... database and Vault owner is unknown"). Docker restarted the container in a loop more than 200 times, and the server's copy of the vault stopped syncing for about 40 hours. The vault folder did not change while the daemon was down, so no edits were left unsynced on the server.

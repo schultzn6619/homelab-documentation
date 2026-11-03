@@ -6,7 +6,7 @@ Day-to-day procedures for this host. Paths are the real ones on the server; `~` 
 
 | Stack | Directory |
 |---|---|
-| `homelab-core` (NPM, Portainer, Watchtower) | `~/homelab-core` |
+| `homelab-core` (NPM, Portainer, Watchtower) | `~/homelab/homelab-core` |
 | `immich` | `~/immich` |
 | `nextcloud` (AIO master) | `~/nextcloud` |
 | `n8n` | `~/n8n` |
@@ -88,13 +88,15 @@ Unattended-upgrades handles Ubuntu's own pockets. Docker Engine, containerd, and
 
 | Stack | Procedure |
 |---|---|
-| NPM, Portainer, Vaultwarden, CouchDB | Automatic at 04:00 by Watchtower. To force: `docker compose pull && docker compose up -d` |
+| NPM, Portainer, Vaultwarden, CouchDB, Navidrome, slskd | Pinned to a version tag. Read the release notes, change the tag in the Compose file, `docker compose pull <service> && docker compose up -d <service>`. Recreate NPM on its own, not together with other containers on `proxy` (see below) |
 | LiveSync CLI | Pinned to a version tag. Back up `cli-db/` and `vault/`, change the tag in `/mnt/storage/obsidian-livesync/docker-compose.yml`, `docker compose up -d livesync-cli`, and check the log reaches "LiveSync active" |
 | Immich | Read the release notes for breaking changes, then `cd ~/immich && docker compose pull && docker compose up -d` |
 | Nextcloud | AIO interface, "Update containers". Take a backup first |
 | n8n | `cd ~/n8n && docker compose pull && docker compose up -d` |
 | IT-Tools, SnapOtter | `docker pull <image>`, then remove and re-create the container with the same `docker run` arguments |
 | UniFi OS Server | Automatic through `uosserver-updater.service` |
+
+NPM has a static address (`172.18.0.10`) on `proxy`, but every other container there gets the next free address. If another container is recreated at the same moment, it can take `.10` and NPM then fails to start with "Address already in use". To recover, stop the container holding `.10` (`docker network inspect proxy`), `docker start npm`, then start the other container again.
 
 Clean up afterwards:
 
@@ -138,7 +140,7 @@ docker exec npm openssl x509 -in /etc/letsencrypt/live/npm-1/cert.pem -noout -en
        restart: unless-stopped
        networks: [proxy]
        labels:
-         - "com.centurylinklabs.watchtower.enable=true"   # only if unattended updates are wanted
+         - "com.centurylinklabs.watchtower.enable=false"  # true only if unattended updates are wanted
    networks:
      proxy:
        external: true

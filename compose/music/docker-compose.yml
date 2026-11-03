@@ -2,7 +2,7 @@
 # Data lives under /mnt/storage/music; secrets in .env (not committed).
 services:
   navidrome:
-    image: deluan/navidrome:latest
+    image: deluan/navidrome:0.64.2
     container_name: navidrome
     restart: unless-stopped
     user: "1000:1000"
@@ -17,10 +17,10 @@ services:
       - /mnt/storage/music/navidrome:/data
       - /mnt/storage/music/library:/music:ro
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.enable=false"
 
   slskd:
-    image: slskd/slskd:latest
+    image: slskd/slskd:0.26.2
     container_name: slskd
     restart: unless-stopped
     user: "1000:1000"
@@ -41,7 +41,7 @@ services:
       - /mnt/storage/music/library:/music
       - /mnt/storage/music/incomplete:/incomplete
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.enable=false"
 
 networks:
   proxy:

@@ -1,6 +1,6 @@
 services:
   vaultwarden:
-    image: vaultwarden/server:latest
+    image: vaultwarden/server:1.37.5
     container_name: vaultwarden
     restart: unless-stopped
     networks:
@@ -12,7 +12,7 @@ services:
     volumes:
       - /mnt/storage/vaultwarden/data:/data
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.enable=false"
 
 networks:
   proxy:

@@ -6,16 +6,16 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 
 | Service | Version | Managed by | Compose project (real path) | Data | Restart |
 |---|---|---|---|---|---|
-| Nginx Proxy Manager | 2.16.0 | Compose | `homelab-core` (`~/homelab-core`) | volumes `npm_data`, `npm_letsencrypt` | unless-stopped |
-| Portainer CE | 2.45.2 | Compose | `homelab-core` | volume `portainer_data` | unless-stopped |
-| Watchtower | 1.21.2 (`nickfedor/watchtower`) | Compose | `homelab-core` | none | unless-stopped |
+| Nginx Proxy Manager | 2.16.0 (pinned) | Compose | `homelab-core` (`~/homelab/homelab-core`) | volumes `npm_data`, `npm_letsencrypt` | unless-stopped |
+| Portainer CE | 2.45.3 (pinned) | Compose | `homelab-core` | volume `portainer_data` | unless-stopped |
+| Watchtower | 1.21.2 (`nickfedor/watchtower`), no containers opted in | Compose | `homelab-core` | none | unless-stopped |
 | Immich | 3.1.0 | Compose | `immich` (`~/immich`) | `/mnt/storage/immich` | always |
 | Nextcloud AIO | Nextcloud 34.0.4 | Compose + AIO | `nextcloud` (`~/nextcloud`) | `/mnt/storage/nextcloud`, AIO volumes | always |
-| Vaultwarden | 1.37.4 | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
-| Obsidian LiveSync (CouchDB + CLI) | CouchDB 3.5.3, LiveSync CLI 1.0.43 (pinned) | Compose | `obsidian-livesync` (`/mnt/storage/obsidian-livesync`) | `/mnt/storage/obsidian-livesync` | unless-stopped |
+| Vaultwarden | 1.37.5 (pinned) | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
+| Obsidian LiveSync (CouchDB + CLI) | CouchDB 3.5.3, LiveSync CLI 1.0.43 (both pinned) | Compose | `obsidian-livesync` (`/mnt/storage/obsidian-livesync`) | `/mnt/storage/obsidian-livesync` | unless-stopped |
 | n8n | 2.36.7 | Compose | `n8n` (`~/n8n`) | `/mnt/storage/n8n` | unless-stopped |
-| Navidrome | 0.64.2 | Compose | `music` (`~/homelab/music`) | `/mnt/storage/music/navidrome`, library `/mnt/storage/music/library` | unless-stopped |
-| slskd (Soulseek client) | 0.26.2 | Compose | `music` | `/mnt/storage/music/slskd` | unless-stopped |
+| Navidrome | 0.64.2 (pinned) | Compose | `music` (`~/homelab/music`) | `/mnt/storage/music/navidrome`, library `/mnt/storage/music/library` | unless-stopped |
+| slskd (Soulseek client) | 0.26.2 (pinned) | Compose | `music` | `/mnt/storage/music/slskd` | unless-stopped |
 | IT-Tools | `latest` (image is 2 years old) | `docker run` | – | none | unless-stopped |
 | SnapOtter | 2.2.0 | `docker run` | – | volume `SnapOtter-data` | **no** |
 | UniFi OS Server | 5.1.42 | systemd + rootless Podman | – | `uosserver` user's Podman storage | on-failure |
@@ -28,20 +28,21 @@ Defines the shared `proxy` network and the three infrastructure containers.
 
 ### Nginx Proxy Manager
 
-- Image `jc21/nginx-proxy-manager:latest`, static address `172.18.0.10` on `proxy`.
+- Image `jc21/nginx-proxy-manager:2.16.0`, static address `172.18.0.10` on `proxy`.
 - Publishes 80, 443, and the admin UI on 81, all bound to the LAN address only.
 - Holds one wildcard certificate obtained with the DuckDNS DNS-01 plugin. The DuckDNS token lives inside the `npm_letsencrypt` volume.
 - Proxy host definitions live in the `npm_data` volume (SQLite database plus generated nginx config). They are listed in [networking](networking.md#reverse-proxy-hosts) and are not otherwise version-controlled.
 
 ### Portainer
 
-- Image `portainer/portainer-ce:latest`, UI on 9000 (LAN address and `ptnr.`).
+- Image `portainer/portainer-ce:2.45.3`, UI on 9000 (LAN address and `ptnr.`).
 - Mounts the Docker socket read-write.
 
 ### Watchtower
 
 - Image `nickfedor/watchtower`, a maintained fork of the original project.
 - Runs at 04:00 daily, label opt-in, rolling restarts, removes old images.
+- Since 2026-11-03 no container carries the opt-in label, because every image it used to update is pinned to a version tag. It still runs, so a service can opt back in by setting `com.centurylinklabs.watchtower.enable=true`.
 
 ### Twingate connector (defined, not deployed)
 
@@ -85,9 +86,9 @@ The Compose file only starts the AIO master container. The master then creates a
 
 ## Vaultwarden
 
-- Image `vaultwarden/server:latest`, SQLite database and attachments in `/mnt/storage/vaultwarden/data`.
+- Image `vaultwarden/server:1.37.5`, SQLite database and attachments in `/mnt/storage/vaultwarden/data`.
 - `SIGNUPS_ALLOWED=true` is still set from initial setup.
-- Updated automatically by Watchtower.
+- Pinned to a version tag and updated by hand (see [update policy](#update-policy)).
 
 ## Trilium (removed)
 
@@ -102,7 +103,7 @@ Replaces Trilium as the notes system (migrated 2026-10-25). Notes are an Obsidia
 - `livesync-cli` (`ghcr.io/vrtmrz/livesync-cli:1.0.43-cli`, pinned): a headless LiveSync client running `daemon`. It mirrors the vault as plain Markdown into `/mnt/storage/obsidian-livesync/vault`, so the server always holds a readable copy that the nightly backup picks up. Its local PouchDB and settings are in `cli-db/`.
 - Vault contents are end-to-end encrypted, including file paths: CouchDB only holds ciphertext. The E2EE passphrase, Setup URI passphrase, and ID recovery code are in `secrets/livesync.env` (mode 600), and the generated Setup URIs in `secrets/gen-*.txt`. Losing the E2EE passphrase makes the CouchDB data unreadable, though the plain copy in `vault/` survives.
 - Clients join with the Setup URI for `https://obsidian.example.duckdns.org`; the CLI uses one generated with the same ID recovery code that points at `http://couchdb:5984`.
-- `couchdb` is updated automatically by Watchtower. `livesync-cli` is pinned and excluded from Watchtower, because 1.0.44 broke the daemon (see the [changelog](../CHANGELOG.md#pinned-livesync-cli-after-a-broken-update)). Update it by hand: read the release notes, back up `cli-db/` and `vault/`, change the tag, `docker compose up -d livesync-cli`, then check the log reaches "LiveSync active".
+- Both images are pinned to version tags and updated by hand. `livesync-cli` was pinned first, because 1.0.44 broke the daemon (see the [changelog](../CHANGELOG.md#pinned-livesync-cli-after-a-broken-update)). Update it by hand: read the release notes, back up `cli-db/` and `vault/`, change the tag, `docker compose up -d livesync-cli`, then check the log reaches "LiveSync active".
 
 ## n8n
 
@@ -148,7 +149,7 @@ Self-hosted replacement for Spotify. Navidrome is the player (Subsonic API; iPho
 
 The week is named by its Monday, so a rerun in the same week only tops up to 25 songs. State (what was fetched, kept, removed, not found) is in `/mnt/storage/music/discover-state/state.json`. Logs: `journalctl -u discover-weekly`. Options: `--dry-run`, `--count N`, `--no-cleanup`.
 
-- Updated automatically by Watchtower.
+- Pinned to a version tag and updated by hand (see [update policy](#update-policy)).
 
 ### Leaks organiser
 
@@ -189,11 +190,12 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 
 | Mechanism | Covers |
 |---|---|
-| Watchtower, 04:00 daily | `npm`, `portainer`, `vaultwarden`, `couchdb` |
+| Watchtower, 04:00 daily | Nothing (no container is labelled) |
+| Manual, pinned version tags | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd` |
 | Nextcloud AIO interface | All `nextcloud-aio-*` containers |
 | UniFi OS Server updater | UniFi OS Server |
 | `unattended-upgrades` | Ubuntu packages from the release and security pockets |
 | Tailscale auto-update | Tailscale |
 | Manual | `immich_*`, `n8n`, `it-tools`, `SnapOtter`, Docker Engine and other third-party APT packages |
 
-Most images track `latest` or `release`, so a rebuild today would not necessarily reproduce what is running. Only the Immich database and cache images are pinned by digest.
+The services above that were updated by Watchtower are pinned to the version tag they were running on 2026-11-03. Immich tracks `release`, n8n, IT-Tools and SnapOtter track `latest`, and the Immich database and cache images are pinned by digest.
