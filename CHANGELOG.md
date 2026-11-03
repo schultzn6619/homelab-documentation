@@ -6,6 +6,16 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Unattended-upgrades for Docker and Tailscale (finding 4)
+
+**Problem.** unattended-upgrades only took packages from Ubuntu's own pockets. Docker Engine, containerd and the Tailscale client waited for a manual `apt upgrade`, which is how they had fallen behind in finding 4.
+
+**Changed.** Added [`/etc/apt/apt.conf.d/52unattended-upgrades-thirdparty`](system/52unattended-upgrades-thirdparty) with two `Origins-Pattern` entries. The two repositories describe themselves differently: Docker's sets an archive (`a=resolute`) but no codename, and Tailscale's sets a codename (`n=resolute`) but no archive. So Docker is matched on `origin=Docker,archive=${distro_codename},label=Docker CE` and Tailscale on `origin=Tailscale,codename=${distro_codename}`. A first attempt that matched Docker on codename was silently ignored.
+
+**Verified.** `unattended-upgrade --dry-run --debug` lists both patterns among the allowed origins and no longer marks either repository "not allowed". Neither has an update waiting, so the first real upgrade will show in the unattended-upgrades log.
+
+**Side effect.** A `docker-ce` or `containerd.io` upgrade restarts the daemon and every container, around 06:00 when `apt-daily-upgrade.timer` fires. The health check's restart-loop and failed-unit alerts cover a container that does not come back.
+
 ### Rebooted onto the current kernel (finding 4)
 
 **Problem.** The host was running an older kernel than the one installed, and `/var/run/reboot-required` was set. Several packages, including `docker-ce`, `containerd.io`, `openssh-server` and `tailscale`, were waiting for an upgrade.
@@ -16,9 +26,9 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 - `uname -r` reports `7.0.0-42-generic`, the newest kernel in `/boot`, and `/var/run/reboot-required` is gone.
 - `docker-ce`, `containerd.io`, `openssh-server` and `tailscale` are no longer upgradable. Five packages remain: three security updates that unattended-upgrades will install, and two `software-properties` updates.
-- After the 17:29 reboot, every container came back up, all with health checks report healthy, and no systemd unit failed.
+- After the 17:29 reboot, every container came back up, every container with a health check reports healthy, and no systemd unit failed.
 
-**Still open.** The suggestion to add the Docker and Tailscale origins to unattended-upgrades was not done. Their updates still need a manual `apt upgrade`.
+**Still open.** The Docker and Tailscale repositories were not yet covered by unattended-upgrades. Done in the entry above.
 
 ### Fixed the AIO interface port and pinned n8n and Immich (findings 8 and 14)
 

@@ -92,7 +92,7 @@ Add `OnFailure=notify-failure@%n.service` to `homelab-backup.service` and `therm
 
 ## 4. Reboot pending for a kernel update
 
-> **Fixed 2026-11-03.** The host runs kernel 7.0.0-42, the newest installed, and no reboot is pending. `docker-ce`, `containerd.io`, `openssh-server` and `tailscale` are no longer listed as upgradable. See the [changelog](../CHANGELOG.md#rebooted-onto-the-current-kernel-finding-4). The description below is kept as the record of what was wrong.
+> **Fixed 2026-11-03.** The host runs kernel 7.0.0-42, the newest installed, and no reboot is pending. `docker-ce`, `containerd.io`, `openssh-server` and `tailscale` are no longer listed as upgradable, and unattended-upgrades now also installs updates from the Docker and Tailscale repositories. See the [changelog](../CHANGELOG.md#rebooted-onto-the-current-kernel-finding-4) and [the follow-up](../CHANGELOG.md#unattended-upgrades-for-docker-and-tailscale-finding-4). The description below is kept as the record of what was wrong.
 
 **Observed.** `/var/run/reboot-required` is present. Kernel 7.0.0-38 is installed; 7.0.0-34 has been running for 17 days. 19 packages are upgradable, including `openssh-server`, `docker-ce`, `containerd.io`, and `tailscale`, which unattended-upgrades does not handle because they are outside its allowed origins or held back.
 

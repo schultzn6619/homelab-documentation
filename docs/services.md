@@ -184,9 +184,9 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 | Manual, pinned version tags, weekly update check | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd`, `SnapOtter`, `n8n`, `immich_server`, `immich_machine_learning`, `it-tools` (its date-style tag is not checked) |
 | Nextcloud AIO interface | All `nextcloud-aio-*` containers |
 | UniFi OS Server updater | UniFi OS Server |
-| `unattended-upgrades` | Ubuntu packages from the release and security pockets |
+| `unattended-upgrades` | Ubuntu packages from the release and security pockets, plus Docker Engine, containerd and Tailscale from their own repositories |
 | Tailscale auto-update | Tailscale |
-| Manual | Docker Engine and other third-party APT packages |
+| Manual | Other third-party APT packages |
 
 There is no unattended image updater; Watchtower was removed on 2026-11-03. The services it used to update are pinned to the version tag they were running that day. n8n and Immich were pinned the same way on 2026-11-03. The Immich database and cache images are pinned by digest. The Nextcloud AIO master tracks `latest` and is updated through its own interface.
 

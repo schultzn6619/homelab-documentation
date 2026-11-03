@@ -84,7 +84,7 @@ sudo apt update && apt list --upgradable
 sudo apt upgrade
 ```
 
-Unattended-upgrades handles Ubuntu's own pockets. Docker Engine, containerd, and other third-party packages need the manual `apt upgrade`. Upgrading `docker-ce` restarts the daemon and every container.
+Unattended-upgrades handles Ubuntu's own pockets and, since 2026-11-03, the Docker and Tailscale repositories ([`52unattended-upgrades-thirdparty`](../system/52unattended-upgrades-thirdparty)). It runs from `apt-daily-upgrade.timer`, around 06:00. Upgrading `docker-ce` restarts the daemon and every container, so a Docker release causes a short outage of every service that morning. Kernel updates still need a manual reboot.
 
 ### Containers
 

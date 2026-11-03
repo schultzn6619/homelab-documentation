@@ -92,8 +92,8 @@ The jail is active with no bans and one failed attempt on record, which is expec
 | Component | Mechanism |
 |---|---|
 | Ubuntu packages | `unattended-upgrades` daily, from the release, security, and ESM pockets |
+| Third-party APT (Docker, Tailscale) | `unattended-upgrades` daily, since 2026-11-03 ([config](../system/52unattended-upgrades-thirdparty)) |
 | Reboots | Not automatic. `/var/run/reboot-required` must be checked by hand |
-| Third-party APT (Docker, Tailscale) | Not covered by unattended-upgrades; manual `apt upgrade` |
 | Tailscale | Its own auto-update |
 | Containers | See [update policy](services.md#update-policy) |
 | Firmware | `fwupd` refreshes metadata; updates are applied manually |
