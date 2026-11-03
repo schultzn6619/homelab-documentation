@@ -12,7 +12,7 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 | Immich | 3.1.0 | Compose | `immich` (`~/immich`) | `/mnt/storage/immich` | always |
 | Nextcloud AIO | Nextcloud 34.0.4 | Compose + AIO | `nextcloud` (`~/nextcloud`) | `/mnt/storage/nextcloud`, AIO volumes | always |
 | Vaultwarden | 1.37.4 | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
-| Obsidian LiveSync (CouchDB + CLI) | CouchDB 3.5.3, LiveSync CLI `latest` | Compose | `obsidian-livesync` (`/mnt/storage/obsidian-livesync`) | `/mnt/storage/obsidian-livesync` | unless-stopped |
+| Obsidian LiveSync (CouchDB + CLI) | CouchDB 3.5.3, LiveSync CLI 1.0.43 (pinned) | Compose | `obsidian-livesync` (`/mnt/storage/obsidian-livesync`) | `/mnt/storage/obsidian-livesync` | unless-stopped |
 | n8n | 2.36.7 | Compose | `n8n` (`~/n8n`) | `/mnt/storage/n8n` | unless-stopped |
 | Navidrome | 0.64.2 | Compose | `music` (`~/homelab/music`) | `/mnt/storage/music/navidrome`, library `/mnt/storage/music/library` | unless-stopped |
 | slskd (Soulseek client) | 0.26.2 | Compose | `music` | `/mnt/storage/music/slskd` | unless-stopped |
@@ -99,10 +99,10 @@ The Compose file only starts the AIO master container. The master then creates a
 Replaces Trilium as the notes system (migrated 2026-10-25). Notes are an Obsidian vault synced between devices by the [Self-hosted LiveSync](https://github.com/vrtmrz/obsidian-livesync) plugin, with CouchDB on this host as the sync server.
 
 - `couchdb` (`couchdb:3`): the sync database `obsidiannotes`. Provisioned with LiveSync's `couchdb-init.sh` (single node, `require_valid_user`, CORS for `app://obsidian.md`, `capacitor://localhost`, `http://localhost`, raised request and document size limits). The provisioned settings persist in `couchdb-etc/docker.ini`. Admin credentials are in `.env`. No host port is published; it is reached on `proxy` as `couchdb:5984`.
-- `livesync-cli` (`ghcr.io/vrtmrz/livesync-cli:latest`): a headless LiveSync client running `daemon`. It mirrors the vault as plain Markdown into `/mnt/storage/obsidian-livesync/vault`, so the server always holds a readable copy that the nightly backup picks up. Its local PouchDB and settings are in `cli-db/`.
+- `livesync-cli` (`ghcr.io/vrtmrz/livesync-cli:1.0.43-cli`, pinned): a headless LiveSync client running `daemon`. It mirrors the vault as plain Markdown into `/mnt/storage/obsidian-livesync/vault`, so the server always holds a readable copy that the nightly backup picks up. Its local PouchDB and settings are in `cli-db/`.
 - Vault contents are end-to-end encrypted, including file paths: CouchDB only holds ciphertext. The E2EE passphrase, Setup URI passphrase, and ID recovery code are in `secrets/livesync.env` (mode 600), and the generated Setup URIs in `secrets/gen-*.txt`. Losing the E2EE passphrase makes the CouchDB data unreadable, though the plain copy in `vault/` survives.
 - Clients join with the Setup URI for `https://obsidian.example.duckdns.org`; the CLI uses one generated with the same ID recovery code that points at `http://couchdb:5984`.
-- Both containers are updated automatically by Watchtower.
+- `couchdb` is updated automatically by Watchtower. `livesync-cli` is pinned and excluded from Watchtower, because 1.0.44 broke the daemon (see the [changelog](../CHANGELOG.md#pinned-livesync-cli-after-a-broken-update)). Update it by hand: read the release notes, back up `cli-db/` and `vault/`, change the tag, `docker compose up -d livesync-cli`, then check the log reaches "LiveSync active".
 
 ## n8n
 
@@ -189,7 +189,7 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 
 | Mechanism | Covers |
 |---|---|
-| Watchtower, 04:00 daily | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli` |
+| Watchtower, 04:00 daily | `npm`, `portainer`, `vaultwarden`, `couchdb` |
 | Nextcloud AIO interface | All `nextcloud-aio-*` containers |
 | UniFi OS Server updater | UniFi OS Server |
 | `unattended-upgrades` | Ubuntu packages from the release and security pockets |

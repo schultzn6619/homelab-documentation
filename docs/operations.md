@@ -88,7 +88,8 @@ Unattended-upgrades handles Ubuntu's own pockets. Docker Engine, containerd, and
 
 | Stack | Procedure |
 |---|---|
-| NPM, Portainer, Vaultwarden, CouchDB, LiveSync CLI | Automatic at 04:00 by Watchtower. To force: `docker compose pull && docker compose up -d` |
+| NPM, Portainer, Vaultwarden, CouchDB | Automatic at 04:00 by Watchtower. To force: `docker compose pull && docker compose up -d` |
+| LiveSync CLI | Pinned to a version tag. Back up `cli-db/` and `vault/`, change the tag in `/mnt/storage/obsidian-livesync/docker-compose.yml`, `docker compose up -d livesync-cli`, and check the log reaches "LiveSync active" |
 | Immich | Read the release notes for breaking changes, then `cd ~/immich && docker compose pull && docker compose up -d` |
 | Nextcloud | AIO interface, "Update containers". Take a backup first |
 | n8n | `cd ~/n8n && docker compose pull && docker compose up -d` |

@@ -15,7 +15,10 @@ services:
 
   # Headless LiveSync client: keeps a plain-Markdown copy of the vault in ./vault
   livesync-cli:
-    image: ghcr.io/vrtmrz/livesync-cli:latest
+    # Pinned: 1.0.44 (2026-11-01) refuses to start the daemon on state written by
+    # earlier versions ("[Legacy state] ... owner is unknown"), and its fetch --force
+    # fails at random. Excluded from Watchtower; update by hand after checking a release.
+    image: ghcr.io/vrtmrz/livesync-cli:1.0.43-cli
     container_name: livesync-cli
     restart: unless-stopped
     user: "1000:1000"
@@ -28,7 +31,7 @@ services:
     depends_on:
       - couchdb
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.enable=false"
 
 networks:
   proxy:

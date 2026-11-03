@@ -6,6 +6,22 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Pinned livesync-cli after a broken update
+
+**Problem.** At 04:01 on 2026-11-02, Watchtower updated `livesync-cli` from 1.0.43 to 1.0.44. The new version refuses to start `daemon` when it finds state files written by older versions ("[Legacy state] ... database and Vault owner is unknown"). Docker restarted the container in a loop more than 200 times, and the server's copy of the vault stopped syncing for about 40 hours. The vault folder did not change while the daemon was down, so no edits were left unsynced on the server.
+
+1.0.44 only clears that check after a successful `fetch --force` or `rebuild --force`. `fetch --force` rebuilds the local copy from CouchDB, which is the authoritative copy, so it was the safe direction. It failed three times in a row, each time on a different, random set of files (377, 5 and 22), even though the vault and database copies were identical.
+
+**Changed.**
+
+- Backed up `cli-db/` and `vault/` before touching anything, and confirmed after the fetch attempts that `vault/` still matched the backup exactly.
+- Restored `cli-db/` from that backup.
+- Pinned the image to `ghcr.io/vrtmrz/livesync-cli:1.0.43-cli` and set its Watchtower label to `false`. The [Compose copy](compose/obsidian-livesync/docker-compose.yml) matches what is deployed. CouchDB is still updated by Watchtower.
+
+**Verified.** The daemon starts, its initial replication completes, it reports "LiveSync active", and it has not restarted. A test file created in `vault/` reached CouchDB within a minute, and deleting it was synced as a deletion.
+
+**Still open.** Move to a newer release once one has fixed the fetch failures. This is a concrete case of finding 14: unattended `latest` updates with no previous version recorded to roll back to.
+
 ### Cleaned up leftovers from retired setups (finding 11)
 
 **Problem.** Packages, APT sources, Docker objects and firewall rules from earlier setups were still on the host. They included an unused MongoDB server listening on loopback, held back from upgrades.
