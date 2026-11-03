@@ -31,7 +31,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 - Stopped containers that keep an old "unhealthy" status are not reported.
 - The image update check still runs with the webhook moved.
 
-**Still open.** `DISCORD_PING_USER_ID` is not set yet, so alerts post without a mention.
+- After `DISCORD_PING_USER_ID` was set, a second deliberately failing unit posted an alert that mentions the admin.
 
 ### Weekly update check for the pinned images
 
