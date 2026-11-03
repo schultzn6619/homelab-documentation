@@ -66,7 +66,7 @@ ports:
   - "8097:80"              # reachable on every interface, IPv4 and IPv6
 ```
 
-Most published ports on this host use the first form. Three do not; see [finding 6](findings.md#6-three-containers-publish-ports-on-every-interface). The preferred pattern is to publish nothing and let Nginx Proxy Manager reach the container over the `proxy` network.
+Every published port on this host uses the first form, except slskd's Soulseek peer port 50300, which is meant to be reachable by peers. Until 2026-11-03 three web backends used the second form; see [finding 6](findings.md#6-three-containers-publish-ports-on-every-interface). The preferred pattern is to publish nothing and let Nginx Proxy Manager reach the container over the `proxy` network.
 
 Docker's IPv6 support is enabled (`ip6tables: true`), so the same reasoning applies to IPv6.
 

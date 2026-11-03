@@ -121,7 +121,6 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | 81/tcp | LAN address | `npm` | NPM admin UI (direct) |
 | 9000/tcp | LAN address | `portainer` | Portainer UI (direct) |
 | 8091/tcp | LAN address | `nextcloud-aio-mastercontainer` | Intended for the AIO admin interface, but mapped to container port 8092 where nothing listens. See [finding 8](findings.md#8-nextcloud-aio-admin-interface-is-not-reachable) |
-| 11000/tcp | all, IPv4 and IPv6 | `nextcloud-aio-apache` | Nextcloud backend for NPM |
 | 50300/tcp | all, IPv4 and IPv6 | `slskd` | Soulseek peer connections. Not forwarded on the router |
 | 5030/tcp | loopback | `slskd` | slskd API for the Discover Weekly job |
 

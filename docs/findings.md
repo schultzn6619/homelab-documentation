@@ -9,7 +9,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 3 | [Nothing alerts on failure](#3-nothing-alerts-on-failure) | High | **Fixed 2026-11-03** |
 | 4 | [Reboot pending for a kernel update](#4-reboot-pending-for-a-kernel-update) | Medium | Open |
 | 5 | [`homelab-core` Compose file has drifted from what is deployed](#5-homelab-core-compose-file-has-drifted-from-what-is-deployed) | Medium | Open |
-| 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium | Partly fixed 2026-11-03 |
+| 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium | **Fixed 2026-11-03** |
 | 7 | [Stale AAAA record in public DNS](#7-stale-aaaa-record-in-public-dns) | Medium | Open |
 | 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium | Open |
 | 9 | [Credentials written inline](#9-credentials-written-inline) | Medium | Partly fixed 2026-10-13 |
@@ -106,7 +106,7 @@ Add `OnFailure=notify-failure@%n.service` to `homelab-backup.service` and `therm
 
 ## 6. Three containers publish ports on every interface
 
-> **Partly fixed 2026-11-03.** IT-Tools and SnapOtter no longer publish ports; NPM reaches them by name on `proxy`. `nextcloud-aio-apache` still publishes 11000 on every interface.
+> **Fixed 2026-11-03.** None of the three publishes a port any more; NPM reaches each by name on `proxy`. IT-Tools and SnapOtter moved into Compose (finding 13). Nextcloud's master container has `APACHE_IP_BINDING=@INTERNAL`. See the [changelog](../CHANGELOG.md#stopped-publishing-nextclouds-apache-port-finding-6). The only port still published on every interface is slskd's Soulseek peer port 50300, which is intentional and not forwarded on the router. The description below is kept as the record of what was wrong.
 
 **Observed.**
 

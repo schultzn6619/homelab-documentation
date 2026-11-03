@@ -64,7 +64,7 @@ The Compose file only starts the AIO master container. The master then creates a
 | Container | Role |
 |---|---|
 | `nextcloud-aio-mastercontainer` | AIO admin interface (listens on 8080 inside the container; the published port mapping is wrong, see [finding 8](findings.md#8-nextcloud-aio-admin-interface-is-not-reachable)) |
-| `nextcloud-aio-apache` | Web front end, port 11000, joined to `proxy` |
+| `nextcloud-aio-apache` | Web front end on port 11000, joined to `proxy`, no host port |
 | `nextcloud-aio-nextcloud` | PHP application |
 | `nextcloud-aio-database` | PostgreSQL |
 | `nextcloud-aio-redis` | Cache and locking |
@@ -72,7 +72,7 @@ The Compose file only starts the AIO master container. The master then creates a
 | `nextcloud-aio-imaginary` | Image previews |
 | `nextcloud-aio-watchtower` | Runs on demand to update the master container |
 
-- Runs in reverse-proxy mode: `APACHE_PORT=11000`, `APACHE_ADDITIONAL_NETWORK=proxy`, and `SKIP_DOMAIN_VALIDATION=true` because the domain is not publicly reachable.
+- Runs in reverse-proxy mode: `APACHE_PORT=11000`, `APACHE_ADDITIONAL_NETWORK=proxy`, `APACHE_IP_BINDING=@INTERNAL` (AIO publishes no host port for Apache), and `SKIP_DOMAIN_VALIDATION=true` because the domain is not publicly reachable.
 - User files are on the data disk (`NEXTCLOUD_DATADIR=/mnt/storage/nextcloud`); application code and the database are in named volumes on the NVMe.
 - Optional AIO containers (Collabora, Talk, ClamAV, Fulltextsearch, Whiteboard) are not enabled.
 - Updates are done from the AIO interface. AIO's built-in Borg backup is not configured; the host backup script dumps the database instead.

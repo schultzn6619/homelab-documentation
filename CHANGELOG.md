@@ -6,6 +6,24 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Stopped publishing Nextcloud's Apache port (finding 6)
+
+**Problem.** `nextcloud-aio-apache` published port 11000 on every interface, IPv4 and IPv6. That bypassed UFW and let anyone reach Nextcloud without going through the proxy or TLS. NPM already reached it by name on `proxy`, so the published port was not needed.
+
+**Changed.**
+
+- Added `APACHE_IP_BINDING: "@INTERNAL"` to the master container in `~/homelab/nextcloud/docker-compose.yml` ([copy](compose/nextcloud/docker-compose.yml)). With this value, the installed AIO version skips publishing Apache's port.
+- Recreated the master container with `docker compose up -d`.
+- The AIO interface is not reachable (finding 8), so the AIO containers were stopped and started with AIO's own script instead: `docker exec -e DAILY_BACKUP=0 -e STOP_CONTAINERS=1 -e START_CONTAINERS=1 -e AUTOMATIC_UPDATES=0 nextcloud-aio-mastercontainer /daily-backup.sh`. Starting deletes and recreates each container without pulling new images, so no versions changed. Nextcloud was down for a few minutes.
+
+**Verified.**
+
+- Every `nextcloud-aio-*` container is healthy, and nothing listens on 11000 on the host.
+- `cloud.` returns 200 through NPM, and `status.php` reports 34.0.4 installed, with no maintenance mode and no database upgrade needed.
+- The only Docker port still published on every interface is slskd's 50300, which is meant to be reachable by Soulseek peers.
+
+**Still open.** Not yet checked from an outside network: whether the host's global IPv6 address answers on 50300.
+
 ### Moved IT-Tools and SnapOtter into Compose (findings 13 and 6)
 
 **Problem.** IT-Tools and SnapOtter had been started with `docker run`, so their configuration existed only in the containers. Both published ports on every interface, IPv4 and IPv6 (8097 and 1349). SnapOtter had restart policy `no` and had been down since the reboot on 2026-10-13.
@@ -20,7 +38,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 **Verified.** `it.` and `tools.` both return 200 through NPM. SnapOtter's health check reports healthy, and its data volume was reused. Nothing listens on 8097 or 1349 on the host any more. UFW now has 14 rules.
 
-**Still open.** `nextcloud-aio-apache` still publishes 11000 on every interface (finding 6). The update check posts SnapOtter releases (2.3.0 is already out), but it cannot read IT-Tools's date-style tag.
+**Still open.** The update check posts SnapOtter releases (2.3.0 is already out), but it cannot read IT-Tools's date-style tag.
 
 ### Cleared the units that failed at boot (finding 12)
 

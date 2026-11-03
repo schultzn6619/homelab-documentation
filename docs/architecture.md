@@ -35,7 +35,7 @@ A remote client follows the same path. Tailscale routes `192.168.1.0/24` through
 
 Two kinds of backend sit behind the proxy:
 
-1. **Containers on the `proxy` network**, addressed by container name. No host port is published. Every Docker backend follows this pattern since 2026-11-03; Nextcloud's Apache container also still publishes a port (finding 6).
+1. **Containers on the `proxy` network**, addressed by container name. No host port is published. Since 2026-11-03 every Docker backend follows this pattern (finding 6).
 2. **UniFi OS Server**, which is not a Docker container. The proxy reaches it at the host address on port 11443 over HTTPS.
 
 ## Trust boundaries
