@@ -14,7 +14,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium | Open |
 | 9 | [Credentials written inline](#9-credentials-written-inline) | Medium | Partly fixed 2026-10-13 |
 | 10 | [Vaultwarden still allows sign-ups](#10-vaultwarden-still-allows-sign-ups) | Medium | Open |
-| 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low | Open |
+| 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low | Partly fixed |
 | 12 | [Two units fail at every boot](#12-two-units-fail-at-every-boot) | Low | Open |
 | 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low | Open |
 | 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low | Open |
@@ -159,6 +159,8 @@ Every other published port is bound to the LAN address. Docker-published ports b
 **Fix.** Set `SIGNUPS_ALLOWED=false` and `docker compose up -d`. Use invitations for any additional users. Consider setting `ADMIN_TOKEN` (as an Argon2 hash) only if the admin page is needed.
 
 ## 11. Leftovers from retired setups
+
+> **Partly fixed 2026-11-03.** The Docker build cache was pruned. The rest is still open.
 
 **Observed.**
 

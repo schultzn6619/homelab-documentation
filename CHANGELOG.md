@@ -6,6 +6,14 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Pruned the Docker build cache
+
+**Problem.** Old image builds, mostly from the Quartus image, had left 20.9 GB of build cache, none of it used by a current build (finding 11).
+
+**Changed.** Ran `docker builder prune -f`, which removed 66 of 75 cache entries and freed 20.7 GB.
+
+**Verified.** `docker system df` now shows 202 MB of build cache.
+
 ### Removed the Quartus webtop
 
 **Problem.** The Quartus FPGA desktop had been stopped since 2026-10-03 and was no longer needed. It still used 40.5 GB of images, and its deployed Compose file held a password written inline (finding 9).
