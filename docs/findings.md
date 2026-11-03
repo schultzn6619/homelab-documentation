@@ -21,7 +21,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 15 | [Thermal watchdog matches more than it should](#15-thermal-watchdog-matches-more-than-it-should) | Low | Open |
 | 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low | Partly fixed 2026-11-03 |
 | 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium | Partly fixed 2026-11-03 |
-| 18 | [Data disk is past its rated load cycles](#18-data-disk-is-past-its-rated-load-cycles) | Medium | Open |
+| 18 | [Data disk is past its rated load cycles](#18-data-disk-is-past-its-rated-load-cycles) | Medium | Partly fixed 2026-11-03 |
 | 19 | [SSH password login was enabled by a drop-in](#19-ssh-password-login-was-enabled-by-a-drop-in) | High | **Fixed 2026-10-13** |
 
 ---
@@ -284,6 +284,8 @@ sudo ufw status numbered               # then delete the stale and no-effect rul
 Tailscale access to SSH is already covered by the `tailscale0` rule. To actually filter Docker-published ports, add rules to the `DOCKER-USER` chain or, better, stop publishing them (finding 6).
 
 ## 18. Data disk is past its rated load cycles
+
+> **Partly fixed 2026-11-03.** Steps 2 and 3 are done: the disk's APM level is set to 254 at every boot, and the load cycle count stopped climbing (no change over 30 minutes, against about 24 an hour before). smartd now runs a short self-test daily and a long one weekly. Steps 1 and 4, an off-machine backup and a second disk, are still open. See the [changelog](../CHANGELOG.md#stopped-head-parking-on-the-data-disk-finding-18). The description below is kept as the record of what was wrong.
 
 **Observed.** The 4 TB data disk passes SMART with no reallocated, pending, or uncorrectable sectors after 20,439 power-on hours. Its load cycle count is 485,123, and the normalised value for that attribute has reached its floor of 1. Desktop drives of this class are typically rated for about 300,000 cycles. The disk has been power-cycled only 44 times, so the count comes from the firmware parking the heads after a few seconds of idle, roughly 24 times an hour. No SMART self-test has ever been run on it.
 

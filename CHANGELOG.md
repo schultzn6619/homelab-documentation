@@ -6,6 +6,23 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Stopped head parking on the data disk (finding 18)
+
+**Problem.** The 4 TB data disk's firmware parked its heads after a few seconds idle, about 24 times an hour. Its load cycle count had reached 499,212, well past the roughly 300,000 this class of drive is rated for. No SMART self-test had ever been run on it.
+
+**Changed.**
+
+- Added [`datadisk-apm.service`](system/datadisk-apm.service), which runs `hdparm -B 254` on the disk by its `by-id` path at boot. Ubuntu's hdparm udev hook, which would apply `/etc/hdparm.conf`, skips this disk because udev does not report `ID_ATA_FEATURE_SET_APM` for it, so a `/etc/hdparm.conf` entry would not apply.
+- Set [`smartd.conf`](system/smartd.conf) to run a short self-test daily at 02:00 and a long one weekly on Saturday at 03:00, with `smartd-runner` so failures reach Discord.
+
+**Verified.**
+
+- After a reboot at 17:29 the service had run and `hdparm -B` reported `APM_level = 254`.
+- The load cycle count was 499,212 at 17:37 and still 499,212 at 18:07. At the old rate it would have risen by about 12.
+- A short self-test run by hand passed with no errors.
+
+**Still open.** The disk is still the only copy of the application data, and the photo library is not in any backup (finding 2). Plan a replacement or a mirror disk (step 4).
+
 ### Health check alerts on stopped containers (finding 3)
 
 **Problem.** The [health check](scripts/homelab-health-check.py) caught containers that were restart-looping or unhealthy, but not one that had simply stopped and stayed down. That gap mattered more once unattended-upgrades could restart Docker on its own (entry below).
