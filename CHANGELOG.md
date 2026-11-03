@@ -6,6 +6,21 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Locked down Vaultwarden (findings 9 and 10)
+
+**Problem.** Vaultwarden's data directory, which holds the database and the RSA signing key, was readable by every local account (mode 755, files 644). The server also still allowed anyone who could reach it to create an account.
+
+**Changed.**
+
+- `chmod 700 /mnt/storage/vaultwarden/data`. The container runs as root, and so does the backup that copies the directory, so neither is affected.
+- Checked the database read-only first: it holds one account, the admin's, and no pending invitations. Then set `SIGNUPS_ALLOWED=false` in the [Compose file](compose/vaultwarden/docker-compose.yml) and recreated the container.
+
+**Verified.**
+
+- The admin user can no longer list the directory.
+- Vaultwarden is healthy and runs with `SIGNUPS_ALLOWED=false`.
+- A registration attempt through NPM (`POST /identity/accounts/register/send-verification-email`) is refused with HTTP 400, "Registration not allowed or user already exists". Invitations stay enabled for adding users later.
+
 ### Host hygiene (finding 16)
 
 **Changed.**

@@ -79,8 +79,8 @@ The Compose file only starts the AIO master container. The master then creates a
 
 ## Vaultwarden
 
-- Image `vaultwarden/server:1.37.5`, SQLite database and attachments in `/mnt/storage/vaultwarden/data`.
-- `SIGNUPS_ALLOWED=true` is still set from initial setup.
+- Image `vaultwarden/server:1.37.5`, SQLite database and attachments in `/mnt/storage/vaultwarden/data` (root-only, mode 700; the container runs as root).
+- `SIGNUPS_ALLOWED=false`: there is one account, and new users join by invitation. Invitations stay enabled, so the web vault still shows its sign-up page, but registration without an invitation is refused.
 - Pinned to a version tag and updated by hand (see [update policy](#update-policy)).
 
 ## Trilium (removed)

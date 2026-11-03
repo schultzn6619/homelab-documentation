@@ -7,7 +7,7 @@ services:
       - proxy
     environment:
       - DOMAIN=https://vault.example.duckdns.org
-      - SIGNUPS_ALLOWED=true    # flip to false once you've created your account
+      - SIGNUPS_ALLOWED=false   # one account exists; add others by invitation
       - WEBSOCKET_ENABLED=true
       - TZ=America/New_York
     volumes:

@@ -12,8 +12,8 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium | **Fixed 2026-11-03** |
 | 7 | [Stale AAAA record in public DNS](#7-stale-aaaa-record-in-public-dns) | Medium | Open |
 | 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium | Open |
-| 9 | [Credentials written inline](#9-credentials-written-inline) | Medium | Partly fixed 2026-10-13 |
-| 10 | [Vaultwarden still allows sign-ups](#10-vaultwarden-still-allows-sign-ups) | Medium | Open |
+| 9 | [Credentials written inline](#9-credentials-written-inline) | Medium | **Fixed 2026-11-03** |
+| 10 | [Vaultwarden still allows sign-ups](#10-vaultwarden-still-allows-sign-ups) | Medium | **Fixed 2026-11-03** |
 | 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low | **Fixed 2026-11-03** |
 | 12 | [Two units fail at every boot](#12-two-units-fail-at-every-boot) | Low | **Fixed 2026-11-03** |
 | 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low | **Fixed 2026-11-03** |
@@ -142,7 +142,7 @@ Every other published port is bound to the LAN address. Docker-published ports b
 
 ## 9. Credentials written inline
 
-> **Partly fixed 2026-10-13.** The backup script no longer contains a password, and staging is now root-only (`umask 077`, mode 700). The Vaultwarden data directory permissions are still open.
+> **Fixed 2026-11-03.** On 2026-10-13 the backup script lost its password and staging became root-only (`umask 077`, mode 700). On 2026-11-03 `/mnt/storage/vaultwarden/data` became mode 700. The Quartus Compose file is gone with the Quartus webtop. See the [changelog](../CHANGELOG.md#locked-down-vaultwarden-findings-9-and-10). The description below is kept as the record of what was wrong.
 
 **Observed.**
 
@@ -155,6 +155,8 @@ Every other published port is bound to the LAN address. Docker-published ports b
 **Fix.** Removing the `mongodump` block (finding 1) removes the password from the backup script. Add `umask 077` at the top of the backup script and `chmod 700 /var/backups/staging`. `chmod 700 /mnt/storage/vaultwarden/data`.
 
 ## 10. Vaultwarden still allows sign-ups
+
+> **Fixed 2026-11-03.** `SIGNUPS_ALLOWED=false`; a registration attempt is now refused. See the [changelog](../CHANGELOG.md#locked-down-vaultwarden-findings-9-and-10). The description below is kept as the record of what was wrong.
 
 **Observed.** `SIGNUPS_ALLOWED=true`, with a comment saying to turn it off after creating the account.
 
