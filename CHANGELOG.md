@@ -14,7 +14,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 **Verified.** `unattended-upgrade --dry-run --debug` lists both patterns among the allowed origins and no longer marks either repository "not allowed". Neither has an update waiting, so the first real upgrade will show in the unattended-upgrades log.
 
-**Side effect.** A `docker-ce` or `containerd.io` upgrade restarts the daemon and every container, around 06:00 when `apt-daily-upgrade.timer` fires. The health check's restart-loop and failed-unit alerts cover a container that does not come back.
+**Side effect.** A `docker-ce` or `containerd.io` upgrade restarts the daemon and every container, around 06:00 when `apt-daily-upgrade.timer` fires. The health check alerts on a container that comes back unhealthy or restart-looping, but not on one that stays stopped. Every service has a restart policy, and all came back after the reboots today.
 
 ### Rebooted onto the current kernel (finding 4)
 
