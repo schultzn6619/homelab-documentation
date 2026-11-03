@@ -19,7 +19,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 - Test cases picked the right tags. `3.5.2` matched `3.5.2.1`, `3.5.3` and `4.0.0` but not `3.5.3-nouveau`. `1.0.43-cli` skipped `-sha-` builds. `2.45.3` skipped `-alpine` and per-architecture tags.
 - A run through systemd succeeded.
 
-**Still open.** The Discord webhook URL has not been added yet, so posting has not been tested.
+- With the webhook in place, a `--test` message and a sample report (run without the ignore list, so it listed `livesync-cli` 1.0.44) both reached the Discord channel. The real service run then posted nothing, as expected.
 
 ### Removed Watchtower
 
