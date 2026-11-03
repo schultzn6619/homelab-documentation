@@ -148,7 +148,7 @@ Every other published port is bound to the LAN address. Docker-published ports b
 
 **Impact.** Any local account or any process that can read the host filesystem can read these. Only two local accounts exist, so exposure is limited, but the files should not rely on that.
 
-**Fix.** Removing the `mongodump` block (finding 1) removes the second. Add `umask 077` at the top of the backup script and `chmod 700 /var/backups/staging`. `chmod 700 /mnt/storage/vaultwarden/data`.
+**Fix.** Removing the `mongodump` block (finding 1) removes the password from the backup script. Add `umask 077` at the top of the backup script and `chmod 700 /var/backups/staging`. `chmod 700 /mnt/storage/vaultwarden/data`.
 
 ## 10. Vaultwarden still allows sign-ups
 
