@@ -4,6 +4,9 @@
 Checks:
   - containers that are restarting, unhealthy, or restarted 3+ times since the
     last run (a restart loop caught while the container is briefly up)
+  - containers set to restart (always / unless-stopped) that have been stopped
+    for STOPPED_GRACE_MIN or longer. Containers with no restart policy, such as
+    one-off or development containers, are not checked.
   - the nightly backup: last run failed, or no successful run for BACKUP_MAX_AGE_H
   - free space below DISK_MIN_FREE_PCT on each path in DISK_PATHS
   - the TLS certificate at CERT_CHECK_ADDR for CERT_CHECK_HOST: invalid, or
@@ -15,8 +18,10 @@ New problems are posted to Discord with a ping; cleared problems are posted
 without one. State is kept in STATE_DIR so each problem is reported once.
 Usage: homelab-health-check.py [--dry-run]
 """
+import datetime
 import json
 import os
+import re
 import shutil
 import socket
 import ssl
@@ -34,11 +39,23 @@ CERT_HOST = os.environ.get("CERT_CHECK_HOST", "")
 CERT_ADDR = os.environ.get("CERT_CHECK_ADDR", "")
 CERT_MIN_DAYS = int(os.environ.get("CERT_MIN_DAYS", "14"))
 CPU_MAX_C = float(os.environ.get("CPU_MAX_C", "85"))
+STOPPED_GRACE_MIN = float(os.environ.get("STOPPED_GRACE_MIN", "15"))
 IGNORE_CONTAINERS = set(os.environ.get("IGNORE_CONTAINERS", "").split())
 
 
 def run(*cmd):
     return subprocess.run(cmd, check=True, capture_output=True, text=True).stdout
+
+
+def docker_time(ts):
+    """Parse Docker's RFC 3339 timestamp (nanoseconds, Z) to epoch seconds, or None."""
+    if not ts or ts.startswith("0001-"):
+        return None
+    ts = re.sub(r"(\.\d{6})\d+", r"\1", ts).replace("Z", "+00:00")
+    try:
+        return datetime.datetime.fromisoformat(ts).timestamp()
+    except ValueError:
+        return None
 
 
 def check_containers(prev_counts):
@@ -63,6 +80,15 @@ def check_containers(prev_counts):
             problems[f"container:{name}"] = (
                 f"Container {name} restarted {counts[name] - prev_counts[name]} times "
                 f"in the last check interval")
+        elif (not st.get("Running")
+              and c["HostConfig"]["RestartPolicy"]["Name"] in ("always", "unless-stopped")):
+            since = docker_time(st.get("FinishedAt")) or docker_time(c.get("Created"))
+            mins = (time.time() - since) / 60 if since else None
+            if mins is None or mins >= STOPPED_GRACE_MIN:
+                held = f"for {mins:.0f} min" if mins is not None else ""
+                problems[f"container:{name}"] = (
+                    f"Container {name} is stopped {held} (status {st.get('Status')}, "
+                    f"exit code {st.get('ExitCode')})").replace("  ", " ")
     return problems, counts
 
 

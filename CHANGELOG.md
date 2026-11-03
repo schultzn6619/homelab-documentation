@@ -6,6 +6,17 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Health check alerts on stopped containers (finding 3)
+
+**Problem.** The [health check](scripts/homelab-health-check.py) caught containers that were restart-looping or unhealthy, but not one that had simply stopped and stayed down. That gap mattered more once unattended-upgrades could restart Docker on its own (entry below).
+
+**Changed.** A container whose restart policy is `always` or `unless-stopped` and that has been stopped for `STOPPED_GRACE_MIN` (default 15) minutes or more is now reported, with its status, exit code and last log lines. The grace period keeps short maintenance from paging. Containers with no restart policy are skipped, which leaves out one-off and development containers such as `corvid-postgres-1` and the AIO-managed `nextcloud-aio-watchtower`. `IGNORE_CONTAINERS` still applies.
+
+**Verified.**
+
+- A throwaway container with `--restart unless-stopped`, stopped with `docker stop`, was reported with `STOPPED_GRACE_MIN=0` ("stopped for 0 min (status exited, exit code 137)"), was not reported at the default 15 minutes, and was not reported when listed in `IGNORE_CONTAINERS`. It was then removed.
+- Deployed to `/usr/local/bin`. A run of `homelab-health-check.service` succeeded with "All checks passed".
+
 ### Unattended-upgrades for Docker and Tailscale (finding 4)
 
 **Problem.** unattended-upgrades only took packages from Ubuntu's own pockets. Docker Engine, containerd and the Tailscale client waited for a manual `apt upgrade`, which is how they had fallen behind in finding 4.
@@ -14,7 +25,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 **Verified.** `unattended-upgrade --dry-run --debug` lists both patterns among the allowed origins and no longer marks either repository "not allowed". Neither has an update waiting, so the first real upgrade will show in the unattended-upgrades log.
 
-**Side effect.** A `docker-ce` or `containerd.io` upgrade restarts the daemon and every container, around 06:00 when `apt-daily-upgrade.timer` fires. The health check alerts on a container that comes back unhealthy or restart-looping, but not on one that stays stopped. Every service has a restart policy, and all came back after the reboots today.
+**Side effect.** A `docker-ce` or `containerd.io` upgrade restarts the daemon and every container, around 06:00 when `apt-daily-upgrade.timer` fires. The health check alerts on a container that comes back unhealthy or restart-looping, and (since the entry above) on one that stays stopped.
 
 ### Rebooted onto the current kernel (finding 4)
 
