@@ -66,7 +66,6 @@ flowchart TB
             CouchDB["CouchDB<br/>(Obsidian LiveSync)"]
             n8n
             Portainer
-            Quartus["Quartus webtop<br/>(stopped)"]
         end
         subgraph Bridge["default bridge (host port)"]
             ITTools[IT-Tools]
@@ -107,7 +106,6 @@ More detail: [`docs/architecture.md`](docs/architecture.md)
 | n8n 2.36 | Workflow automation | Compose `n8n` | `n8n.` |
 | IT-Tools | Developer utilities | `docker run` | `it.` |
 | SnapOtter 2.2 | File conversion, OCR, local AI tools | `docker run` | `tools.` |
-| Quartus webtop | Intel Quartus 13.0sp1 in a browser desktop (stopped) | Compose `quartus` (local build) | `quartus.` |
 | UniFi OS Server 5.1 | UniFi network controller | Rootless Podman, systemd | `unifi.` |
 | Tailscale 1.102 | Remote access, subnet router | Host package | – |
 

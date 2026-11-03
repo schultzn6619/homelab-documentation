@@ -12,7 +12,6 @@ Day-to-day procedures for this host. Paths are the real ones on the server; `~` 
 | `n8n` | `~/n8n` |
 | `obsidian-livesync` | `/mnt/storage/obsidian-livesync` |
 | `vaultwarden` | `/mnt/storage/vaultwarden` |
-| `quartus` | `/mnt/storage/quartus` |
 | Custom scripts | `/usr/local/bin/homelab-backup.sh`, `/usr/local/bin/thermal-watchdog.sh` |
 | Custom units | `/etc/systemd/system/` |
 
@@ -94,7 +93,6 @@ Unattended-upgrades handles Ubuntu's own pockets. Docker Engine, containerd, and
 | Nextcloud | AIO interface, "Update containers". Take a backup first |
 | n8n | `cd ~/n8n && docker compose pull && docker compose up -d` |
 | IT-Tools, SnapOtter | `docker pull <image>`, then remove and re-create the container with the same `docker run` arguments |
-| Quartus | `cd /mnt/storage/quartus && docker compose build --pull && docker compose up -d` |
 | UniFi OS Server | Automatic through `uosserver-updater.service` |
 
 Clean up afterwards:

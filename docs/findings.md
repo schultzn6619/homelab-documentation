@@ -138,18 +138,17 @@ Every other published port is bound to the LAN address. Docker-published ports b
 
 ## 9. Credentials written inline
 
-> **Partly fixed 2026-10-13.** The backup script no longer contains a password, and staging is now root-only (`umask 077`, mode 700). The Quartus Compose file and the Vaultwarden data directory permissions are still open.
+> **Partly fixed 2026-10-13.** The backup script no longer contains a password, and staging is now root-only (`umask 077`, mode 700). The Vaultwarden data directory permissions are still open.
 
 **Observed.**
 
-- The deployed Quartus Compose file contains the desktop username and password in plain text. The file is world-readable.
 - `/usr/local/bin/homelab-backup.sh` (mode 755) contains a database password on the `mongodump` command line.
 - Database dumps in `/var/backups/staging` are created world-readable (644 in a 755 directory).
 - Vaultwarden's data directory, including its database and RSA signing key, is world-readable on the host.
 
 **Impact.** Any local account or any process that can read the host filesystem can read these. Only two local accounts exist, so exposure is limited, but the files should not rely on that.
 
-**Fix.** Move the Quartus values to a `.env` file with mode 600, as in this repo's copy, and change the password. Removing the `mongodump` block (finding 1) removes the second. Add `umask 077` at the top of the backup script and `chmod 700 /var/backups/staging`. `chmod 700 /mnt/storage/vaultwarden/data`.
+**Fix.** Removing the `mongodump` block (finding 1) removes the second. Add `umask 077` at the top of the backup script and `chmod 700 /var/backups/staging`. `chmod 700 /mnt/storage/vaultwarden/data`.
 
 ## 10. Vaultwarden still allows sign-ups
 
@@ -166,7 +165,7 @@ Every other published port is bound to the LAN address. Docker-published ports b
 - A MongoDB 7.0 server (`mongod`, package on hold) runs on the host on loopback with an essentially empty data directory and no client connections. UniFi OS Server bundles its own database and does not use it.
 - The Ubiquiti APT source and `openjdk-17-jre-headless` remain from a native UniFi install.
 - Two Docker networks with no containers, four volumes with no containers, and images for retired stacks. `docker system df` reports 26.6 GB of reclaimable images and 17.2 GB of build cache.
-- An unused `containrrr/watchtower` image and a second `raetro/quartus` tag (16.1 GB) that the current Dockerfile does not use.
+- An unused `containrrr/watchtower` image.
 - UFW still has rules for services that no longer exist (finding 17).
 
 **Fix.** After checking nothing depends on them:
@@ -181,7 +180,7 @@ docker builder prune
 sudo ufw status numbered               # delete rules for retired ports
 ```
 
-Images referenced by a stopped container, such as Quartus, are kept by `docker image prune -a`. Review what each command lists before confirming.
+Images referenced by a stopped container are kept by `docker image prune -a`. Review what each command lists before confirming.
 
 ## 12. Two units fail at every boot
 
@@ -198,10 +197,9 @@ Images referenced by a stopped container, such as Quartus, are kept by `docker i
 
 - `it-tools` and `SnapOtter` were created with `docker run`. Their configuration exists only in the running containers.
 - `SnapOtter` has restart policy `no` and will stay down after the next reboot.
-- `quartus` is stopped, so `quartus.example.duckdns.org` returns 502.
 - The `it-tools` image has not been updated upstream in two years.
 
-**Fix.** Put both `docker run` services into Compose (see finding 6). Either start Quartus on demand and accept the 502, or disable its proxy host while it is stopped.
+**Fix.** Put both `docker run` services into Compose (see finding 6).
 
 ## 14. Update coverage and image pinning are uneven
 

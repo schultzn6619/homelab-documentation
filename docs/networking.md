@@ -94,7 +94,6 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | `notes.` | `trilium:8080` | http | Trilium was removed on 2026-10-25, so this returns 502. Delete the host in the NPM UI |
 | `obsidian.` | `couchdb:5984` | http | Obsidian LiveSync. Advanced config: `proxy_buffering off`, `client_max_body_size 50M`, long read timeout |
 | `n8n.` | `n8n:5678` | http | |
-| `quartus.` | `quartus:3000` | http | Backend container is stopped, so this returns 502 |
 | `it.` | `192.168.1.10:8097` | http | Backend on default bridge, reached through its host port |
 | `tools.` | `192.168.1.10:1349` | http | Same pattern (SnapOtter) |
 | `music.` | `navidrome:4533` | http | Navidrome |

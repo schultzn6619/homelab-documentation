@@ -18,7 +18,6 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 | slskd (Soulseek client) | 0.26.2 | Compose | `music` | `/mnt/storage/music/slskd` | unless-stopped |
 | IT-Tools | `latest` (image is 2 years old) | `docker run` | – | none | unless-stopped |
 | SnapOtter | 2.2.0 | `docker run` | – | volume `SnapOtter-data` | **no** |
-| Quartus webtop | local build | Compose | `quartus` (`/mnt/storage/quartus`) | `/mnt/storage/quartus` | unless-stopped, currently stopped |
 | UniFi OS Server | 5.1.42 | systemd + rootless Podman | – | `uosserver` user's Podman storage | on-failure |
 
 Sanitised copies of every Compose file are in [`compose/`](../compose).
@@ -175,16 +174,6 @@ Two utility containers started by hand with `docker run`, so there is no Compose
 
 Equivalent Compose definitions on the `proxy` network would remove both published ports. See [finding 6](findings.md#6-three-containers-publish-ports-on-every-interface).
 
-## Quartus webtop
-
-A locally built image that layers Intel Quartus 13.0sp1 (from `raetro/quartus`) onto the LinuxServer.io XFCE webtop image, giving a browser-accessible desktop for FPGA work on older device families.
-
-- Build context and Compose file at `/mnt/storage/quartus`; [`Dockerfile`](../compose/quartus/Dockerfile) adds the 32-bit libraries and `libpng12` that Quartus 13 needs.
-- Projects persist in `/mnt/storage/quartus/projects`.
-- 1 GB of shared memory for the desktop session.
-- The image is 14.1 GB. The container has been stopped since 2026-10-03.
-- In the deployed file the desktop username and password are written inline; this repo's copy reads them from `.env`.
-
 ## UniFi OS Server
 
 Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Network application.
@@ -207,6 +196,6 @@ Not to be confused with the separate `mongod` service installed on the host, whi
 | UniFi OS Server updater | UniFi OS Server |
 | `unattended-upgrades` | Ubuntu packages from the release and security pockets |
 | Tailscale auto-update | Tailscale |
-| Manual | `immich_*`, `n8n`, `it-tools`, `SnapOtter`, `quartus`, Docker Engine and other third-party APT packages |
+| Manual | `immich_*`, `n8n`, `it-tools`, `SnapOtter`, Docker Engine and other third-party APT packages |
 
 Most images track `latest` or `release`, so a rebuild today would not necessarily reproduce what is running. Only the Immich database and cache images are pinned by digest.
