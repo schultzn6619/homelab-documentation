@@ -185,8 +185,6 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 - Data lives in Podman volumes mapped to `/var/lib/unifi` and `/var/lib/mongodb` inside the container.
 - Because it listens on the host's own ports, UniFi devices can discover and adopt against the host address directly.
 
-Not to be confused with the separate `mongod` service installed on the host, which is unused.
-
 ## Update policy
 
 | Mechanism | Covers |

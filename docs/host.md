@@ -62,10 +62,10 @@ Largest memory users are `immich_server` (1.4 GiB), `n8n` (485 MiB), and `SnapOt
 | Security | `ufw` 0.36.2, `fail2ban` 1.1.0, `unattended-upgrades`, `debsums` |
 | Storage and backup | `bcache-tools`, `restic` 0.18.1, `smartmontools` |
 | Monitoring and tuning | `lm-sensors`, `cpulimit`, `sysstat`, `btop`, `stress-ng`, `fastfetch` |
-| Left over from earlier setups | `mongodb-org-server` 7.0.43 (held), `mongodb-org-shell`, `openjdk-17-jre-headless`, `ipmitool` |
+| Left over from earlier setups | `ipmitool` |
 | Shell tooling | `neovim`, `ripgrep`, `fzf`, `net-tools`, `netcat-traditional` |
 
-Third-party APT sources: Docker, Tailscale, MongoDB 7.0, and Ubiquiti UniFi. No snaps are installed.
+Third-party APT sources: Docker and Tailscale. No snaps are installed.
 
 ## systemd units
 
@@ -83,7 +83,7 @@ Third-party APT sources: Docker, Tailscale, MongoDB 7.0, and Ubiquiti UniFi. No 
 
 ### Other notable running services
 
-`docker`, `containerd`, `tailscaled`, `ssh`, `fail2ban`, `ufw`, `chrony`, `smartmontools`, `unattended-upgrades`, `rsyslog`, `cron`, `mongod`, `fwupd`, `sysstat`.
+`docker`, `containerd`, `tailscaled`, `ssh`, `fail2ban`, `ufw`, `chrony`, `smartmontools`, `unattended-upgrades`, `rsyslog`, `cron`, `fwupd`, `sysstat`.
 
 Also enabled by the Ubuntu Server defaults but not needed on this machine: `ModemManager`, `multipathd`, `open-iscsi`, `udisks2`, `upower`.
 
@@ -129,7 +129,7 @@ There are no user crontabs. Watchtower's 04:00 schedule runs inside its containe
 }
 ```
 
-Disk usage: 68.7 GB of images (26.6 GB reclaimable), 17.2 GB of build cache, 2.8 GB in named volumes.
+Disk usage on 2026-11-03, after the finding 11 cleanup: 28.8 GB of images (0.1 GB reclaimable), 0.2 GB of build cache, 2.8 GB in named volumes.
 
 ## How this was collected
 

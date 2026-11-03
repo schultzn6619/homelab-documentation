@@ -6,6 +6,22 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Cleaned up leftovers from retired setups (finding 11)
+
+**Problem.** Packages, APT sources, Docker objects and firewall rules from earlier setups were still on the host. They included an unused MongoDB server listening on loopback, held back from upgrades.
+
+**Changed.**
+
+- Stopped and disabled `mongod`, released its hold, and purged `mongodb-org-server`, `mongodb-org-shell`, `mongodb-mongosh-shared-openssl3` and `openjdk-17-jre-headless`. Before that, a check showed only the built-in `admin`, `config` and `local` databases. Deleted `/var/lib/mongodb` and `/var/log/mongodb`.
+- Removed the MongoDB 7.0 and Ubiquiti APT sources and their keyrings.
+- Removed two Docker networks and four volumes that no container used. The two volumes with data were archived to a root-only folder first.
+- Removed five images that no container or Compose file uses, including `containrrr/watchtower`. Images used by stopped containers or by a deployed Compose file were kept.
+- Deleted the four UFW rules for ports nothing listens on (1900/udp and three rules for a retired service port). This partly fixes finding 17.
+
+**Verified.** `apt-get update` is clean and no MongoDB packages or units remain. `docker system df` shows 0.1 GB of reclaimable images and no reclaimable volumes. `ufw status` lists 16 rules. Running containers and failed units are the same as before the cleanup.
+
+**Still open.** `ipmitool` is left for finding 12. In finding 17, SSH is still open to anywhere and the rules for Docker-published ports still have no effect.
+
 ### Pruned the Docker build cache
 
 **Problem.** Old image builds, mostly from the Quartus image, had left 20.9 GB of build cache, none of it used by a current build (finding 11).

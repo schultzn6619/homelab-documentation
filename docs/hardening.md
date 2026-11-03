@@ -39,7 +39,7 @@ sudo sshd -T | grep -Ei 'passwordauthentication|permitrootlogin|pubkeyauthentica
 | Default outbound | ACCEPT |
 | Default forward | ACCEPT (required for the Tailscale subnet router and Docker) |
 
-Live rules on 2026-10-13 (`sudo ufw status verbose`), 20 in total:
+Live rules on 2026-11-03 (`sudo ufw status verbose`), 16 in total:
 
 | To | Action | From | Still meaningful? |
 |---|---|---|---|
@@ -52,8 +52,6 @@ Live rules on 2026-10-13 (`sudo ufw status verbose`), 20 in total:
 | 443/tcp | allow | anywhere, IPv4 and IPv6 | No effect. The port is published by Docker |
 | 80, 81, 9000, 8091 | allow | LAN | No effect. Published by Docker |
 | 8097/tcp | allow | LAN and `172.16.0.0/12` | No effect. Published by Docker |
-| 1900/udp | allow | LAN | Nothing listens on it |
-| one retired service port (3 rules) | allow | LAN and `172.16.0.0/12` | Nothing listens on it |
 
 The `DOCKER-USER` chain is empty for both IPv4 and IPv6, so nothing restricts Docker-published ports beyond their bind address.
 
@@ -95,7 +93,7 @@ The jail is active with no bans and one failed attempt on record, which is expec
 |---|---|
 | Ubuntu packages | `unattended-upgrades` daily, from the release, security, and ESM pockets |
 | Reboots | Not automatic. `/var/run/reboot-required` must be checked by hand |
-| Third-party APT (Docker, MongoDB, UniFi source) | Not covered by unattended-upgrades; manual `apt upgrade` |
+| Third-party APT (Docker, Tailscale) | Not covered by unattended-upgrades; manual `apt upgrade` |
 | Tailscale | Its own auto-update |
 | Containers | See [update policy](services.md#update-policy) |
 | Firmware | `fwupd` refreshes metadata; updates are applied manually |

@@ -14,13 +14,13 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium | Open |
 | 9 | [Credentials written inline](#9-credentials-written-inline) | Medium | Partly fixed 2026-10-13 |
 | 10 | [Vaultwarden still allows sign-ups](#10-vaultwarden-still-allows-sign-ups) | Medium | Open |
-| 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low | Partly fixed 2026-11-03 |
+| 11 | [Leftovers from retired setups](#11-leftovers-from-retired-setups) | Low | Fixed 2026-11-03 |
 | 12 | [Two units fail at every boot](#12-two-units-fail-at-every-boot) | Low | Open |
 | 13 | [Unmanaged and stopped containers](#13-unmanaged-and-stopped-containers) | Low | Open |
 | 14 | [Update coverage and image pinning are uneven](#14-update-coverage-and-image-pinning-are-uneven) | Low | Open |
 | 15 | [Thermal watchdog matches more than it should](#15-thermal-watchdog-matches-more-than-it-should) | Low | Open |
 | 16 | [Minor host hygiene](#16-minor-host-hygiene) | Low | Open |
-| 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium | Open |
+| 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium | Partly fixed 2026-11-03 |
 | 18 | [Data disk is past its rated load cycles](#18-data-disk-is-past-its-rated-load-cycles) | Medium | Open |
 | 19 | [SSH password login was enabled by a drop-in](#19-ssh-password-login-was-enabled-by-a-drop-in) | High | **Fixed 2026-10-13** |
 
@@ -160,7 +160,7 @@ Every other published port is bound to the LAN address. Docker-published ports b
 
 ## 11. Leftovers from retired setups
 
-> **Partly fixed 2026-11-03.** The Docker build cache was pruned. The rest is still open.
+> **Fixed 2026-11-03.** The host MongoDB, OpenJDK 17, the MongoDB and Ubiquiti APT sources, the unused Docker images, networks and volumes, the build cache, and the four stale UFW rules were removed. See the [changelog](../CHANGELOG.md#cleaned-up-leftovers-from-retired-setups-finding-11). The description below is kept as the record of what was wrong.
 
 **Observed.**
 
@@ -239,6 +239,8 @@ Or set a permanent `cpus:` limit on the ML service in the Compose file so the wa
 - **Proxy host definitions** exist only in the NPM volume. Back that volume up (finding 2) or export the configuration.
 
 ## 17. Firewall rules have drifted
+
+> **Partly fixed 2026-11-03.** The four rules for ports nothing listens on were deleted (finding 11), leaving 16 rules. The SSH scoping and the no-effect rules for Docker-published ports are still open.
 
 **Observed.** UFW is active with default-deny inbound and 20 rules. The full table is in [hardening](hardening.md#firewall-ufw).
 
