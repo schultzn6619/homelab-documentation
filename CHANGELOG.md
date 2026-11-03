@@ -6,6 +6,27 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-03
 
+### Music added to the nightly backup
+
+**Problem.** Nothing under `/mnt/storage/music` was backed up. That includes the Navidrome database, which holds stars, play counts and playlists.
+
+**Changed.** [`homelab-backup.sh`](scripts/homelab-backup.sh) has two new steps:
+
+- **"music database"** copies Navidrome's SQLite database with the online backup API, plus the Discover Weekly state and `slskd.yml`, into staging.
+- **"music library"** backs up `/mnt/storage/music/library` straight from disk as its own snapshot (tag `homelab-music`). It refuses to run if the library would leave less than 20 GB free on the NVMe that holds the repository.
+
+Also removed a `__pycache__` directory that had been committed by mistake, and added it to `.gitignore`.
+
+**Verified.**
+
+- Ran `homelab-backup.service` by hand. Every step reported `ok`. The music snapshot added 2.47 GiB (124 files, 11 s), and `restic forget` still kept three snapshots per group.
+- Restored `navidrome.db` from the new snapshot with `restic dump`: `integrity_check` is `ok`, with 118 songs and the 25-song Discover Weekly playlist. The music snapshot lists the same 118 FLAC files as the library on disk.
+
+**Still open.**
+
+- The repository is still on the same machine (see [finding 2](docs/findings.md#2-backups-do-not-protect-against-losing-the-machine)), and the library will compete with the OS for NVMe space as it grows.
+- The host's name changed from `nath-serv` to `singularity`. restic groups snapshots by host, so the two old `nath-serv` snapshots (2026-10-24 and 2026-10-25) are never pruned.
+
 ### Discover Weekly playlist from ListenBrainz recommendations
 
 **Problem.** The music server only plays what is already in the library, so it had no way to suggest new music the way Spotify's radios and Discover Weekly do.

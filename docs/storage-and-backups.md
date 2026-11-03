@@ -108,7 +108,9 @@ flowchart LR
     B[pg_dump Nextcloud] --> S
     C["cp UniFi autobackup files"] --> S
     D["cp -a Vaultwarden,<br/>Obsidian LiveSync, Nextcloud data"] --> S
+    E["SQLite backup of Navidrome DB,<br/>Discover Weekly state, slskd.yml"] --> S
     S --> R["restic backup<br/>/var/backups/restic-repo<br/>(NVMe)"]
+    M["/mnt/storage/music/library<br/>(backed up in place)"] --> R
     R --> F["restic forget<br/>--keep-last 3 --prune<br/>(only if every step succeeded)"]
     F --> X[empty staging]
 ```
@@ -118,8 +120,9 @@ flowchart LR
 | Database dumps | `pg_dump` inside `immich_postgres` and `nextcloud-aio-database` |
 | UniFi | Copies the controller's own scheduled `.unf` backup files from the UniFi OS Server volume |
 | File copies | `/mnt/storage/vaultwarden`, `/mnt/storage/obsidian-livesync`, `/mnt/storage/nextcloud` copied to staging |
+| Music | Navidrome's database is copied with SQLite's online backup API (consistent while Navidrome runs), plus `discover-state/` and `slskd.yml`, into staging. The library is backed up in place as a separate snapshot tagged `homelab-music`, so it is never duplicated in staging and each night only adds new files. That step refuses to run (and counts as failed) if the library would leave less than 20 GB free on the NVMe |
 | Repository | restic 0.18, local repo on the NVMe, password in `/root/.restic-password` |
-| Retention | last 3 snapshots |
+| Retention | last 3 snapshots per group (restic groups by host and paths, so the daily and music snapshots are kept separately) |
 | Failure handling | Each source is an independent step. A failed step is logged and the rest still run; the script exits non-zero at the end, and pruning is skipped so a partial run cannot evict a good snapshot |
 | Staging | `/var/backups/staging`, mode 700, emptied before and after each run |
 
@@ -139,7 +142,7 @@ Working as of 2026-10-13. The job failed every night from 2026-09-22 until it wa
 | Obsidian LiveSync | Yes (file copy of CouchDB data and of the plain-Markdown vault mirror) |
 | UniFi | Yes (the controller's own backup files; the newest is dated 2026-10-01) |
 | n8n | **No** |
-| Music (library and Navidrome database) | **No** |
+| Music | Yes (consistent copy of the Navidrome database, Discover Weekly state, slskd config; library files in place). Not the slskd transfer history or Navidrome's artwork cache |
 | Nginx Proxy Manager, Portainer | **No** |
 | Compose files, `.env` files, scripts, systemd units | **No** (sanitised copies are in this repo; secrets are not) |
 

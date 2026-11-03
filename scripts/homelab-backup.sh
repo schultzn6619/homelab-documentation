@@ -45,8 +45,32 @@ step "vaultwarden files" cp -a /mnt/storage/vaultwarden "$STAGING/vaultwarden"
 step "obsidian livesync" cp -a /mnt/storage/obsidian-livesync "$STAGING/obsidian-livesync"
 step "nextcloud files"   cp -a /mnt/storage/nextcloud "$STAGING/nextcloud-data"
 
+# --- Music: Navidrome database (consistent SQLite snapshot), job state, slskd config ---
+music_meta() {
+  mkdir -p "$STAGING/music" &&
+  python3 -I -c 'import sqlite3,sys; s=sqlite3.connect(f"file:{sys.argv[1]}?mode=ro", uri=True); d=sqlite3.connect(sys.argv[2]); s.backup(d); d.close()' \
+    /mnt/storage/music/navidrome/navidrome.db "$STAGING/music/navidrome.db" &&
+  cp -a /mnt/storage/music/discover-state "$STAGING/music/discover-state" &&
+  cp -a /mnt/storage/music/slskd/slskd.yml "$STAGING/music/slskd.yml"
+}
+step "music database" music_meta
+
 # --- Back up staging with restic (writes land on the SSD) ---
 step "restic backup" restic backup "$STAGING" --tag homelab-daily
+
+# --- Music library: backed up in place (no staging copy); restic only adds new files ---
+# The repo is on the system SSD, so refuse if the library wouldn't leave 20 GB free.
+music_library() {
+  local lib=/mnt/storage/music/library need free
+  need=$(( $(du -sk "$lib" | cut -f1) + 20*1024*1024 ))
+  free=$(df -k --output=avail "$RESTIC_REPOSITORY" | tail -1)
+  if [ "$free" -lt "$need" ]; then
+    echo "music library: not enough space on the backup disk (free ${free}K, need ${need}K)" >&2
+    return 1
+  fi
+  restic backup "$lib" --tag homelab-music
+}
+step "music library" music_library
 
 # --- Prune: keep only the last 3 snapshots ---
 # Skipped after any failure, so an incomplete run never pushes out a good snapshot.
