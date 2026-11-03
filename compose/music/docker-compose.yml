@@ -1,0 +1,47 @@
+# Self-hosted Spotify replacement: player (Navidrome) + downloader (slskd/Soulseek)
+# Data lives under /mnt/storage/music; secrets in .env (not committed).
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    restart: unless-stopped
+    user: "1000:1000"
+    networks:
+      - proxy
+    environment:
+      - ND_SCANSCHEDULE=@every 15m
+      - ND_LOGLEVEL=info
+      - ND_ENABLESHARING=false
+      - ND_LISTENBRAINZ_ENABLED=true
+    volumes:
+      - /mnt/storage/music/navidrome:/data
+      - /mnt/storage/music/library:/music:ro
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  slskd:
+    image: slskd/slskd:latest
+    container_name: slskd
+    restart: unless-stopped
+    user: "1000:1000"
+    networks:
+      - proxy
+    ports:
+      - "50300:50300"          # Soulseek peer port (only matters if forwarded on the router)
+    env_file:
+      - .env
+    environment:
+      - SLSKD_REMOTE_CONFIGURATION=true
+      - SLSKD_DOWNLOADS_DIR=/music/soulseek
+      - SLSKD_INCOMPLETE_DIR=/incomplete
+      - SLSKD_SLSK_LISTEN_PORT=50300
+    volumes:
+      - /mnt/storage/music/slskd:/app
+      - /mnt/storage/music/library:/music
+      - /mnt/storage/music/incomplete:/incomplete
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  proxy:
+    external: true

@@ -14,6 +14,8 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 | Vaultwarden | 1.37.4 | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
 | Obsidian LiveSync (CouchDB + CLI) | CouchDB 3.5.3, LiveSync CLI `latest` | Compose | `obsidian-livesync` (`/mnt/storage/obsidian-livesync`) | `/mnt/storage/obsidian-livesync` | unless-stopped |
 | n8n | 2.36.7 | Compose | `n8n` (`~/n8n`) | `/mnt/storage/n8n` | unless-stopped |
+| Navidrome | 0.64.2 | Compose | `music` (`~/homelab/music`) | `/mnt/storage/music/navidrome`, library `/mnt/storage/music/library` | unless-stopped |
+| slskd (Soulseek client) | 0.26.2 | Compose | `music` | `/mnt/storage/music/slskd` | unless-stopped |
 | IT-Tools | `latest` (image is 2 years old) | `docker run` | – | none | unless-stopped |
 | SnapOtter | 2.2.0 | `docker run` | – | volume `SnapOtter-data` | **no** |
 | Quartus webtop | local build | Compose | `quartus` (`/mnt/storage/quartus`) | `/mnt/storage/quartus` | unless-stopped, currently stopped |
@@ -125,6 +127,17 @@ Source: [`compose/n8n/workflows/rocketbook-obsidian.json`](../compose/n8n/workfl
 n8n can still only write to `Rocketbook Inbox`; the moving happens in the filer because n8n's file node cannot create folders. The filer runs as the admin user (`rocketbook-filer.service`, [unit files](../system/)).
 
 A copy with a manual trigger and three fake emails (a Smart Title code, a default subject, a code only in the text), "Rocketbook → Obsidian (test)", exercises steps 2 to 6 without mail: `docker exec -e N8N_RUNNERS_BROKER_PORT=5699 n8n n8n execute --id=rbTestPipeline01` (the alternate broker port avoids a clash with the running instance). It writes into `Lecture 9` of two classes and into the inbox; delete those test files and the two `Lecture 9` folders afterwards.
+
+## Music (Navidrome + slskd)
+
+Self-hosted replacement for Spotify. Navidrome is the player (Subsonic API; iPhone client Amperfy), slskd downloads from the Soulseek network. [Compose file](../compose/music/docker-compose.yml).
+
+- Library: `/mnt/storage/music/library`, mounted read-only into Navidrome, rescanned every 15 minutes. slskd writes finished downloads to `library/soulseek/`; partial files go to `/mnt/storage/music/incomplete` so Navidrome never sees them.
+- slskd shares nothing (no shared directories configured). Some Soulseek users refuse uploads to peers that share nothing.
+- The Soulseek peer port 50300/tcp is published on the host but not forwarded on the router, so peers can't connect in directly; searches and downloads still work.
+- ListenBrainz scrobbling is enabled server-wide; each user links a token in Navidrome's personal settings.
+- Planned: a weekly job that turns ListenBrainz recommendations into downloads and a "Discover Weekly" playlist.
+- Updated automatically by Watchtower.
 
 ## IT-Tools and SnapOtter
 

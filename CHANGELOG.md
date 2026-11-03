@@ -4,6 +4,23 @@ A dated record of changes made to the server. Each entry corresponds to one comm
 
 Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
+## 2026-11-03
+
+### Music server: Navidrome and slskd
+
+**Problem.** Replacing a Spotify subscription needs a player, a source of music, and a way to discover new music. This change covers the first two.
+
+**Changed.**
+
+- New Compose project `music` at `~/homelab/music` ([Compose file](compose/music/docker-compose.yml), [`.env.example`](compose/music/.env.example)) with Navidrome 0.64.2 and slskd 0.26.2, both on the `proxy` network and labelled for Watchtower.
+- Created `/mnt/storage/music/{library,navidrome,slskd,incomplete}`, owned by UID 1000. slskd downloads into `library/soulseek/`, which Navidrome rescans every 15 minutes.
+- slskd shares no directories. Port 50300/tcp is published but not forwarded on the router.
+- A Soulseek account was registered on first login; its credentials and the slskd UI login are in `~/homelab/music/.env` (mode 600).
+
+**Verified.** Both containers are up and slskd reports healthy. slskd logged `Logged in to the Soulseek server`. A test search through the slskd API returned 552 files from 252 users. Navidrome's first scan found an empty library, as expected.
+
+**Still open.** Proxy hosts `music.` and `slskd.` need to be added in the NPM UI. The Navidrome admin account has not been created yet. The music data is not in the restic backup. The ListenBrainz discovery job is still to be built.
+
 ## 2026-10-25
 
 ### Rocketbook notes filed by class and lecture

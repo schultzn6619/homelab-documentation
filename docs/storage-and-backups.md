@@ -68,13 +68,14 @@ watch cat /sys/block/bcache0/bcache/dirty_data
 | Vaultwarden SQLite, attachments, keys | `/mnt/storage/vaultwarden/data` | bcache |
 | Obsidian LiveSync: CouchDB data, CLI database, plain-Markdown vault copy, secrets | `/mnt/storage/obsidian-livesync` | bcache |
 | n8n SQLite, encryption key, workflows | `/mnt/storage/n8n` | bcache |
+| Music library, Navidrome database, slskd state | `/mnt/storage/music` | bcache |
 | Quartus build context, desktop home, projects | `/mnt/storage/quartus` | bcache |
 | Nginx Proxy Manager config and certificates | volumes `homelab-core_npm_data`, `homelab-core_npm_letsencrypt` | NVMe |
 | Portainer state | volume `homelab-core_portainer_data` | NVMe |
 | SnapOtter state | volume `SnapOtter-data` | NVMe |
 | Immich ML model cache | volume `immich_model-cache` | NVMe |
 | UniFi configuration and database | `uosserver` user's Podman storage | NVMe |
-| Compose files and `.env` files | `~/homelab-core`, `~/immich`, `~/n8n`, `~/nextcloud`, and beside the data for Obsidian LiveSync, Vaultwarden, Quartus | both |
+| Compose files and `.env` files | `~/homelab-core`, `~/immich`, `~/n8n`, `~/nextcloud`, `~/homelab/music`, and beside the data for Obsidian LiveSync, Vaultwarden, Quartus | both |
 | restic repository | `/var/backups/restic-repo` | NVMe |
 
 ## Health monitoring
@@ -138,6 +139,7 @@ Working as of 2026-10-13. The job failed every night from 2026-09-22 until it wa
 | Obsidian LiveSync | Yes (file copy of CouchDB data and of the plain-Markdown vault mirror) |
 | UniFi | Yes (the controller's own backup files; the newest is dated 2026-10-01) |
 | n8n | **No** |
+| Music (library and Navidrome database) | **No** |
 | Nginx Proxy Manager, Portainer | **No** |
 | Compose files, `.env` files, scripts, systemd units | **No** (sanitised copies are in this repo; secrets are not) |
 
