@@ -4,6 +4,29 @@ A dated record of changes made to the server. Each entry corresponds to one comm
 
 Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
+## 2026-11-04
+
+### Moved NPM's static address out of the automatic range
+
+**Problem.** The server rebooted at 14:01. While Docker brought containers back, `navidrome` was given `172.18.0.10` on `proxy`. That is NPM's static address, so NPM failed to start ("failed to set up container networking: Address already in use") and stayed down. Every proxied service was unreachable and the health check's TLS alert fired ("Connection refused"). This had already happened once during a recreate (2026-11-03, below). The reboot showed that start order at boot can cause it too, so any reboot could take the proxy down.
+
+**Changed.**
+
+- Recovery first. Stopped `navidrome`, started `npm` and started `navidrome` again. It moved to `.17`.
+- NPM's address in [`homelab-core`](compose/homelab-core/docker-compose.yml) is now `172.18.255.10`. Docker gives each container the lowest free address on the network, so the top of the `/16` will not be taken. Nothing else referred to the old address. Only `npm` was recreated (`docker compose up -d --no-deps npm`), with the health check timer paused for the change.
+- Updated [operations](docs/operations.md), [networking](docs/networking.md), [services](docs/services.md) and [architecture](docs/architecture.md).
+
+**Verified.**
+
+- `npm` is on `172.18.255.10` and running.
+- Every proxy host answers through NPM with its usual status: 200 for most, a login redirect from `cloud.` and `music.`, and 401 from CouchDB. The admin UI on port 81 answers.
+- The certificate is still valid until 2027-01-09. A dry run of the health check shows the TLS alert as cleared, and the timer is active again.
+
+**Still open.**
+
+- The `twingate` service still has a static address of `172.18.0.3` in the same file and would hit the same collision if it were ever started (finding 5).
+- The journal of the previous boot ends at 02:30. The 14:01 boot followed about 11.5 hours with no log entries, so it does not look like a clean restart, and the boot before it also ended in a crash. Not yet investigated.
+
 ## 2026-11-03
 
 ### Stopped head parking on the data disk (finding 18)
@@ -229,7 +252,7 @@ The [Compose copies](compose/) match. Watchtower still runs but has nothing to u
 
 **Verified.** All six containers run on their pinned tags, and Vaultwarden and slskd report healthy. Every proxy host answers through NPM with its usual status: 200 for most, a login redirect from `cloud.` and `music.`, and 401 from CouchDB. `tools.` does not answer because SnapOtter has been stopped since before this change (finding 13). A LiveSync round trip after the CouchDB restart succeeded.
 
-**Still open.** NPM's fixed address can still be taken whenever several containers on `proxy` are recreated at the same time.
+**Still open.** NPM's fixed address can still be taken whenever several containers on `proxy` are recreated at the same time. (Fixed 2026-11-04, entry above.)
 
 ### Pinned livesync-cli after a broken update
 

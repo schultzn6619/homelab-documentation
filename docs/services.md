@@ -27,7 +27,7 @@ Defines the shared `proxy` network and the three infrastructure containers.
 
 ### Nginx Proxy Manager
 
-- Image `jc21/nginx-proxy-manager:2.16.0`, static address `172.18.0.10` on `proxy`.
+- Image `jc21/nginx-proxy-manager:2.16.0`, static address `172.18.255.10` on `proxy`, at the top of the subnet because Docker hands out free addresses from the bottom.
 - Publishes 80, 443, and the admin UI on 81, all bound to the LAN address only.
 - Holds one wildcard certificate obtained with the DuckDNS DNS-01 plugin. The DuckDNS token lives inside the `npm_letsencrypt` volume.
 - Proxy host definitions live in the `npm_data` volume (SQLite database plus generated nginx config). They are listed in [networking](networking.md#reverse-proxy-hosts) and are not otherwise version-controlled.

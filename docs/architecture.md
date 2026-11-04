@@ -49,7 +49,7 @@ Two kinds of backend sit behind the proxy:
 
 ### One shared `proxy` network with a pinned subnet
 
-Every proxied application joins an external network called `proxy`, created by the `homelab-core` project with an explicit IPv4 subnet (`172.18.0.0/16`) and IPv6 ULA subnet. Pinning matters because Nginx Proxy Manager has a static address on it (`172.18.0.10`); if Docker re-assigns the range, static addresses stop being valid and unrelated containers fail to start with "address already in use".
+Every proxied application joins an external network called `proxy`, created by the `homelab-core` project with an explicit IPv4 subnet (`172.18.0.0/16`) and IPv6 ULA subnet. Pinning matters because Nginx Proxy Manager has a static address on it (`172.18.255.10`); if Docker re-assigns the range, static addresses stop being valid and unrelated containers fail to start with "address already in use".
 
 Consequence: any other static address on that network must be kept free. See [finding 5](findings.md#5-homelab-core-compose-file-has-drifted-from-what-is-deployed).
 

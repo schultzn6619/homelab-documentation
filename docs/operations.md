@@ -98,7 +98,7 @@ Unattended-upgrades handles Ubuntu's own pockets and, since 2026-11-03, the Dock
 | IT-Tools, SnapOtter | Pinned to a version tag in `~/homelab/utilities/docker-compose.yml`. Change the tag, then `docker compose pull && docker compose up -d`. The update check covers SnapOtter. IT-Tools's date-style tag is not recognised, but its upstream has not published since 2024 |
 | UniFi OS Server | Automatic through `uosserver-updater.service` |
 
-NPM has a static address (`172.18.0.10`) on `proxy`, but every other container there gets the next free address. If another container is recreated at the same moment, it can take `.10` and NPM then fails to start with "Address already in use". To recover, stop the container holding `.10` (`docker network inspect proxy`), `docker start npm`, then start the other container again.
+NPM has a static address on `proxy`, `172.18.255.10`. Every other container there gets the lowest free address, so they never reach it. Until 2026-11-04 it was `172.18.0.10`, which other containers took during reboots and recreates. If NPM ever fails to start with "Address already in use", run `docker network inspect proxy` to find the container holding its address, stop that container, `docker start npm`, then start the other container again.
 
 Clean up afterwards:
 

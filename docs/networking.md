@@ -66,7 +66,7 @@ Addresses on `proxy` at audit time. Only NPM's is static; the rest are assigned 
 
 | Container | Address |
 |---|---|
-| `npm` | `172.18.0.10` (static) |
+| `npm` | `172.18.255.10` (static, at the top of the subnet so automatic assignment never reaches it) |
 | `n8n` | `172.18.0.3` |
 | `immich_postgres` | `172.18.0.4` |
 | `portainer` | `172.18.0.5` |
