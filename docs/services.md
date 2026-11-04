@@ -37,10 +37,6 @@ Defines the shared `proxy` network and the three infrastructure containers.
 - Image `portainer/portainer-ce:2.45.3`, UI on 9000 (LAN address and `ptnr.`).
 - Mounts the Docker socket read-write.
 
-### Twingate connector (defined, not deployed)
-
-The Compose file still declares a `twingate` service with a static address, from before the move to Tailscale. No such container exists. See [finding 5](findings.md#5-homelab-core-compose-file-has-drifted-from-what-is-deployed).
-
 ## Immich
 
 Photo and video library with face and object search.

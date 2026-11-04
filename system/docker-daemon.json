@@ -2,6 +2,10 @@
   "ipv6": true,
   "fixed-cidr-v6": "fd00:dead:beef::/64",
   "ip6tables": true,
+  "default-address-pools": [
+    { "base": "10.88.0.0/16", "size": 24 }
+  ],
+  "live-restore": true,
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "10m",

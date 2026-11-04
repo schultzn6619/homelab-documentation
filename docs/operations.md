@@ -50,7 +50,6 @@ Start order after a full stop: `homelab-core` first, because it creates the exte
 
 Exceptions:
 
-- **`homelab-core`:** do not run a bare `docker compose up -d` until the `twingate` service is removed from the file. Target services by name: `docker compose up -d npm portainer`. See [finding 5](findings.md#5-homelab-core-compose-file-has-drifted-from-what-is-deployed).
 - **Nextcloud:** start and stop the application containers from the AIO interface. `docker compose` in `~/homelab/nextcloud` only manages the master container. The interface is at `https://192.168.1.10:8091` (self-signed certificate), reached by address and port rather than through the proxy. Without the interface, `docker exec -e DAILY_BACKUP=0 -e STOP_CONTAINERS=1 -e START_CONTAINERS=1 -e AUTOMATIC_UPDATES=0 nextcloud-aio-mastercontainer /daily-backup.sh` stops and recreates the containers without updating them.
 - **IT-Tools and SnapOtter:** Compose project `utilities` in `~/homelab/utilities`.
 - **UniFi OS Server:** `sudo systemctl restart uosserver`.
@@ -160,7 +159,7 @@ docker exec npm openssl x509 -in /etc/letsencrypt/live/npm-1/cert.pem -noout -en
 | No hostname resolves remotely | `tailscale status` on the client; Split DNS entry for the domain in the Tailscale admin console; router reachable through the subnet route |
 | Hostnames resolve but connections stall | Client preferring an IPv6 answer. See [finding 7](findings.md#7-stale-aaaa-record-in-public-dns) |
 | `address already in use` when starting a container | Another container holds a static address on `proxy`. `docker network inspect proxy` |
-| Containers fail at boot with DNS errors | `systemctl status wait-for-internet`; uplink may have taken longer than 120 s |
+| Containers fail at boot with DNS errors | `systemctl status wait-for-internet`; uplink may have taken longer than 120 s. Docker starts anyway after the wait, and most containers retry once DNS works |
 | Immich unresponsive under load | `tail /var/log/thermal-watchdog.log`; containers may be paused. `docker unpause immich_server immich_machine_learning` once cool |
 | Slow or erroring storage | `dmesg | grep -iE 'bcache|ext4|ata'`, bcache `state`, `sudo smartctl -a /dev/sdb` |
 | UniFi devices show offline | `systemctl status uosserver`; port 8080 reachable from the device's network; device inform URL is `http://192.168.1.10:8080/inform` |

@@ -16,19 +16,6 @@ volumes:
   npm_letsencrypt:
 
 services:
-  # --- Remote access: outbound-only, no ports needed ---
-  twingate:
-    container_name: twingate-connector
-    image: twingate/connector:latest
-    restart: unless-stopped
-    networks:
-      proxy:
-        ipv4_address: 172.18.0.3
-    env_file:
-      - .env
-    sysctls:
-      - net.ipv4.ping_group_range=0 2147483647
-
   # --- Reverse proxy: routes to every future service by container name ---
   npm:
     container_name: npm
@@ -40,7 +27,7 @@ services:
       proxy:
         ipv4_address: 172.18.255.10
     ports:
-      - "192.168.1.10:81:81"     # admin UI, Twingate-only access
+      - "192.168.1.10:81:81"     # admin UI, LAN / Tailscale only
       - "192.168.1.10:80:80"     # http
       - "192.168.1.10:443:443"   # https
     volumes:

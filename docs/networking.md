@@ -51,7 +51,7 @@ Supporting host configuration:
 - [`system/tailscale-gro.service`](../system/tailscale-gro.service): UDP GRO forwarding on `eno1`. Verified active: `rx-udp-gro-forwarding: on`, `rx-gro-list: off`.
 - UFW was configured with `allow in on tailscale0`, so tailnet traffic is not filtered per port.
 
-The earlier remote-access tool was Twingate. Its connector is still defined in the `homelab-core` Compose file but is not deployed; see [finding 5](findings.md#5-homelab-core-compose-file-has-drifted-from-what-is-deployed).
+The earlier remote-access tool was Twingate. Its connector was removed from the `homelab-core` Compose file on 2026-11-04 ([finding 5](findings.md#5-homelab-core-compose-file-has-drifted-from-what-is-deployed)).
 
 ## Docker networks
 
@@ -148,4 +148,7 @@ Because these are forwarded by a user-space process, UFW applies to them like an
 `systemd-networkd-wait-online` waits for `eno1` only (netplan's generated override) and finishes within a second. Until October 2026 it timed out at boot, and two units were added to compensate. They are kept, because `network-online.target` still does not guarantee working DNS:
 
 1. `tailscale-gro.service` runs after `network-online.target` and before `tailscaled`.
-2. `wait-for-internet.service` runs before `docker.service` and loops until `getent hosts` can resolve a public name, for up to 120 seconds.
+2. `wait-for-internet.service` runs before `docker.service` and loops until `getent hosts` can resolve a public name, for up to 120 seconds. Docker only `Wants=` it ([override](../system/docker-override.conf)), so if the uplink is still down after a power cut Docker starts anyway when the wait times out. Until 2026-11-04 it was `Requires=`, which would have left Docker stopped.
+3. `net.ipv4.ip_nonlocal_bind` and `net.ipv6.ip_nonlocal_bind` are set ([`60-nonlocal-bind.conf`](../system/60-nonlocal-bind.conf)), so containers that publish ports on the LAN address can start even if DHCP has not assigned it yet.
+
+Docker creates new networks from `10.88.0.0/16` in `/24` blocks (`default-address-pools` in [`daemon.json`](../system/docker-daemon.json)). Docker's built-in pools include `192.168.0.0/20`, which contains the LAN, so a new Compose network could otherwise have cut the host off the LAN. Existing networks keep their subnets.

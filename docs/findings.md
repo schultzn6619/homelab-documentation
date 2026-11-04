@@ -8,7 +8,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 2 | [Backups do not protect against losing the machine](#2-backups-do-not-protect-against-losing-the-machine) | High | Open |
 | 3 | [Nothing alerts on failure](#3-nothing-alerts-on-failure) | High | **Fixed 2026-11-03** |
 | 4 | [Reboot pending for a kernel update](#4-reboot-pending-for-a-kernel-update) | Medium | Open |
-| 5 | [`homelab-core` Compose file has drifted from what is deployed](#5-homelab-core-compose-file-has-drifted-from-what-is-deployed) | Medium | Open |
+| 5 | [`homelab-core` Compose file has drifted from what is deployed](#5-homelab-core-compose-file-has-drifted-from-what-is-deployed) | Medium | Partly fixed 2026-11-04 |
 | 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium | **Fixed 2026-11-03** |
 | 7 | [Stale AAAA record in public DNS](#7-stale-aaaa-record-in-public-dns) | Medium | Open |
 | 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium | **Fixed 2026-11-03** |
@@ -99,6 +99,8 @@ Add `OnFailure=notify-failure@%n.service` to `homelab-backup.service` and `therm
 **Fix.** `sudo apt upgrade`, then reboot following the [runbook](operations.md#reboot). Consider adding the Docker and Tailscale origins to `Unattended-Upgrade::Allowed-Origins`, or schedule a monthly maintenance window.
 
 ## 5. `homelab-core` Compose file has drifted from what is deployed
+
+> **Partly fixed 2026-11-04.** The `twingate` service and the `twingate/connector` image are gone and the comments are corrected, so a plain `docker compose up -d` in `homelab-core` is safe again. Still to do: revoke the connector tokens in the Twingate admin console, then delete `.env`, which now holds only those tokens. See the [changelog](../CHANGELOG.md#hardened-docker-networking-against-power-cuts). The description below is kept as the record of what was wrong.
 
 **Observed.** [`compose/homelab-core/docker-compose.yml`](../compose/homelab-core/docker-compose.yml) still defines a `twingate` connector with a static address of `172.18.0.3` on `proxy`. No such container exists; remote access moved to Tailscale. The address `172.18.0.3` is now held by `n8n`. Comments in the file still describe the NPM admin UI as "Twingate-only access".
 

@@ -6,6 +6,35 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-04
 
+### Hardened Docker networking against power cuts
+
+**Problem.** The 14:01 reboot was caused by a power bump. Reviewing how Docker comes back after one turned up three more ways the proxy, or everything, could stay down:
+
+- `docker.service` had `Requires=wait-for-internet.service`, and that unit gives up after 120 s if `pubnub.com` (a Twingate domain) does not resolve. After a power cut the modem is often slower than that, and Docker would then not start at all.
+- NPM, Portainer and other containers publish ports on the LAN address. If DHCP is late, those containers fail with "cannot assign requested address" and do not retry.
+- Docker's built-in address pools include `192.168.0.0/20`, which contains the LAN. A new Compose network taken from that pool would cut the host off the LAN.
+
+The dead `twingate` service also still had a static address that `n8n` now holds (finding 5).
+
+**Changed.**
+
+- [`docker-override.conf`](system/docker-override.conf): Docker now only `Wants=` the network and [`wait-for-internet.service`](system/wait-for-internet.service), so it still waits up to 120 s but starts anyway. The wait now looks up `registry-1.docker.io` instead of the Twingate domain.
+- [`60-nonlocal-bind.conf`](system/60-nonlocal-bind.conf): `net.ipv4.ip_nonlocal_bind` and `net.ipv6.ip_nonlocal_bind` are set to 1, so ports can be bound to the LAN address before DHCP assigns it.
+- [`daemon.json`](system/docker-daemon.json): `default-address-pools` is `10.88.0.0/16` in `/24` blocks. No route on the host or the tailnet uses `10.x`. Existing networks keep their subnets. `live-restore` is on, so a Docker restart, such as an unattended upgrade, no longer restarts every container.
+- Removed the `twingate` service from [`homelab-core`](compose/homelab-core/docker-compose.yml), deleted the unused `twingate/connector` image and corrected the "Twingate-only" comment (finding 5, partly).
+- Docker was restarted once to load the daemon settings. The health check timer was paused during the change. The previous versions of the changed files are kept on the server with the suffix `.bak-2026-11-04`.
+
+**Verified.**
+
+- `dockerd --validate` accepted the new `daemon.json`. After the restart `docker info` reports live-restore enabled, and the same 21 containers are running, none unhealthy.
+- A throwaway network got `10.88.0.0/24` and was then removed.
+- `systemctl show docker` lists `wait-for-internet.service` under `Wants` and not under `Requires`. Both sysctls read 1.
+- NPM is still on `172.18.255.10`. Every proxy host answers with its usual status, and a health check dry run reports no problems.
+
+**Not changed.** The `proxy` network was left without an `ip_range`. Docker cannot change a network's address settings in place, so adding one means removing and recreating the network, with every stack on it down, Nextcloud AIO's included. With NPM's address at the top of the subnet, it would add little.
+
+**Still open.** Revoke the Twingate connector tokens in the Twingate admin console, then delete `~/homelab/homelab-core/.env` (finding 5). A UPS would remove the power-cut trigger itself.
+
 ### Moved NPM's static address out of the automatic range
 
 **Problem.** The server rebooted at 14:01. While Docker brought containers back, `navidrome` was given `172.18.0.10` on `proxy`. That is NPM's static address, so NPM failed to start ("failed to set up container networking: Address already in use") and stayed down. Every proxied service was unreachable and the health check's TLS alert fired ("Connection refused"). This had already happened once during a recreate (2026-11-03, below). The reboot showed that start order at boot can cause it too, so any reboot could take the proxy down.
@@ -24,8 +53,8 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 **Still open.**
 
-- The `twingate` service still has a static address of `172.18.0.3` in the same file and would hit the same collision if it were ever started (finding 5).
-- The journal of the previous boot ends at 02:30. The 14:01 boot followed about 11.5 hours with no log entries, so it does not look like a clean restart, and the boot before it also ended in a crash. Not yet investigated.
+- The `twingate` service still has a static address of `172.18.0.3` in the same file and would hit the same collision if it were ever started (finding 5). (Removed later the same day, entry above.)
+- The journal of the previous boot ends at 02:30. The 14:01 boot followed about 11.5 hours with no log entries, so it does not look like a clean restart, and the boot before it also ended in a crash. (The 14:01 boot followed a power bump; see the entry above.)
 
 ## 2026-11-03
 

@@ -126,7 +126,7 @@ Full catalog with images, data paths, and update policy: [`docs/services.md`](do
 ```
 compose/    Docker Compose files as deployed (secrets replaced by .env.example)
 scripts/    Thermal watchdog, backup script, and their systemd units
-system/     sysctl drop-ins, Tailscale GRO unit, wait-for-internet unit, Docker, fail2ban, and sshd config
+system/     sysctl drop-ins, Tailscale GRO unit, wait-for-internet unit, Docker daemon and unit override, fail2ban, and sshd config
 docs/       Architecture, host, networking, services, storage, hardening, operations, findings
 ```
 
@@ -137,12 +137,15 @@ docs/       Architecture, host, networking, services, storage, hardening, operat
 | Pin the `proxy` network subnet | An auto-assigned range changed after a daemon state reset and broke containers with static addresses ("address already in use") | [`compose/homelab-core`](compose/homelab-core/docker-compose.yml) |
 | Tiered throttle/pause watchdog | An ML workload drove the CPU to its thermal shutdown limit | [`scripts/thermal-watchdog.sh`](scripts/thermal-watchdog.sh) |
 | Split-horizon DNS | Double NAT and inherited WAN DNS broke name resolution after moving to Tailscale | [`docs/networking.md`](docs/networking.md#dns) |
-| Hold Docker back until public DNS resolves | `network-online.target` does not guarantee working DNS, so a small unit gates `docker.service` on a real lookup | [`system/wait-for-internet.service`](system/wait-for-internet.service) |
+| Let Docker wait briefly for public DNS, but never block it | `network-online.target` does not guarantee working DNS, so a small unit waits up to 120 s for a real lookup. It is a soft dependency, so a slow modem after a power cut delays Docker but cannot stop it starting | [`system/wait-for-internet.service`](system/wait-for-internet.service) |
 | UniFi on UniFi OS Server, outside Docker | The controller used to run as a Docker container, where Layer 2 device discovery does not cross the bridge and adoption needed a manual `set-inform`. The vendor package publishes its ports on the host directly | [`docs/services.md`](docs/services.md#unifi-os-server) |
 
 ## Lessons learned
 
 - Pin Docker network subnets explicitly; auto-assigned ranges can change after a daemon state reset and silently break anything with a static IP.
+- Put static container addresses at the top of the subnet. Docker hands out the lowest free address, so a static address near the bottom will eventually be taken at boot.
+- Set `default-address-pools` away from the LAN. Docker's built-in pools include `192.168.0.0/20`.
+- Treat boot dependencies on the outside world as soft (`Wants=`, not `Requires=`). After a power cut the modem is often the last thing to come back.
 - Failures can be masked by another layer. DNS problems only surfaced once a tool that had been intercepting DNS was replaced.
 - Keep the stack small. Fewer services doing their jobs well beats a sprawl of half-maintained ones.
 - Monitor before you need to. The thermal issue was caught only after a forced shutdown; the watchdog now handles it before that point.

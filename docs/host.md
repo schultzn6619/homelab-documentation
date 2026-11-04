@@ -76,7 +76,7 @@ Third-party APT sources: Docker and Tailscale. No snaps are installed.
 | `homelab-backup.timer` | timer, `OnCalendar=daily`, persistent | Triggers the backup at midnight | [`scripts/`](../scripts/homelab-backup.timer) |
 | `homelab-backup.service` | oneshot | Runs `/usr/local/bin/homelab-backup.sh` | [`scripts/`](../scripts/homelab-backup.service) |
 | `tailscale-gro.service` | oneshot, before `tailscaled` | `ethtool -K eno1 rx-udp-gro-forwarding on rx-gro-list off` | [`system/`](../system/tailscale-gro.service) |
-| `wait-for-internet.service` | oneshot, before `docker` | Blocks up to 120 s until a public hostname resolves | [`system/`](../system/wait-for-internet.service) |
+| `wait-for-internet.service` | oneshot, before `docker` | Waits up to 120 s for a public hostname to resolve. Docker only `Wants=` it ([override](../system/docker-override.conf)), so it never blocks Docker | [`system/`](../system/wait-for-internet.service) |
 | `uosserver.service` | simple, user `uosserver` | UniFi OS Server | Installed by vendor |
 | `uosserver-updater.service` | simple, root | UniFi OS Server self-updater | Installed by vendor |
 
@@ -110,16 +110,23 @@ There are no user crontabs.
 |---|---|---|
 | [`99-tailscale.conf`](../system/99-tailscale.conf) | `net.ipv4.ip_forward = 1`, `net.ipv6.conf.all.forwarding = 1` | Subnet routing |
 | [`99-uosserver.conf`](../system/99-uosserver.conf) | `net.ipv4.ping_group_range = 0 2147483647` | Lets the rootless UniFi container send ICMP |
+| [`60-nonlocal-bind.conf`](../system/60-nonlocal-bind.conf) | `net.ipv4.ip_nonlocal_bind = 1`, `net.ipv6.ip_nonlocal_bind = 1` | Containers publishing ports on the LAN address start even if DHCP is late at boot |
 
 ## Docker daemon
 
-[`/etc/docker/daemon.json`](../system/docker-daemon.json) enables IPv6 on the default bridge with a ULA range and turns on `ip6tables`:
+[`/etc/docker/daemon.json`](../system/docker-daemon.json) enables IPv6 on the default bridge with a ULA range, turns on `ip6tables`, gives new networks addresses from `10.88.0.0/16` instead of Docker's built-in pools (one of which, `192.168.0.0/20`, contains the LAN), turns on `live-restore` so containers keep running while the daemon restarts (for example during an unattended upgrade), and caps container logs:
 
 ```json
 {
   "ipv6": true,
   "fixed-cidr-v6": "fd00:dead:beef::/64",
-  "ip6tables": true
+  "ip6tables": true,
+  "default-address-pools": [
+    { "base": "10.88.0.0/16", "size": 24 }
+  ],
+  "live-restore": true,
+  "log-driver": "json-file",
+  "log-opts": { "max-size": "10m", "max-file": "3" }
 }
 ```
 
