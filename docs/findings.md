@@ -259,7 +259,7 @@ Or set a permanent `cpus:` limit on the ML service in the Compose file so the wa
 - **SSH:** `X11Forwarding yes` is not needed on a headless server. The admin user's `authorized_keys` also still holds an older key whose private half is not on any device in use; remove it.
 - **Container logs:** the json-file driver has no size limit. Add `"log-driver": "json-file", "log-opts": {"max-size": "10m", "max-file": "3"}` to `daemon.json`.
 - **Resource limits:** no container has memory or CPU limits.
-- **Host address:** the LAN address comes from DHCP while Compose files and proxy hosts hard-code it. Make sure the router has a static lease for it.
+- **Host address:** the LAN address comes from DHCP while Compose files and proxy hosts hard-code it. Make sure the router has a static lease for it. *Confirmed 2026-11-25: the router has a static lease for the host.*
 - **Time zones:** containers do not all set the same `TZ` as the host; align them so logs and schedules agree.
 - **Fan monitoring:** only the motherboard's secondary sensor chip is detected and its fan inputs read 0 RPM, so a failed fan would only show up as temperature.
 - **Proxy host definitions** exist only in the NPM volume. Back that volume up (finding 2) or export the configuration. *Done 2026-11-25: the NPM volumes are in the nightly backup.*

@@ -14,7 +14,7 @@ flowchart LR
 ```
 
 - The ISP gateway does carrier-grade NAT, so the home network has no public IPv4 address and cannot accept inbound connections. The Flint 2 sits behind it (double NAT).
-- The host has one wired interface, `eno1`, configured by DHCP through netplan and systemd-networkd. Its address should be reserved on the router, because Compose files and proxy hosts refer to it literally.
+- The host has one wired interface, `eno1`, configured by DHCP through netplan and systemd-networkd. The router has a static lease for it, which matters because Compose files and proxy hosts refer to the address literally.
 - `eno1` also holds a global IPv6 address from the ISP prefix and a ULA address from the router.
 
 ## DNS
@@ -22,14 +22,14 @@ flowchart LR
 | Where | What resolves names |
 |---|---|
 | On the host | systemd-resolved stub, forwarding to the router (`192.168.1.1`) |
-| LAN clients | Router dnsmasq |
+| LAN clients | Router dnsmasq (upstream 1.1.1.1 and 8.8.8.8; query logging off) |
 | Tailnet clients | Tailscale Split DNS sends `example.duckdns.org` to the router; everything else uses the client's normal DNS |
 
 The service domain is a DuckDNS subdomain. Every hostname under it resolves to the host's LAN address, `192.168.1.10`. That works for remote clients too, because Tailscale routes the LAN subnet.
 
 The host itself has `CorpDNS` disabled in Tailscale, so it never takes DNS settings from the tailnet.
 
-Public DNS for the domain is only needed for the Let's Encrypt DNS-01 TXT challenge. It also currently carries an out-of-date AAAA record; see [finding 7](findings.md#7-stale-aaaa-record-in-public-dns).
+Public DNS for the domain is only needed for the Let's Encrypt DNS-01 TXT challenge.
 
 ## Tailscale
 

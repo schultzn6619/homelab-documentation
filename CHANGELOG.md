@@ -6,6 +6,25 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Router: stopped DNS query logging and removed a stale IPv6 port rule
+
+**Problem.** A read-only review of the GL.iNet Flint 2 found two things worth fixing:
+
+- dnsmasq had `logqueries` on. Query lines made up 3,973 of the 4,163 lines in the router's 512 KB log ring, so the log only reached back about 15 minutes. A WAN reconnect two hours earlier had already been pushed out, so dropouts could not be diagnosed. It also recorded every DNS lookup on the LAN.
+- A custom firewall rule, `Allow-Nath-Serv-HTTPS-v6`, let the internet reach port 443 on the host's global IPv6 address. The ISP has since handed out a new prefix, so the rule matched nothing. It was dead, but if someone updated the address it would expose the reverse proxy over IPv6, which the public DNS no longer advertises (finding 7).
+
+**Changed.** On the router, with a `sysupgrade -b` config backup taken first and kept on the host:
+
+- `dhcp.@dnsmasq[0].logqueries` set to `0`, and dnsmasq restarted.
+- The `Allow-Nath-Serv-HTTPS-v6` rule deleted, and the firewall reloaded.
+
+**Verified.** dnsmasq's generated config no longer has `log-queries`, and the log now shows only service messages. `ip6tables` has no rule for port 443. The router still answers the local override for the service domain with the host's LAN address, and the host resolves names and reaches the internet. The review also confirmed the router has a static DHCP lease for the host (finding 16).
+
+**Still open.**
+
+- The host's switch uplink negotiates 1 Gb/s on a router port that supports 2.5 Gb/s. That is a cabling or switch-port issue, not a router setting.
+- Bufferbloat: latency from the host rose from about 27 ms idle to about 120 ms under a download and about 580 ms under an upload (upload measured at about 7 Mb/s). SQM is configured on the router but off. Turning it on is a trade-off against hardware NAT and throughput, so it has not been changed.
+
 ### Added n8n to the nightly backup (finding 2, partly)
 
 **Problem.** n8n was the last service whose state was not backed up. That includes the "Rocketbook → Obsidian" workflow, two saved credentials, and the key that encrypts them.
