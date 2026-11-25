@@ -6,6 +6,28 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Replaced Portainer with Arcane
+
+**Problem.** Portainer was to be replaced by [Arcane](https://getarcane.app/), which manages Compose projects as plain folders on disk rather than as stacks in its own database.
+
+**Changed.**
+
+- Portainer managed no stacks of its own, since every project was deployed with `docker compose` from a folder, so nothing needed exporting.
+- Added `arcane` (`getarcaneapp/manager:v3.1.1`) to [`homelab-core`](compose/homelab-core/docker-compose.yml), on `proxy` with no published port. It can see `~/homelab` and the two project folders under `/mnt/storage` at their real paths.
+- The encryption key is in `arcane.env` (mode 600, not published; see [`arcane.env.example`](compose/homelab-core/arcane.env.example)). The proxy host is `arcane.` → `arcane:3552`, with websockets on.
+- Arcane sent one anonymous usage heartbeat on its first start, before it was turned off. `ANALYTICS_ENABLED=false` is now set, and its heartbeat host resolves to `0.0.0.0` inside the container.
+- Removed the `portainer` service, its image, the `ptnr.` proxy host, and the UFW rule allowing 9000 from the LAN. The volume `homelab-core_portainer_data` is kept for now in case of a rollback.
+- [`image-update-check.py`](scripts/image-update-check.py): release-note links for Arcane and Home Assistant, Portainer's removed. Its tag pattern already accepts `v3.1.1` and ignores `-next.N` pre-releases. The previous script is kept on the server as `image-update-check.py.bak-2026-11-25`.
+- Docs: services, networking, hardening, architecture, operations, storage and backups, findings and README.
+
+**Verified.**
+
+- Arcane's log lists all nine projects: `homeassistant`, `homelab-core`, `immich`, `music`, `n8n`, `nextcloud`, `utilities`, `obsidian-livesync` and `vaultwarden`.
+- `https://arcane.example.duckdns.org` returns 200. The admin account no longer has `requires_password_change` set, so the generated first password has been replaced.
+- NPM stayed up throughout. Nothing listens on 9000, and UFW has no rule for it.
+
+**Still open.** Delete the `homelab-core_portainer_data` volume once Arcane has been in use for a while (`docker volume rm homelab-core_portainer_data`). The Arcane state volume, like NPM's, is not in the nightly backup.
+
 ### Cleared the stale AAAA record (finding 7)
 
 **Problem.** Every hostname under the DuckDNS domain also resolved to a global IPv6 address, `2607:fb91:4c8e:8054:…`, in a prefix the host no longer has. The host's current global prefix is different, and the ISP rotates it. Nothing is reachable from the internet in any case. Clients that prefer IPv6 try the dead address first, which can stall connections. This showed up again when checking the new `ha.` host.

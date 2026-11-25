@@ -11,7 +11,7 @@ networks:
           gateway: fd00:dead:cafe::1
 
 volumes:
-  portainer_data:
+  arcane_data:
   npm_data:
   npm_letsencrypt:
 
@@ -36,19 +36,32 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
-  # --- Container management UI ---
-  portainer:
-    container_name: portainer
-    image: portainer/portainer-ce:2.45.4
+  # --- Container and Compose management UI (replaces Portainer) ---
+  # Project folders are mounted at their real host paths so Compose's relative
+  # bind mounts resolve correctly. Inside the container /mnt/storage holds only
+  # the two project folders, so scanning it never walks the music library.
+  arcane:
+    container_name: arcane
+    image: getarcaneapp/manager:v3.1.1
     restart: unless-stopped
+    cgroup: host
+    env_file: arcane.env          # ARCANE_ENCRYPTION_KEY, mode 600, not in the docs repo
     environment:
       - TZ=America/New_York
+      - PUID=1000
+      - PGID=1000
+      - ARCANE_APP_URL=https://arcane.example.duckdns.org
+      - ARCANE_TRUSTED_PROXIES=172.18.255.10/32
+      - ANALYTICS_ENABLED=false     # no usage heartbeat to checkin.getarcane.app
+      - ARCANE_PROJECTS_DIRECTORY=/home/admin/homelab
+      - 'ARCANE_PROJECTS_DIRECTORIES=[{"path":"/mnt/storage","enabled":true}]'
+    extra_hosts:
+      - "checkin.getarcane.app:0.0.0.0"   # belt and braces: block the usage heartbeat
     networks:
       - proxy
-    ports:
-      - "192.168.1.10:9000:9000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
+      - arcane_data:/app/data
+      - /home/admin/homelab:/home/admin/homelab
+      - /mnt/storage/vaultwarden:/mnt/storage/vaultwarden
+      - /mnt/storage/obsidian-livesync:/mnt/storage/obsidian-livesync

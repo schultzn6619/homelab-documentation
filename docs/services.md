@@ -7,7 +7,7 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 | Service | Version | Managed by | Compose project (real path) | Data | Restart |
 |---|---|---|---|---|---|
 | Nginx Proxy Manager | 2.17.1 (pinned) | Compose | `homelab-core` (`~/homelab/homelab-core`) | volumes `npm_data`, `npm_letsencrypt` | unless-stopped |
-| Portainer CE | 2.45.4 (pinned) | Compose | `homelab-core` | volume `portainer_data` | unless-stopped |
+| Arcane | 3.1.1 (pinned) | Compose | `homelab-core` | volume `arcane_data` | unless-stopped |
 | Immich | 3.1.0 (pinned) | Compose | `immich` (`~/homelab/immich`) | `/mnt/storage/immich` | always |
 | Nextcloud AIO | Nextcloud 34.0.4 | Compose + AIO | `nextcloud` (`~/nextcloud`) | `/mnt/storage/nextcloud`, AIO volumes | always |
 | Vaultwarden | 1.37.5 (pinned) | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
@@ -33,10 +33,17 @@ Defines the shared `proxy` network and the three infrastructure containers.
 - Holds one wildcard certificate obtained with the DuckDNS DNS-01 plugin. The DuckDNS token lives inside the `npm_letsencrypt` volume.
 - Proxy host definitions live in the `npm_data` volume (SQLite database plus generated nginx config). They are listed in [networking](networking.md#reverse-proxy-hosts) and are not otherwise version-controlled.
 
-### Portainer
+### Arcane
 
-- Image `portainer/portainer-ce:2.45.4`, UI on 9000 (LAN address and `ptnr.`).
-- Mounts the Docker socket read-write.
+Container and Compose management UI. It replaced Portainer on 2026-11-25.
+
+- Image `getarcaneapp/manager:v3.1.1`, UI on 3552. No published port: it is reached only through NPM as `arcane.`. Portainer also published 9000 on the LAN address.
+- Mounts the Docker socket read-write, which is equivalent to root on the host.
+- Works directly on Compose folders on disk. `~/homelab` is the projects directory, and `/mnt/storage/vaultwarden` and `/mnt/storage/obsidian-livesync` are mounted at their real paths and scanned through `/mnt/storage`. Inside the container, `/mnt/storage` contains only those two folders. All nine projects show up, and edits in Arcane change the same files as editing by hand. It runs as UID 1000, so it cannot edit the root-owned `~/homelab/nextcloud/docker-compose.yml` or read `vaultwarden/data`.
+- `ARCANE_ENCRYPTION_KEY` is in `~/homelab/homelab-core/arcane.env` (mode 600, see [`arcane.env.example`](../compose/homelab-core/arcane.env.example)). Users, settings and sessions are in the `arcane_data` volume.
+- Arcane sends an anonymous usage heartbeat by default. `ANALYTICS_ENABLED=false` is set, and `checkin.getarcane.app` resolves to `0.0.0.0` inside the container in case the variable is not honoured.
+- Trusts `X-Forwarded-For` only from NPM's address (`ARCANE_TRUSTED_PROXIES`). Without that setting, login rate limits would apply to every user together.
+- Redeploying `homelab-core` from Arcane restarts Arcane itself, and NPM too. Use the shell for that project.
 
 ## Immich
 
@@ -189,7 +196,7 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 
 | Mechanism | Covers |
 |---|---|
-| Manual, pinned version tags, weekly update check | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd`, `SnapOtter`, `homeassistant`, `n8n`, `immich_server`, `immich_machine_learning`, `it-tools` (its date-style tag is not checked) |
+| Manual, pinned version tags, weekly update check | `npm`, `arcane`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd`, `SnapOtter`, `homeassistant`, `n8n`, `immich_server`, `immich_machine_learning`, `it-tools` (its date-style tag is not checked) |
 | Nextcloud AIO interface | All `nextcloud-aio-*` containers |
 | UniFi OS Server updater | UniFi OS Server |
 | `unattended-upgrades` | Ubuntu packages from the release and security pockets, plus Docker Engine, containerd and Tailscale from their own repositories |

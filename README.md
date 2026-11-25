@@ -65,7 +65,7 @@ flowchart TB
             Vaultwarden
             CouchDB["CouchDB<br/>(Obsidian LiveSync)"]
             n8n
-            Portainer
+            Arcane
             ITTools[IT-Tools]
             SnapOtter
         end
@@ -95,7 +95,7 @@ More detail: [`docs/architecture.md`](docs/architecture.md)
 | Service | Purpose | Runs as | Hostname |
 |---|---|---|---|
 | Nginx Proxy Manager 2.17 | Reverse proxy, wildcard TLS | Compose `homelab-core` | `npm.` |
-| Portainer CE 2.45 | Container management UI | Compose `homelab-core` | `ptnr.` |
+| Arcane 3.1 | Container and Compose management UI | Compose `homelab-core` | `arcane.` |
 | Immich 3.1 | Photo library with ML search | Compose `immich` | `immich.` |
 | Nextcloud AIO (Nextcloud 34) | Files and documents | Compose `nextcloud` + AIO-managed containers | `cloud.` |
 | Vaultwarden 1.37 | Password manager | Compose `vaultwarden` | `vault.` |

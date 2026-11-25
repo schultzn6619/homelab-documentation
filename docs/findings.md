@@ -271,7 +271,7 @@ Or set a permanent `cpus:` limit on the ML service in the Compose file so the wa
 **Observed.** UFW is active with default-deny inbound and 20 rules. The full table is in [hardening](hardening.md#firewall-ufw).
 
 - SSH (22/tcp) is allowed from anywhere on IPv4 and IPv6. Every other host service is scoped to the LAN or to Tailscale.
-- Eight rules cover ports that Docker publishes (80, 81, 443, 9000, 8091, 8097). The two for 8097 were deleted on 2026-11-03 when IT-Tools stopped publishing it. They have no effect, because Docker's rules are evaluated first, and they give a false impression that those ports are filtered.
+- Eight rules cover ports that Docker publishes (80, 81, 443, 9000, 8091, 8097). The two for 8097 were deleted on 2026-11-03 when IT-Tools stopped publishing it, and the one for 9000 on 2026-11-25 when Portainer was replaced by Arcane. They have no effect, because Docker's rules are evaluated first, and they give a false impression that those ports are filtered.
 - Four rules are for ports nothing listens on any more.
 - The `DOCKER-USER` chain is empty.
 

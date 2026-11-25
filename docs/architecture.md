@@ -11,7 +11,7 @@ How the host is put together and why. For exact values see [host](host.md), [net
 | Host services | SSH, UFW, fail2ban, Tailscale, chrony, smartd, unattended-upgrades, two custom units (thermal watchdog, backup timer) |
 | Container runtimes | Docker (root daemon) for everything self-managed; rootless Podman only for the vendor-packaged UniFi OS Server |
 | Edge | Nginx Proxy Manager is the single HTTP(S) entry point, bound to the LAN address |
-| Applications | Immich, Nextcloud AIO, Vaultwarden, Obsidian LiveSync (CouchDB), n8n, Portainer, IT-Tools, SnapOtter, Home Assistant, UniFi |
+| Applications | Immich, Nextcloud AIO, Vaultwarden, Obsidian LiveSync (CouchDB), n8n, Arcane, IT-Tools, SnapOtter, Home Assistant, UniFi |
 | Data | OS, images, named volumes, and the backup repo on NVMe; application data on the bcache volume at `/mnt/storage` |
 
 ## Request path
@@ -43,7 +43,7 @@ Two kinds of backend sit behind the proxy:
 - **Internet to host:** no inbound path. The ISP uses CGNAT, nothing is port-forwarded, and Tailscale connections are outbound.
 - **LAN and tailnet to host:** UFW filters traffic to host processes (SSH and the UniFi OS Server ports). Docker-published ports are filtered by Docker's own rules, not UFW, so their bind address is what scopes them. See [hardening](hardening.md#docker-and-the-firewall).
 - **Proxy to apps:** plain HTTP inside the `proxy` bridge network. Every container on that network can reach every other one.
-- **Docker socket:** Portainer mounts it read-write, and the Nextcloud AIO master container read-only. Any of these is equivalent to root on the host if compromised.
+- **Docker socket:** Arcane mounts it read-write, and the Nextcloud AIO master container read-only. Any of these is equivalent to root on the host if compromised.
 
 ## Design decisions
 

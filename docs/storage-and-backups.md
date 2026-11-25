@@ -71,7 +71,7 @@ watch cat /sys/block/bcache0/bcache/dirty_data
 | Music library, Navidrome database, slskd state, Discover Weekly state | `/mnt/storage/music` | bcache |
 | Home Assistant config, `.storage`, SQLite recorder database | `/mnt/storage/homeassistant/config` | bcache |
 | Nginx Proxy Manager config and certificates | volumes `homelab-core_npm_data`, `homelab-core_npm_letsencrypt` | NVMe |
-| Portainer state | volume `homelab-core_portainer_data` | NVMe |
+| Arcane state (SQLite: users, settings, sessions) | volume `homelab-core_arcane_data` | NVMe |
 | SnapOtter state | volume `SnapOtter-data` | NVMe |
 | Immich ML model cache | volume `immich_model-cache` | NVMe |
 | UniFi configuration and database | `uosserver` user's Podman storage | NVMe |
@@ -145,7 +145,7 @@ Working as of 2026-10-13. The job failed every night from 2026-09-22 until it wa
 | n8n | **No** |
 | Music | Yes (consistent copy of the Navidrome database, Discover Weekly state, slskd config; library files in place). Not the slskd transfer history or Navidrome's artwork cache |
 | Home Assistant | Yes (config and `.storage`; consistent copy of the recorder database) |
-| Nginx Proxy Manager, Portainer | **No** |
+| Nginx Proxy Manager, Arcane | **No** |
 | Compose files, `.env` files, scripts, systemd units | **No** (sanitised copies are in this repo; secrets are not) |
 
 Every copy is on the same machine as the data, and the repository shares a disk with the operating system. There is no off-site or off-host copy. See [finding 2](findings.md#2-backups-do-not-protect-against-losing-the-machine).

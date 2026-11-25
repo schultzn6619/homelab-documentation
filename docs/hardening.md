@@ -52,7 +52,7 @@ Live rules on 2026-11-03 (`sudo ufw status verbose`), 14 in total:
 | 11443/tcp | allow | `172.16.0.0/12` | Yes. Lets Nginx Proxy Manager reach the UniFi UI from the Docker network |
 | 8123/tcp | allow | `172.16.0.0/12` | Yes. Lets Nginx Proxy Manager reach Home Assistant, which uses host networking |
 | 443/tcp | allow | anywhere, IPv4 and IPv6 | No effect. The port is published by Docker |
-| 80, 81, 9000, 8091 | allow | LAN | No effect. Published by Docker |
+| 80, 81, 8091 | allow | LAN | No effect. Published by Docker |
 
 The `DOCKER-USER` chain is empty for both IPv4 and IPv6, so nothing restricts Docker-published ports beyond their bind address.
 
@@ -107,7 +107,7 @@ The jail is active with no bans and one failed attempt on record, which is expec
 
 ## Containers
 
-- **Docker socket mounts:** Portainer (read-write), Nextcloud AIO master (read-only), and the on-demand AIO watchtower. Each is a path to full control of the host.
+- **Docker socket mounts:** Arcane (read-write), Nextcloud AIO master (read-only), and the on-demand AIO watchtower. Each is a path to full control of the host.
 - **Shared network:** everything on `proxy` can reach everything else on it, including the Immich database and cache. No inter-container filtering is applied.
 - **Privileges:** no container runs with `--privileged` or host networking. No container has a memory or CPU limit, so one runaway workload can starve the rest; the thermal watchdog is the only brake.
 - **Secrets:** Immich and Twingate values live in `.env` files inside a home directory with mode 750. See [finding 9](findings.md#9-credentials-written-inline) for the exceptions.

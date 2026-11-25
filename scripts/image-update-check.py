@@ -25,7 +25,6 @@ VERSION_TAG = re.compile(r"^v?(\d+(?:\.\d+)+)(-[a-z][a-z0-9]*)?$")
 
 RELEASE_NOTES = {
     "jc21/nginx-proxy-manager": "https://github.com/NginxProxyManager/nginx-proxy-manager/releases",
-    "portainer/portainer-ce": "https://github.com/portainer/portainer/releases",
     "vaultwarden/server": "https://github.com/dani-garcia/vaultwarden/releases",
     "couchdb": "https://docs.couchdb.org/en/stable/whatsnew/index.html",
     "deluan/navidrome": "https://github.com/navidrome/navidrome/releases",
@@ -35,6 +34,8 @@ RELEASE_NOTES = {
     "ghcr.io/immich-app/immich-machine-learning": "https://github.com/immich-app/immich/releases",
     "n8nio/n8n": "https://github.com/n8n-io/n8n/releases",
     "snapotter/snapotter": "https://github.com/snapotter-hq/SnapOtter/releases",
+    "homeassistant/home-assistant": "https://github.com/home-assistant/core/releases",
+    "getarcaneapp/manager": "https://github.com/getarcaneapp/arcane/releases",
 }
 
 

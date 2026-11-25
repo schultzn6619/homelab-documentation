@@ -69,7 +69,6 @@ Addresses on `proxy` at audit time. Only NPM's is static; the rest are assigned 
 | `npm` | `172.18.255.10` (static, at the top of the subnet so automatic assignment never reaches it) |
 | `n8n` | `172.18.0.3` |
 | `immich_postgres` | `172.18.0.4` |
-| `portainer` | `172.18.0.5` |
 | `immich_server` | `172.18.0.6` |
 | `nextcloud-aio-mastercontainer` | `172.18.0.7` |
 | `vaultwarden` | `172.18.0.8` |
@@ -86,7 +85,7 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | Hostname | Backend | Scheme | Notes |
 |---|---|---|---|
 | `npm.` | `npm:81` | http | NPM admin UI |
-| `ptnr.` | `portainer:9000` | http | |
+| `arcane.` | `arcane:3552` | http | Arcane. Websockets on |
 | `immich.` | `immich_server:2283` | http | |
 | `cloud.` | `nextcloud-aio-apache:11000` | http | |
 | `vault.` | `vaultwarden:80` | http | |
@@ -121,7 +120,6 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 |---|---|---|---|
 | 80, 443/tcp | LAN address | `npm` | Reverse proxy |
 | 81/tcp | LAN address | `npm` | NPM admin UI (direct) |
-| 9000/tcp | LAN address | `portainer` | Portainer UI (direct) |
 | 8091/tcp | LAN address | `nextcloud-aio-mastercontainer` | AIO admin interface (container port 8080, self-signed HTTPS) |
 | 50300/tcp | all, IPv4 and IPv6 | `slskd` | Soulseek peer connections. Not forwarded on the router |
 | 5030/tcp | loopback | `slskd` | slskd API for the Discover Weekly job |
