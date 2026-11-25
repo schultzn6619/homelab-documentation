@@ -9,7 +9,7 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 | Nginx Proxy Manager | 2.17.1 (pinned) | Compose | `homelab-core` (`~/homelab/homelab-core`) | volumes `npm_data`, `npm_letsencrypt` | unless-stopped |
 | Arcane | 3.1.1 (pinned) | Compose | `homelab-core` | volume `arcane_data` | unless-stopped |
 | Immich | 3.1.0 (pinned) | Compose | `immich` (`~/homelab/immich`) | `/mnt/storage/immich` | always |
-| Nextcloud AIO | Nextcloud 34.0.4 | Compose + AIO | `nextcloud` (`~/nextcloud`) | `/mnt/storage/nextcloud`, AIO volumes | always |
+| Nextcloud AIO | Nextcloud 35.0.3 | Compose + AIO | `nextcloud` (`~/nextcloud`) | `/mnt/storage/nextcloud`, AIO volumes | always |
 | Vaultwarden | 1.37.5 (pinned) | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
 | Obsidian LiveSync (CouchDB + CLI) | CouchDB 3.5.3, LiveSync CLI 1.0.43 (both pinned) | Compose | `obsidian-livesync` (`/mnt/storage/obsidian-livesync`) | `/mnt/storage/obsidian-livesync` | unless-stopped |
 | n8n | 2.49.6 | Compose | `n8n` (`~/n8n`) | `/mnt/storage/n8n` | unless-stopped |

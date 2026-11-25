@@ -6,6 +6,28 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Updated Nextcloud AIO, which also moved Nextcloud from 34 to 35
+
+**Problem.** Arcane's Trivy scan found critical CVEs (Brotli, Perl) in the AIO apache, nextcloud, imaginary, postgresql and mastercontainer images, and rebuilt images were available. AIO's own update path was also broken without anyone noticing. The mastercontainer had started at 16:01, Docker restarted at 16:37, and its bind-mounted `/var/run/docker.sock` still pointed at the old, deleted socket. Every Docker call from AIO failed, including its own scheduled updates.
+
+**Changed.**
+
+- Took a `pg_dump` of the Nextcloud database and a tarball of `/mnt/storage/nextcloud` into `/mnt/storage/backups/` first. AIO's own borg backup is not configured on this host.
+- Restarted `nextcloud-aio-mastercontainer` so it mounts the live socket again.
+- Ran `/daily-backup.sh` with `AUTOMATIC_UPDATES=1 START_CONTAINERS=1` twice: the first run updates the mastercontainer, and the second pulls and recreates the other containers.
+- The new images upgraded Nextcloud from 34.0.4 to 35.0.3 (a major version).
+- The third-party app `files_external_gdrive_v2` 2.1.0 is not compatible with Nextcloud 35 and stays disabled. No external storage mounts were configured, so nothing used it.
+
+**Verified.**
+
+- All six AIO service containers are healthy.
+- `occ status` reports 35.0.3.2, with no maintenance mode and no pending database upgrade.
+- The other third-party apps (calendar, contacts, deck, notes, tasks, guests, twofactor_webauthn, user_migration) are enabled at updated versions.
+- `status.php` returns 200 through NPM.
+- Trivy finds 0 critical vulnerabilities in all seven AIO images.
+
+**Still open.** If Docker restarts again, the mastercontainer loses socket access again until it is restarted. A check or a restart hook would catch that.
+
 ### Updated n8n and Immich to clear critical image vulnerabilities
 
 **Problem.** Arcane's Trivy scan of every image on the host reported critical vulnerabilities in 13 images. The two worst were both pinned well behind upstream:
@@ -30,7 +52,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 **Still open.**
 
-- The Nextcloud AIO containers have rebuilt images waiting (Brotli and Perl fixes). They update through the AIO interface.
+- The Nextcloud AIO containers have rebuilt images waiting (Brotli and Perl fixes). *Done later the same day; see the entry above.*
 - Home Assistant's bundled `Authlib` has a critical CVE, and no Home Assistant release fixes it yet.
 - The residual Immich criticals listed above wait on upstream.
 
