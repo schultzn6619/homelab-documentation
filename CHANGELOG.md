@@ -32,7 +32,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 **Still open.**
 
-- The host's switch uplink negotiates 1 Gb/s on a router port that supports 2.5 Gb/s. That is a cabling or switch-port issue, not a router setting.
+- The router's link to the switch runs at 1 Gb/s on a router port that supports 2.5 Gb/s, because the switch end is a 1.25 Gb/s SFP module. It is not a bottleneck: internet throughput is about 320 Mb/s, and LAN-to-LAN traffic stays inside the switch.
 - Bufferbloat: latency from the host rose from about 27 ms idle to about 120 ms under a download and about 580 ms under an upload (upload measured at about 7 Mb/s). SQM is configured on the router but off. Turning it on is a trade-off against hardware NAT and throughput, so it has not been changed.
 
 ### Added n8n to the nightly backup (finding 2, partly)
