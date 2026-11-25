@@ -6,6 +6,16 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Router: shaped uploads with SQM to fix bufferbloat
+
+**Problem.** Uploads made the whole connection lag. With 4 upload streams running, ping from the host to 1.1.1.1 had a median of 584 ms and a p90 of 759 ms, against 27 ms idle. The uplink measured about 7 Mb/s.
+
+**Changed.** On the router, SQM (CAKE, `piece_of_cake.qos`) is turned on for the WAN interface `eth1`, shaping upload only: `upload=6000` kbit/s, `download=0`. The `sqm` section had pointed at `br-lan` with placeholder rates of 10 Gb/s. Downloads are not shaped, and hardware NAT is left on.
+
+**Verified.** The same upload test now gives a median of 41 ms and a p90 of 90 ms, with about 5.1 Mb/s of upload throughput. `tc -s qdisc` shows CAKE on `eth1` handling the traffic and dropping packets. Downloads are unaffected: about 305 Mb/s, against 322 Mb/s before, which is within run-to-run noise.
+
+**Still open.** The 6 Mb/s cap is fixed while 5G uplink capacity varies. On a weaker-signal day latency can creep back, and on a better day some upload speed goes unused. Download latency under load is still about +100 ms. Shaping downloads too would mean a fixed cap of a few hundred Mb/s that the router's CPU would have to handle.
+
 ### Router: stopped DNS query logging and removed a stale IPv6 port rule
 
 **Problem.** A read-only review of the GL.iNet Flint 2 found two things worth fixing:
