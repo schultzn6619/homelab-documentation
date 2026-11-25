@@ -98,6 +98,7 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | `music.` | `navidrome:4533` | http | Navidrome |
 | `slskd.` | `slskd:5030` | http | slskd web UI, websockets on |
 | `unifi.` | `192.168.1.10:11443` | https | UniFi OS Server; "block common exploits" is off for this host |
+| `ha.` | `192.168.1.10:8123` | http | Home Assistant (host network). Websockets on |
 
 ## Listening ports on the host
 
@@ -111,6 +112,7 @@ All hosts listen on 80 and 443, force HTTPS, and use the same wildcard certifica
 | 41641/udp | all | `tailscaled` | WireGuard |
 | 10001/udp | all | `discovery` (UniFi OS Server, runs on the host as `uosserver`) | UniFi device discovery |
 | 11002/tcp | loopback | `discovery` | Local control port |
+| 8123/tcp | all | `homeassistant` container, host network | Home Assistant. UFW admits it only from the Docker networks (NPM) and Tailscale |
 | high tcp port | Tailscale address | `tailscaled` | PeerAPI |
 
 ### Docker-published ports

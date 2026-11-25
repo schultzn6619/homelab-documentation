@@ -11,7 +11,7 @@ A single self-hosted server I built, hardened, and maintain as a hands-on projec
 | Host | `nath-serv`, Gigabyte B450 AORUS M, Ryzen 5 2600X (6c/12t), 32 GB RAM |
 | OS | Ubuntu Server 26.04.1 LTS, kernel 7.0 |
 | Storage | 238 GB NVMe (OS, Docker, backups) + 3.6 TB HDD cached by a 112 GB SATA SSD (bcache, writeback) |
-| Containers | Docker 29.8 with Compose v5: 7 Compose projects, 19 running containers |
+| Containers | Docker 29.9 with Compose v5: 9 Compose projects, 22 running containers |
 | Also on the host | UniFi OS Server 5.1 (vendor-managed rootless Podman), Tailscale subnet router |
 | Access | LAN and Tailscale only; nothing is port-forwarded from the internet |
 | Load | ~1% CPU and ~7 GB RAM at idle |
@@ -78,6 +78,7 @@ flowchart TB
     NPM --> Proxy
     NPM -- "via host IP" --> Bridge
     NPM -- "via host IP :11443" --> UOS
+    NPM -- "via host IP :8123" --> HA["Home Assistant<br/>(host network)"]
 
     Proxy --> Storage[("/mnt/storage<br/>bcache: SATA SSD + 4 TB HDD")]
     Proxy -. "daily systemd timer" .-> Backups[("restic repo<br/>on NVMe")]
@@ -93,7 +94,7 @@ More detail: [`docs/architecture.md`](docs/architecture.md)
 
 | Service | Purpose | Runs as | Hostname |
 |---|---|---|---|
-| Nginx Proxy Manager 2.16 | Reverse proxy, wildcard TLS | Compose `homelab-core` | `npm.` |
+| Nginx Proxy Manager 2.17 | Reverse proxy, wildcard TLS | Compose `homelab-core` | `npm.` |
 | Portainer CE 2.45 | Container management UI | Compose `homelab-core` | `ptnr.` |
 | Immich 3.1 | Photo library with ML search | Compose `immich` | `immich.` |
 | Nextcloud AIO (Nextcloud 34) | Files and documents | Compose `nextcloud` + AIO-managed containers | `cloud.` |
@@ -101,7 +102,8 @@ More detail: [`docs/architecture.md`](docs/architecture.md)
 | Obsidian LiveSync (CouchDB 3.5) | Sync server for the Obsidian notes vault | Compose `obsidian-livesync` | `obsidian.` |
 | n8n 2.36 | Workflow automation | Compose `n8n` | `n8n.` |
 | IT-Tools | Developer utilities | Compose `utilities` | `it.` |
-| SnapOtter 2.2 | File conversion, OCR, local AI tools | Compose `utilities` | `tools.` |
+| SnapOtter 2.3 | File conversion, OCR, local AI tools | Compose `utilities` | `tools.` |
+| Home Assistant 2026.11 | Home automation | Compose `homeassistant`, host network | `ha.` |
 | UniFi OS Server 5.1 | UniFi network controller | Rootless Podman, systemd | `unifi.` |
 | Tailscale 1.102 | Remote access, subnet router | Host package | – |
 

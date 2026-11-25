@@ -16,7 +16,8 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 | Navidrome | 0.64.2 (pinned) | Compose | `music` (`~/homelab/music`) | `/mnt/storage/music/navidrome`, library `/mnt/storage/music/library` | unless-stopped |
 | slskd (Soulseek client) | 0.26.2 (pinned) | Compose | `music` | `/mnt/storage/music/slskd` | unless-stopped |
 | IT-Tools | `2024.10.22-7ca5933` (pinned; upstream unchanged since 2024) | Compose | `utilities` (`~/homelab/utilities`) | none | unless-stopped |
-| SnapOtter | 2.2.0 (pinned) | Compose | `utilities` | volume `SnapOtter-data` | unless-stopped |
+| SnapOtter | 2.3.0 (pinned) | Compose | `utilities` | volume `SnapOtter-data` | unless-stopped |
+| Home Assistant | 2026.11.3 (pinned) | Compose | `homeassistant` (`~/homelab/homeassistant`) | `/mnt/storage/homeassistant/config` | unless-stopped |
 | UniFi OS Server | 5.1.42 | systemd + rootless Podman | – | `uosserver` user's Podman storage | on-failure |
 
 Sanitised copies of every Compose file are in [`compose/`](../compose).
@@ -162,6 +163,17 @@ Two utility containers in the Compose project `utilities` ([Compose file](../com
 | Restart policy | unless-stopped | unless-stopped |
 | Health check | none | built into the image, `/api/v1/health` |
 
+## Home Assistant
+
+Home automation, Container install (no Supervisor, so no add-on store), added on 2026-11-25 ([Compose file](../compose/homeassistant/docker-compose.yml)).
+
+- Image `homeassistant/home-assistant:2026.11.3` from Docker Hub, so the weekly update check does not depend on GHCR.
+- `network_mode: host`, so mDNS and SSDP discovery of LAN devices works. It listens on port 8123 on every interface. UFW only admits 8123 from `172.16.0.0/12`, so the LAN and the internet cannot reach it directly; it is reached through NPM as `ha.` (and directly over Tailscale, like every host port).
+- NPM reaches it at the host address, like UniFi, because a host-network container is not on `proxy`. Home Assistant trusts `X-Forwarded-For` only from NPM's static address `172.18.255.10`.
+- Since 2026.x the HTTP settings (reverse proxy, trusted proxies, port) live in `.storage/http`, edited in the UI under the network settings. `configuration.yaml` is read for them only once, on first start, and a changed setting is a trial that reverts after five minutes unless an admin confirms it. Keep `trusted_proxies` in step with NPM's address.
+- No Zigbee, Z-Wave, Thread or Bluetooth hardware. The log shows a Bluetooth permission error at every start; it is harmless because the host has no adapter.
+- Config, `.storage` and the SQLite recorder database are in `/mnt/storage/homeassistant/config` and are in the nightly backup.
+
 ## UniFi OS Server
 
 Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Network application.
@@ -177,7 +189,7 @@ Ubiquiti's self-hosted controller package, version 5.1.42, running the UniFi Net
 
 | Mechanism | Covers |
 |---|---|
-| Manual, pinned version tags, weekly update check | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd`, `SnapOtter`, `n8n`, `immich_server`, `immich_machine_learning`, `it-tools` (its date-style tag is not checked) |
+| Manual, pinned version tags, weekly update check | `npm`, `portainer`, `vaultwarden`, `couchdb`, `livesync-cli`, `navidrome`, `slskd`, `SnapOtter`, `homeassistant`, `n8n`, `immich_server`, `immich_machine_learning`, `it-tools` (its date-style tag is not checked) |
 | Nextcloud AIO interface | All `nextcloud-aio-*` containers |
 | UniFi OS Server updater | UniFi OS Server |
 | `unattended-upgrades` | Ubuntu packages from the release and security pockets, plus Docker Engine, containerd and Tailscale from their own repositories |

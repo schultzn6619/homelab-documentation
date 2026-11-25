@@ -50,6 +50,7 @@ Live rules on 2026-11-03 (`sudo ufw status verbose`), 14 in total:
 | 3478/udp | allow | LAN | Yes. UniFi STUN |
 | 10001/udp | allow | LAN | Yes. UniFi discovery |
 | 11443/tcp | allow | `172.16.0.0/12` | Yes. Lets Nginx Proxy Manager reach the UniFi UI from the Docker network |
+| 8123/tcp | allow | `172.16.0.0/12` | Yes. Lets Nginx Proxy Manager reach Home Assistant, which uses host networking |
 | 443/tcp | allow | anywhere, IPv4 and IPv6 | No effect. The port is published by Docker |
 | 80, 81, 9000, 8091 | allow | LAN | No effect. Published by Docker |
 

@@ -69,12 +69,13 @@ watch cat /sys/block/bcache0/bcache/dirty_data
 | Obsidian LiveSync: CouchDB data, CLI database, plain-Markdown vault copy, secrets | `/mnt/storage/obsidian-livesync` | bcache |
 | n8n SQLite, encryption key, workflows | `/mnt/storage/n8n` | bcache |
 | Music library, Navidrome database, slskd state, Discover Weekly state | `/mnt/storage/music` | bcache |
+| Home Assistant config, `.storage`, SQLite recorder database | `/mnt/storage/homeassistant/config` | bcache |
 | Nginx Proxy Manager config and certificates | volumes `homelab-core_npm_data`, `homelab-core_npm_letsencrypt` | NVMe |
 | Portainer state | volume `homelab-core_portainer_data` | NVMe |
 | SnapOtter state | volume `SnapOtter-data` | NVMe |
 | Immich ML model cache | volume `immich_model-cache` | NVMe |
 | UniFi configuration and database | `uosserver` user's Podman storage | NVMe |
-| Compose files and `.env` files | `~/homelab/homelab-core`, `~/immich`, `~/n8n`, `~/nextcloud`, `~/homelab/music`, `~/homelab/utilities`, and beside the data for Obsidian LiveSync and Vaultwarden | both |
+| Compose files and `.env` files | `~/homelab/homelab-core`, `~/immich`, `~/n8n`, `~/nextcloud`, `~/homelab/music`, `~/homelab/utilities`, `~/homelab/homeassistant`, and beside the data for Obsidian LiveSync and Vaultwarden | both |
 | restic repository | `/var/backups/restic-repo` | NVMe |
 
 ## Health monitoring
@@ -120,6 +121,7 @@ flowchart LR
 | UniFi | Copies the controller's own scheduled `.unf` backup files from the UniFi OS Server volume |
 | File copies | `/mnt/storage/vaultwarden`, `/mnt/storage/obsidian-livesync`, `/mnt/storage/nextcloud` copied to staging |
 | Music | Navidrome's database is copied with SQLite's online backup API (consistent while Navidrome runs), plus `discover-state/` and `slskd.yml`, into staging. The library is backed up in place as a separate snapshot tagged `homelab-music`, so it is never duplicated in staging and each night only adds new files. That step refuses to run (and counts as failed) if the library would leave less than 20 GB free on the NVMe |
+| Home Assistant | `/mnt/storage/homeassistant/config` copied with `rsync`, without logs or the recorder database, which is copied with SQLite's online backup API instead |
 | Repository | restic 0.18, local repo on the NVMe, password in `/root/.restic-password` |
 | Retention | last 3 snapshots per group (restic groups by host and paths, so the daily and music snapshots are kept separately) |
 | Failure handling | Each source is an independent step. A failed step is logged and the rest still run; the script exits non-zero at the end, and pruning is skipped so a partial run cannot evict a good snapshot |
@@ -142,6 +144,7 @@ Working as of 2026-10-13. The job failed every night from 2026-09-22 until it wa
 | UniFi | Yes (the controller's own backup files; the newest is dated 2026-10-01) |
 | n8n | **No** |
 | Music | Yes (consistent copy of the Navidrome database, Discover Weekly state, slskd config; library files in place). Not the slskd transfer history or Navidrome's artwork cache |
+| Home Assistant | Yes (config and `.storage`; consistent copy of the recorder database) |
 | Nginx Proxy Manager, Portainer | **No** |
 | Compose files, `.env` files, scripts, systemd units | **No** (sanitised copies are in this repo; secrets are not) |
 

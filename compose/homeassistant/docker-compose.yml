@@ -1,0 +1,14 @@
+# Home Assistant (Container install). Host networking so it can discover devices
+# on the LAN (mDNS, SSDP). Reached through Nginx Proxy Manager at ha.<domain>;
+# UFW only lets the Docker networks (NPM) reach port 8123.
+services:
+  homeassistant:
+    image: homeassistant/home-assistant:2026.11.3
+    container_name: homeassistant
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - TZ=America/New_York
+    volumes:
+      - /mnt/storage/homeassistant/config:/config
+      - /etc/localtime:/etc/localtime:ro

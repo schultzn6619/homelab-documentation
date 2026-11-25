@@ -6,6 +6,26 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Added Home Assistant
+
+**Problem.** Home Assistant was wanted on the server. Only network devices are planned (Wi-Fi, Ethernet and cloud integrations), with no Zigbee, Z-Wave or Thread radio.
+
+**Changed.**
+
+- New Compose project [`homeassistant`](compose/homeassistant/docker-compose.yml) in `~/homelab/homeassistant`: `homeassistant/home-assistant:2026.11.3` (Container install), `network_mode: host` so mDNS and SSDP discovery reach LAN devices. Data is in `/mnt/storage/homeassistant/config`.
+- UFW: `8123/tcp` allowed from `172.16.0.0/12` only, the same pattern as UniFi's 11443, so NPM can reach it but the LAN cannot reach it directly.
+- Home Assistant trusts `X-Forwarded-For` from NPM's static address `172.18.255.10` only. In this release, HTTP settings live in `.storage/http`. YAML is imported once, on first start, and an imported change is a five-minute trial that an admin must confirm. The first start ran before the proxy settings were in the YAML. Nobody had created an account yet, so the stored settings were reset to import them, then written as the confirmed (`stable`) settings, and the YAML block was removed again. Details in [services](docs/services.md#home-assistant).
+- [`homelab-backup.sh`](scripts/homelab-backup.sh): a new `home assistant` step copies the config without logs and takes a consistent SQLite copy of the recorder database. The previous script is kept on the server as `homelab-backup.sh.bak-2026-11-25`.
+- Docs: services, networking, hardening, storage and backups, architecture and README. The README's stale NPM and SnapOtter versions and its container count were corrected too.
+
+**Verified.**
+
+- The container runs. A request from inside the NPM container to the host address on 8123 with `X-Forwarded-For` set returns 302 (to onboarding). Before the fix it returned 400 ("not set-up for reverse proxies"). `.storage/http` has no pending trial, so nothing will revert.
+- A manual backup run reported every step ok, including `home assistant`. The new snapshot contains `configuration.yaml`, `.storage/http` and `home-assistant_v2.db`.
+- During setup, unattended-upgrades updated Docker from 29.9.2 to 29.9.3 at 16:37 and restarted the daemon. Live-restore kept every other container running. Home Assistant was being restarted at that moment and was left stopped, so it was started again.
+
+**Still open.** Add the `ha.` proxy host in NPM (forward to `192.168.1.10:8123`, http, websockets on, wildcard certificate, Force SSL), then create the owner account. Onboarding is open to whoever reaches the page first, so do it straight away.
+
 ### Updated NPM, Portainer and SnapOtter
 
 **Problem.** The weekly [image update check](docs/services.md#image-update-check) reported new releases for five pinned images. SnapOtter 2.3.0 closes six security advisories that affect 2.2.0, one of them rated high. n8n (a major version, 2.36.7 to 3.4.0) and LiveSync CLI (kept on 1.0.43 on purpose) were left for later.

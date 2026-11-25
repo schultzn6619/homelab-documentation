@@ -11,7 +11,7 @@ How the host is put together and why. For exact values see [host](host.md), [net
 | Host services | SSH, UFW, fail2ban, Tailscale, chrony, smartd, unattended-upgrades, two custom units (thermal watchdog, backup timer) |
 | Container runtimes | Docker (root daemon) for everything self-managed; rootless Podman only for the vendor-packaged UniFi OS Server |
 | Edge | Nginx Proxy Manager is the single HTTP(S) entry point, bound to the LAN address |
-| Applications | Immich, Nextcloud AIO, Vaultwarden, Obsidian LiveSync (CouchDB), n8n, Portainer, IT-Tools, SnapOtter, UniFi |
+| Applications | Immich, Nextcloud AIO, Vaultwarden, Obsidian LiveSync (CouchDB), n8n, Portainer, IT-Tools, SnapOtter, Home Assistant, UniFi |
 | Data | OS, images, named volumes, and the backup repo on NVMe; application data on the bcache volume at `/mnt/storage` |
 
 ## Request path
@@ -36,7 +36,7 @@ A remote client follows the same path. Tailscale routes `192.168.1.0/24` through
 Two kinds of backend sit behind the proxy:
 
 1. **Containers on the `proxy` network**, addressed by container name. No host port is published. Since 2026-11-03 every Docker backend follows this pattern (finding 6).
-2. **UniFi OS Server**, which is not a Docker container. The proxy reaches it at the host address on port 11443 over HTTPS.
+2. **Backends on the host's own ports**: UniFi OS Server, which is not a Docker container, at the host address on port 11443 over HTTPS, and Home Assistant, a container with host networking for device discovery, on port 8123. UFW admits both ports only from the Docker networks.
 
 ## Trust boundaries
 

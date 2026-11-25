@@ -55,6 +55,15 @@ music_meta() {
 }
 step "music database" music_meta
 
+# --- Home Assistant: config and .storage, plus a consistent snapshot of the recorder database ---
+homeassistant_config() {
+  local src=/mnt/storage/homeassistant/config dst="$STAGING/homeassistant"
+  rsync -a --exclude 'home-assistant_v2.db*' --exclude '*.log*' "$src/" "$dst/" &&
+  python3 -I -c 'import sqlite3,sys; s=sqlite3.connect(f"file:{sys.argv[1]}?mode=ro", uri=True); d=sqlite3.connect(sys.argv[2]); s.backup(d); d.close()' \
+    "$src/home-assistant_v2.db" "$dst/home-assistant_v2.db"
+}
+step "home assistant" homeassistant_config
+
 # --- Back up staging with restic (writes land on the SSD) ---
 step "restic backup" restic backup "$STAGING" --tag homelab-daily
 
