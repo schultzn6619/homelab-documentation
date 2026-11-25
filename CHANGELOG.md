@@ -24,7 +24,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 - A manual backup run reported every step ok, including `home assistant`. The new snapshot contains `configuration.yaml`, `.storage/http` and `home-assistant_v2.db`.
 - During setup, unattended-upgrades updated Docker from 29.9.2 to 29.9.3 at 16:37 and restarted the daemon. Live-restore kept every other container running. Home Assistant was being restarted at that moment and was left stopped, so it was started again.
 
-**Still open.** Add the `ha.` proxy host in NPM (forward to `192.168.1.10:8123`, http, websockets on, wildcard certificate, Force SSL), then create the owner account. Onboarding is open to whoever reaches the page first, so do it straight away.
+**Follow-up the same day.** The `ha.` proxy host was added in NPM (forward to `192.168.1.10:8123`, http, websockets on, wildcard certificate, Force SSL, HSTS) and the owner account was created. `https://ha.example.duckdns.org` returns 200 with a valid certificate, plain HTTP redirects with 301, the HSTS header is present, `/api/websocket` upgrades with 101 over HTTP/1.1, and onboarding reports every step done.
 
 ### Updated NPM, Portainer and SnapOtter
 
