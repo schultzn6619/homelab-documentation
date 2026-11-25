@@ -6,6 +6,14 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Router: turned off its Wi-Fi radios and repeater mode
+
+**Problem.** Wi-Fi in the house comes from the UniFi access points. Every SSID on the router was already disabled, but both radios were still enabled, and repeater auto-connect (`repeater.auto=1`) kept the client interfaces `apcli0` and `apclix0` around for scanning.
+
+**Changed.** On the router: `wireless.mt798611.disabled=1` (2.4 GHz) and `wireless.mt798612.disabled=1` (5 GHz), then `wifi reload`. `repeater.@main[0].auto=0`. The `gl-repeater` daemon is left installed and running, idle, so the GL admin interface keeps working.
+
+**Verified.** None of the radio interfaces (`ra*`, `rax*`, `apcli*`) are up, and none have passed any traffic. Wired networking and internet access from the host still work.
+
 ### Router: shaped uploads with SQM to fix bufferbloat
 
 **Problem.** Uploads made the whole connection lag. With 4 upload streams running, ping from the host to 1.1.1.1 had a median of 584 ms and a p90 of 759 ms, against 27 ms idle. The uplink measured about 7 Mb/s.
