@@ -64,6 +64,29 @@ homeassistant_config() {
 }
 step "home assistant" homeassistant_config
 
+# --- Nginx Proxy Manager and Arcane (homelab-core volumes) ---
+# Files are copied as they are; each SQLite database gets a consistent snapshot instead.
+VOLUMES=/var/lib/docker/volumes
+sqlite_copy() {
+  python3 -I -c 'import sqlite3,sys; s=sqlite3.connect(f"file:{sys.argv[1]}?mode=ro", uri=True); d=sqlite3.connect(sys.argv[2]); s.backup(d); d.close()' "$1" "$2"
+}
+npm_state() {
+  local dst="$STAGING/npm"
+  mkdir -p "$dst" &&
+  rsync -a --exclude 'database.sqlite*' --exclude 'logs/' "$VOLUMES/homelab-core_npm_data/_data/" "$dst/data/" &&
+  sqlite_copy "$VOLUMES/homelab-core_npm_data/_data/database.sqlite" "$dst/data/database.sqlite" &&
+  rsync -a "$VOLUMES/homelab-core_npm_letsencrypt/_data/" "$dst/letsencrypt/"
+}
+step "nginx proxy manager" npm_state
+arcane_state() {
+  local src="$VOLUMES/homelab-core_arcane_data/_data" dst="$STAGING/arcane" db
+  mkdir -p "$dst" &&
+  rsync -a --exclude '*.db' --exclude '*.db-*' --exclude 'initial-admin-password' "$src/" "$dst/" &&
+  for db in "$src"/*.db; do sqlite_copy "$db" "$dst/$(basename "$db")" || return 1; done &&
+  cp -a /home/admin/homelab/homelab-core/arcane.env "$dst/arcane.env"   # encryption key for the stored settings
+}
+step "arcane" arcane_state
+
 # --- Back up staging with restic (writes land on the SSD) ---
 step "restic backup" restic backup "$STAGING" --tag homelab-daily
 

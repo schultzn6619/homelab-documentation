@@ -6,6 +6,25 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Added NPM and Arcane to the nightly backup (finding 2, partly)
+
+**Problem.** The NPM volumes hold every proxy host, the access lists, the wildcard certificate and the DuckDNS settings. Arcane's volume holds its users and settings. None of them were backed up, so losing the NVMe meant rebuilding all 13 proxy hosts by hand.
+
+**Changed.** [`homelab-backup.sh`](scripts/homelab-backup.sh) has two new steps:
+
+- `nginx proxy manager`: copies `npm_data` without logs, and `npm_letsencrypt`, with `rsync`. `database.sqlite` is copied with SQLite's online backup API.
+- `arcane`: copies `arcane_data` without the databases and the stale `initial-admin-password`. `arcane.db` and `arcane.francis.db` get SQLite backup copies. It also copies `arcane.env`, whose encryption key is needed to read Arcane's stored secrets after a restore.
+
+The staging directory is root-only and the restic repository is encrypted. The previous script is kept on the server as `homelab-backup.sh.bak-2026-11-25-core`.
+
+**Verified.**
+
+- A manual run reported every step ok.
+- The snapshot contains NPM's `database.sqlite`, `keys.json` and `live/npm-1/fullchain.pem`, and Arcane's two databases and `arcane.env`.
+- NPM's and Arcane's main databases were restored from the snapshot to a scratch directory. Both passed `PRAGMA integrity_check`, and the restored NPM database lists 13 proxy hosts.
+
+**Still open.** n8n's data is still not backed up, and every copy is still on the same machine (finding 2).
+
 ### Replaced Portainer with Arcane
 
 **Problem.** Portainer was to be replaced by [Arcane](https://getarcane.app/), which manages Compose projects as plain folders on disk rather than as stacks in its own database.
@@ -26,7 +45,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 - `https://arcane.example.duckdns.org` returns 200. The admin account no longer has `requires_password_change` set, so the generated first password has been replaced.
 - NPM stayed up throughout. Nothing listens on 9000, and UFW has no rule for it.
 
-**Still open.** Delete the `homelab-core_portainer_data` volume once Arcane has been in use for a while (`docker volume rm homelab-core_portainer_data`). The Arcane state volume, like NPM's, is not in the nightly backup.
+**Still open.** Delete the `homelab-core_portainer_data` volume once Arcane has been in use for a while (`docker volume rm homelab-core_portainer_data`).
 
 ### Cleared the stale AAAA record (finding 7)
 

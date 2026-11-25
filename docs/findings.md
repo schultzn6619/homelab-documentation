@@ -53,7 +53,7 @@ The script runs `mongodump` inside a Docker container called `unifi-db`. That co
 
 - The restic repository is at `/var/backups/restic-repo` on the NVMe, the same disk as the operating system and in the same chassis as the data.
 - Immich's photo and video library (17 GB, the only irreplaceable bulk data) is not in the backup. Only its database is.
-- n8n, Nginx Proxy Manager, and Portainer state are not included.
+- n8n state is not included. Nginx Proxy Manager and Arcane (Portainer's replacement) have been included since 2026-11-25.
 - Retention is three snapshots, so three days of history.
 - Vaultwarden and Trilium are copied with `cp -a` while running. A SQLite database copied mid-write with its WAL file can be inconsistent.
 - Nextcloud's data directory is first copied in full to staging on the NVMe and then stored again in the repository on the same disk, so it needs twice its size in free space on the root filesystem as it grows.
@@ -262,7 +262,7 @@ Or set a permanent `cpus:` limit on the ML service in the Compose file so the wa
 - **Host address:** the LAN address comes from DHCP while Compose files and proxy hosts hard-code it. Make sure the router has a static lease for it.
 - **Time zones:** containers do not all set the same `TZ` as the host; align them so logs and schedules agree.
 - **Fan monitoring:** only the motherboard's secondary sensor chip is detected and its fan inputs read 0 RPM, so a failed fan would only show up as temperature.
-- **Proxy host definitions** exist only in the NPM volume. Back that volume up (finding 2) or export the configuration.
+- **Proxy host definitions** exist only in the NPM volume. Back that volume up (finding 2) or export the configuration. *Done 2026-11-25: the NPM volumes are in the nightly backup.*
 
 ## 17. Firewall rules have drifted
 

@@ -31,7 +31,7 @@ Defines the shared `proxy` network and the three infrastructure containers.
 - Image `jc21/nginx-proxy-manager:2.17.1`, static address `172.18.255.10` on `proxy`, at the top of the subnet because Docker hands out free addresses from the bottom.
 - Publishes 80, 443, and the admin UI on 81, all bound to the LAN address only.
 - Holds one wildcard certificate obtained with the DuckDNS DNS-01 plugin. The DuckDNS token lives inside the `npm_letsencrypt` volume.
-- Proxy host definitions live in the `npm_data` volume (SQLite database plus generated nginx config). They are listed in [networking](networking.md#reverse-proxy-hosts) and are not otherwise version-controlled.
+- Proxy host definitions live in the `npm_data` volume (SQLite database plus generated nginx config). They are listed in [networking](networking.md#reverse-proxy-hosts) and are in the nightly backup, but not version-controlled.
 
 ### Arcane
 
@@ -40,7 +40,7 @@ Container and Compose management UI. It replaced Portainer on 2026-11-25.
 - Image `getarcaneapp/manager:v3.1.1`, UI on 3552. No published port: it is reached only through NPM as `arcane.`. Portainer also published 9000 on the LAN address.
 - Mounts the Docker socket read-write, which is equivalent to root on the host.
 - Works directly on Compose folders on disk. `~/homelab` is the projects directory, and `/mnt/storage/vaultwarden` and `/mnt/storage/obsidian-livesync` are mounted at their real paths and scanned through `/mnt/storage`. Inside the container, `/mnt/storage` contains only those two folders. All nine projects show up, and edits in Arcane change the same files as editing by hand. It runs as UID 1000, so it cannot edit the root-owned `~/homelab/nextcloud/docker-compose.yml` or read `vaultwarden/data`.
-- `ARCANE_ENCRYPTION_KEY` is in `~/homelab/homelab-core/arcane.env` (mode 600, see [`arcane.env.example`](../compose/homelab-core/arcane.env.example)). Users, settings and sessions are in the `arcane_data` volume.
+- `ARCANE_ENCRYPTION_KEY` is in `~/homelab/homelab-core/arcane.env` (mode 600, see [`arcane.env.example`](../compose/homelab-core/arcane.env.example)). Users, settings and sessions are in the `arcane_data` volume. Both are in the nightly backup.
 - Arcane sends an anonymous usage heartbeat by default. `ANALYTICS_ENABLED=false` is set, and `checkin.getarcane.app` resolves to `0.0.0.0` inside the container in case the variable is not honoured.
 - Trusts `X-Forwarded-For` only from NPM's address (`ARCANE_TRUSTED_PROXIES`). Without that setting, login rate limits would apply to every user together.
 - Redeploying `homelab-core` from Arcane restarts Arcane itself, and NPM too. Use the shell for that project.
