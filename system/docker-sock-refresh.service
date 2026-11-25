@@ -1,0 +1,14 @@
+[Unit]
+Description=Restart containers left with a stale Docker socket after dockerd restarts
+After=docker.service
+BindsTo=docker.service
+OnFailure=notify-failure@%n.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh /usr/local/bin/docker-sock-refresh.sh
+TimeoutStartSec=5min
+
+[Install]
+WantedBy=docker.service

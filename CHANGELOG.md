@@ -6,6 +6,26 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Added a hook that restarts containers left with a stale Docker socket
+
+**Problem.** `live-restore` keeps containers running while dockerd restarts. But when `docker.socket` restarts, as it did during today's 16:37 Docker package upgrade, `/var/run/docker.sock` is recreated. Containers that bind-mount it keep the deleted socket. The Nextcloud AIO mastercontainer lost all Docker access this way (see the AIO entry below), and so would Arcane.
+
+**Changed.** Added `/usr/local/bin/docker-sock-refresh.sh` and `docker-sock-refresh.service`. The service is a oneshot that is `WantedBy=` and `BindsTo=docker.service`, so it runs on every Docker start, with `OnFailure=notify-failure@%n.service`.
+
+The script:
+
+1. Waits for dockerd to answer.
+2. Finds running containers that mount `/var/run/docker.sock`.
+3. Compares the socket inode each one sees through `/proc/<pid>/root` with the host's.
+4. Restarts only the containers that don't match, then checks them again.
+
+**Verified.**
+
+- First start, with nothing stale: both containers reported "socket current" and nothing was restarted.
+- `systemctl restart docker`: the hook ran again. The socket is held by `docker.socket`, so it was not recreated, and nothing was restarted.
+- `systemctl stop docker.service docker.socket`, then starting both again: the socket inode changed from 8138 to 23089. The hook found both the mastercontainer and Arcane stale, restarted them, and confirmed both current. The mastercontainer can list containers, and Arcane returns 200 through NPM.
+- No container is unhealthy afterwards.
+
 ### Updated Nextcloud AIO, which also moved Nextcloud from 34 to 35
 
 **Problem.** Arcane's Trivy scan found critical CVEs (Brotli, Perl) in the AIO apache, nextcloud, imaginary, postgresql and mastercontainer images, and rebuilt images were available. AIO's own update path was also broken without anyone noticing. The mastercontainer had started at 16:01, Docker restarted at 16:37, and its bind-mounted `/var/run/docker.sock` still pointed at the old, deleted socket. Every Docker call from AIO failed, including its own scheduled updates.
@@ -26,7 +46,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 - `status.php` returns 200 through NPM.
 - Trivy finds 0 critical vulnerabilities in all seven AIO images.
 
-**Still open.** If Docker restarts again, the mastercontainer loses socket access again until it is restarted. A check or a restart hook would catch that.
+**Still open.** If Docker restarts again, the mastercontainer loses socket access again until it is restarted. *Fixed later the same day by `docker-sock-refresh.service`; see the entry above.*
 
 ### Updated n8n and Immich to clear critical image vulnerabilities
 

@@ -130,6 +130,8 @@ There are no user crontabs.
 }
 ```
 
+`live-restore` has one side effect. When `docker.socket` restarts (a Docker package upgrade does this), dockerd creates a new `/var/run/docker.sock`. Running containers that bind-mount the socket keep the old, deleted one and can no longer reach Docker. Here those are the Nextcloud AIO mastercontainer and Arcane. [`docker-sock-refresh.service`](../system/docker-sock-refresh.service) is `WantedBy=` and `BindsTo=docker.service`, so it runs every time Docker starts. It runs [`docker-sock-refresh.sh`](../scripts/docker-sock-refresh.sh), which compares the socket inode each container sees (via `/proc/<pid>/root`) with the host's, and restarts only the containers that differ. If it fails, `notify-failure@` sends an alert.
+
 Disk usage on 2026-11-03, after the finding 11 cleanup: 28.8 GB of images (0.1 GB reclaimable), 0.2 GB of build cache, 2.8 GB in named volumes.
 
 ## How this was collected
