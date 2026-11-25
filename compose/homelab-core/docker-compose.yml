@@ -19,7 +19,7 @@ services:
   # --- Reverse proxy: routes to every future service by container name ---
   npm:
     container_name: npm
-    image: jc21/nginx-proxy-manager:2.16.0
+    image: jc21/nginx-proxy-manager:2.17.1
     restart: unless-stopped
     environment:
       - TZ=America/New_York
@@ -39,7 +39,7 @@ services:
   # --- Container management UI ---
   portainer:
     container_name: portainer
-    image: portainer/portainer-ce:2.45.3
+    image: portainer/portainer-ce:2.45.4
     restart: unless-stopped
     environment:
       - TZ=America/New_York

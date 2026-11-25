@@ -6,8 +6,8 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 
 | Service | Version | Managed by | Compose project (real path) | Data | Restart |
 |---|---|---|---|---|---|
-| Nginx Proxy Manager | 2.16.0 (pinned) | Compose | `homelab-core` (`~/homelab/homelab-core`) | volumes `npm_data`, `npm_letsencrypt` | unless-stopped |
-| Portainer CE | 2.45.3 (pinned) | Compose | `homelab-core` | volume `portainer_data` | unless-stopped |
+| Nginx Proxy Manager | 2.17.1 (pinned) | Compose | `homelab-core` (`~/homelab/homelab-core`) | volumes `npm_data`, `npm_letsencrypt` | unless-stopped |
+| Portainer CE | 2.45.4 (pinned) | Compose | `homelab-core` | volume `portainer_data` | unless-stopped |
 | Immich | 3.1.0 (pinned) | Compose | `immich` (`~/homelab/immich`) | `/mnt/storage/immich` | always |
 | Nextcloud AIO | Nextcloud 34.0.4 | Compose + AIO | `nextcloud` (`~/nextcloud`) | `/mnt/storage/nextcloud`, AIO volumes | always |
 | Vaultwarden | 1.37.5 (pinned) | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
@@ -27,14 +27,14 @@ Defines the shared `proxy` network and the three infrastructure containers.
 
 ### Nginx Proxy Manager
 
-- Image `jc21/nginx-proxy-manager:2.16.0`, static address `172.18.255.10` on `proxy`, at the top of the subnet because Docker hands out free addresses from the bottom.
+- Image `jc21/nginx-proxy-manager:2.17.1`, static address `172.18.255.10` on `proxy`, at the top of the subnet because Docker hands out free addresses from the bottom.
 - Publishes 80, 443, and the admin UI on 81, all bound to the LAN address only.
 - Holds one wildcard certificate obtained with the DuckDNS DNS-01 plugin. The DuckDNS token lives inside the `npm_letsencrypt` volume.
 - Proxy host definitions live in the `npm_data` volume (SQLite database plus generated nginx config). They are listed in [networking](networking.md#reverse-proxy-hosts) and are not otherwise version-controlled.
 
 ### Portainer
 
-- Image `portainer/portainer-ce:2.45.3`, UI on 9000 (LAN address and `ptnr.`).
+- Image `portainer/portainer-ce:2.45.4`, UI on 9000 (LAN address and `ptnr.`).
 - Mounts the Docker socket read-write.
 
 ## Immich
@@ -155,7 +155,7 @@ Two utility containers in the Compose project `utilities` ([Compose file](../com
 
 | | IT-Tools | SnapOtter |
 |---|---|---|
-| Image | `corentinth/it-tools:2024.10.22-7ca5933` | `snapotter/snapotter:2.2.0` (12.3 GB) |
+| Image | `corentinth/it-tools:2024.10.22-7ca5933` | `snapotter/snapotter:2.3.0` (12.5 GB) |
 | What it is | Collection of developer utilities | File conversion, compression, OCR, transcription, and local AI tools |
 | Network | `proxy`, as `it-tools` | `proxy`, as `SnapOtter` with the alias `snapotter` |
 | State | none | external volume `SnapOtter-data` (the data from the earlier container) |

@@ -10,7 +10,7 @@ services:
       proxy:
 
   snapotter:
-    image: snapotter/snapotter:2.2.0
+    image: snapotter/snapotter:2.3.0
     container_name: SnapOtter
     restart: unless-stopped
     environment:

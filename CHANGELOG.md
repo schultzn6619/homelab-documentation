@@ -4,6 +4,27 @@ A dated record of changes made to the server. Each entry corresponds to one comm
 
 Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
+## 2026-11-25
+
+### Updated NPM, Portainer and SnapOtter
+
+**Problem.** The weekly [image update check](docs/services.md#image-update-check) reported new releases for five pinned images. SnapOtter 2.3.0 closes six security advisories that affect 2.2.0, one of them rated high. n8n (a major version, 2.36.7 to 3.4.0) and LiveSync CLI (kept on 1.0.43 on purpose) were left for later.
+
+**Changed.**
+
+- [`homelab-core`](compose/homelab-core/docker-compose.yml): `jc21/nginx-proxy-manager` 2.16.0 → 2.17.1, `portainer/portainer-ce` 2.45.3 → 2.45.4.
+- [`utilities`](compose/utilities/docker-compose.yml): `snapotter/snapotter` 2.2.0 → 2.3.0.
+- Read the release notes first. NPM 2.17 updates Certbot to 5.10, and the notes warn that DNS plugins may break. The certificate uses the DuckDNS DNS challenge. Portainer's breaking changes only affect Kubernetes shells and non-admin users. NPM was recreated on its own, as [operations](docs/operations.md#containers) requires. The previous Compose files are kept on the server with the suffix `.bak-2026-11-25`.
+
+**Verified.**
+
+- All three containers run the new tags. SnapOtter is healthy. NPM kept its static address `172.18.255.10`.
+- Every proxy host answers through NPM with its usual status (200, 302 for sign-in redirects, 401 for CouchDB).
+- `certbot plugins` in the new NPM image still lists `dns-duckdns`. NPM writes the DuckDNS credentials file just before each renewal and deletes it afterwards, so a manual `certbot renew --dry-run` fails with "credentials file not found" and does not tell you whether renewal works. The certificate is valid until 2027-01-09, so the first real renewal under 2.17.1 will happen in about two weeks.
+- A health check run reports all checks passed.
+
+**Still open.** n8n 3.x (a major version: read the migration notes before updating). LiveSync CLI stays pinned. The Immich images could not be checked this run because GHCR returned HTTP 429.
+
 ## 2026-11-04
 
 ### Hardened Docker networking against power cuts
