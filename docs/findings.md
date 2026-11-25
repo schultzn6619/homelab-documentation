@@ -10,7 +10,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 4 | [Reboot pending for a kernel update](#4-reboot-pending-for-a-kernel-update) | Medium | Open |
 | 5 | [`homelab-core` Compose file has drifted from what is deployed](#5-homelab-core-compose-file-has-drifted-from-what-is-deployed) | Medium | Partly fixed 2026-11-04 |
 | 6 | [Three containers publish ports on every interface](#6-three-containers-publish-ports-on-every-interface) | Medium | **Fixed 2026-11-03** |
-| 7 | [Stale AAAA record in public DNS](#7-stale-aaaa-record-in-public-dns) | Medium | Open |
+| 7 | [Stale AAAA record in public DNS](#7-stale-aaaa-record-in-public-dns) | Medium | **Fixed 2026-11-25** |
 | 8 | [Nextcloud AIO admin interface is not reachable](#8-nextcloud-aio-admin-interface-is-not-reachable) | Medium | **Fixed 2026-11-03** |
 | 9 | [Credentials written inline](#9-credentials-written-inline) | Medium | **Fixed 2026-11-03** |
 | 10 | [Vaultwarden still allows sign-ups](#10-vaultwarden-still-allows-sign-ups) | Medium | **Fixed 2026-11-03** |
@@ -129,6 +129,8 @@ Every other published port is bound to the LAN address. Docker-published ports b
 - Confirm from an outside network that the host's global IPv6 address does not answer on those ports. If IPv6 is not needed for containers, remove `"ipv6": true` and `"ip6tables": true` from `daemon.json`.
 
 ## 7. Stale AAAA record in public DNS
+
+> **Fixed 2026-11-25.** The AAAA record was cleared through DuckDNS's update API and the A record set again. Public resolvers, DuckDNS's own name servers and the router now return only the IPv4 address. No updater on the host sends an address to DuckDNS. See the [changelog](../CHANGELOG.md#cleared-the-stale-aaaa-record-finding-7). The description below is kept as the record of what was wrong.
 
 **Observed.** The DuckDNS domain's public AAAA record points to a global IPv6 address in a prefix the host no longer has. The A record correctly points to the LAN address.
 

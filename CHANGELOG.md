@@ -6,6 +6,20 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Cleared the stale AAAA record (finding 7)
+
+**Problem.** Every hostname under the DuckDNS domain also resolved to a global IPv6 address, `2607:fb91:4c8e:8054:…`, in a prefix the host no longer has. The host's current global prefix is different, and the ISP rotates it. Nothing is reachable from the internet in any case. Clients that prefer IPv6 try the dead address first, which can stall connections. This showed up again when checking the new `ha.` host.
+
+**Changed.** Both records were cleared through DuckDNS's update API (`clear=true`), and the A record was set back to the host's LAN address straight away. DuckDNS cannot clear only the AAAA record. The token was read from NPM's certificate settings into a root-only temporary file and deleted afterwards. It was never printed.
+
+**Verified.**
+
+- 1.1.1.1, 8.8.8.8 and DuckDNS's name servers `ns6` and `ns7` return only the A record for the domain and for `ha.`.
+- The router's dnsmasq does the same, and `https://ha.example.duckdns.org` still returns 200.
+- No cron job, systemd unit, script or container on the host updates DuckDNS.
+
+**Still open.** If the AAAA record comes back, the router's DDNS client is sending it. Turn off IPv6 there or remove the DDNS entry.
+
 ### Added Home Assistant
 
 **Problem.** Home Assistant was wanted on the server. Only network devices are planned (Wi-Fi, Ethernet and cloud integrations), with no Zigbee, Z-Wave or Thread radio.
