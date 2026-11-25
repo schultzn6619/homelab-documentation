@@ -12,7 +12,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 **Changed.** On the router, `dhcp.@dnsmasq[0].rebind_protection=1`, and dnsmasq restarted. dnsmasq's generated config now has `stop-dns-rebind`. `rebind-localhost-ok` was already set. No `rebind_domain` exceptions were needed, because the router answers the service domain itself with an `address=` override, and rebind protection doesn't apply to its own answers.
 
-**Verified.** A test name that resolves publicly to a private address (`192.168.1.1.nip.io`) now gets no answer, and dnsmasq logs the rebind attempt. The service domain and its subdomains still resolve to the host's LAN address from the router and from the host. `console.gl-inet.com` still points to the router, and public names resolve normally.
+**Verified.** A test name that resolves publicly to a private address (`192.168.1.1.nip.io`) now gets no answer. dnsmasq logs that rebind protection is active. The service domain and its subdomains still resolve to the host's LAN address from the router and from the host. `console.gl-inet.com` still points to the router, and public names resolve normally.
 
 ### Router: disabled unused GL services
 
