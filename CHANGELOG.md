@@ -6,6 +6,14 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Router: turned on DNS rebind protection
+
+**Problem.** dnsmasq on the router had `rebind_protection='0'`. It passed on upstream answers that put a public name on a private or loopback address. A malicious web page can use that kind of answer (a DNS rebinding attack) to reach devices on the LAN from a browser.
+
+**Changed.** On the router, `dhcp.@dnsmasq[0].rebind_protection=1`, and dnsmasq restarted. dnsmasq's generated config now has `stop-dns-rebind`. `rebind-localhost-ok` was already set. No `rebind_domain` exceptions were needed, because the router answers the service domain itself with an `address=` override, and rebind protection doesn't apply to its own answers.
+
+**Verified.** A test name that resolves publicly to a private address (`192.168.1.1.nip.io`) now gets no answer, and dnsmasq logs the rebind attempt. The service domain and its subdomains still resolve to the host's LAN address from the router and from the host. `console.gl-inet.com` still points to the router, and public names resolve normally.
+
 ### Router: disabled unused GL services
 
 **Problem.** The router was running GL services for hardware it doesn't have or features that are off: cellular modem and SMS managers (the Flint 2 has no modem), deep packet inspection, and `udpspeeder`, which listened on UDP 4095 and 4096 on every interface for a multipath tunnel that is turned off (`mptun.enable=0`).
