@@ -6,6 +6,22 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Router: disabled unused GL services
+
+**Problem.** The router was running GL services for hardware it doesn't have or features that are off: cellular modem and SMS managers (the Flint 2 has no modem), deep packet inspection, and `udpspeeder`, which listened on UDP 4095 and 4096 on every interface for a multipath tunnel that is turned off (`mptun.enable=0`).
+
+**Changed.** On the router, each of these was stopped and disabled at boot with `/etc/init.d/<name> stop` and `disable`: `gl_cellular_manager`, `sms_manager`, `smstools3`, `modem_signal`, `udpspeeder`, `gl_dpi` and `gl_dpi_flow_statistics`.
+
+Left alone on purpose:
+
+- `carrier-monitor` watches the Ethernet link state, so it isn't cellular-related.
+- The `mptun`, `mpifd` and `mpflow` services aren't running anyway.
+- A firmware-owned cron job runs an ARP scan once a minute.
+
+**Verified.** None of the disabled processes are running, and UDP 4095 and 4096 are closed. The router still resolves names and reaches the internet, the host reaches the internet, and the admin interface loads.
+
+**Trade-off.** With DPI off, the GL interface no longer shows per-app traffic statistics for clients, and parental controls (already off) would not work. Turn it back on with `/etc/init.d/gl_dpi enable && /etc/init.d/gl_dpi start`, and the same for `gl_dpi_flow_statistics`.
+
 ### Router: turned off its Wi-Fi radios and repeater mode
 
 **Problem.** Wi-Fi in the house comes from the UniFi access points. Every SSID on the router was already disabled, but both radios were still enabled, and repeater auto-connect (`repeater.auto=1`) kept the client interfaces `apcli0` and `apclix0` around for scanning.
