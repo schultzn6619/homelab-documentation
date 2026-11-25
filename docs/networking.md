@@ -22,7 +22,7 @@ flowchart LR
 | Where | What resolves names |
 |---|---|
 | On the host | systemd-resolved stub, forwarding to the router (`192.168.1.1`) |
-| LAN clients | Router dnsmasq (upstream 1.1.1.1 and 8.8.8.8; query logging off) |
+| LAN clients | Router dnsmasq, forwarding upstream to Cloudflare over DNS-over-HTTPS (via `dnsproxy`); rebind protection on, query logging off |
 | Tailnet clients | Tailscale Split DNS sends `example.duckdns.org` to the router; everything else uses the client's normal DNS |
 
 The service domain is a DuckDNS subdomain. Every hostname under it resolves to the host's LAN address, `192.168.1.10`. That works for remote clients too, because Tailscale routes the LAN subnet.

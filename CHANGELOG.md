@@ -6,6 +6,28 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Router: switched upstream DNS to DNS-over-HTTPS
+
+**Problem.** dnsmasq on the router sent every LAN lookup it couldn't answer from cache to 1.1.1.1 and 8.8.8.8 in plain text over port 53. The ISP and anything else on the path could read or alter them.
+
+**Changed.** On the router, through GL's own DNS API (`gl-session` module `dns`, `set_config`), so the GL interface shows the same setting:
+
+- Mode `secure`, protocol DoH, provider Cloudflare, server "Standard" (unfiltered): `https://cloudflare-dns.com/dns-query`.
+- GL starts `dnsproxy` on port 5453. dnsmasq now has `no-resolv` and `server=127.0.0.1#5453`, so it keeps answering clients, caching and applying the local overrides, but forwards upstream only through `dnsproxy`.
+- `dnsproxy` uses plain DNS to 8.8.8.8 and 1.1.1.1 only to look up the address of `cloudflare-dns.com` itself.
+- Rebind protection stays on.
+- The previous `gl-dns-v2`, `dhcp` and `network` configs were copied to `/root/bak-2026-11-25/` on the router.
+
+**Verified.**
+
+- Public names resolve from the router and from the host, and nonexistent names return no answer.
+- The service domain and its subdomains still resolve to the host's LAN address.
+- The rebind test name still gets no answer.
+- Connection tracking on the router shows its upstream DNS traffic on port 443 only, with no plain port 53 queries leaving the router or the LAN.
+- Uncached lookups take 26 to 37 ms and cached ones 0 to 1 ms.
+
+**Still open.** Clients that hard-code their own resolver (for example 8.8.8.8) still send plain DNS directly. GL's "force DNS" option would redirect them, and is left off.
+
 ### Router: redirected the admin interfaces to HTTPS
 
 **Problem.** Both of the router's admin interfaces answered on plain HTTP on the LAN: the GL interface (nginx, port 80) and LuCI (uhttpd, port 8080). Logging in over those ports sent the admin password and session in the clear.
