@@ -109,7 +109,7 @@ flowchart LR
     C["cp UniFi autobackup files"] --> S
     D["cp -a Vaultwarden,<br/>Obsidian LiveSync, Nextcloud data"] --> S
     E["SQLite backup of Navidrome DB,<br/>Discover Weekly state, slskd.yml"] --> S
-    G["Home Assistant, NPM, Arcane:<br/>rsync + SQLite backups"] --> S
+    G["Home Assistant, NPM, Arcane, n8n:<br/>rsync + SQLite backups"] --> S
     S --> R["restic backup<br/>/var/backups/restic-repo<br/>(NVMe)"]
     M["/mnt/storage/music/library<br/>(backed up in place)"] --> R
     R --> F["restic forget<br/>--keep-last 3 --prune<br/>(only if every step succeeded)"]
@@ -123,6 +123,7 @@ flowchart LR
 | File copies | `/mnt/storage/vaultwarden`, `/mnt/storage/obsidian-livesync`, `/mnt/storage/nextcloud` copied to staging |
 | Music | Navidrome's database is copied with SQLite's online backup API (consistent while Navidrome runs), plus `discover-state/` and `slskd.yml`, into staging. The library is backed up in place as a separate snapshot tagged `homelab-music`, so it is never duplicated in staging and each night only adds new files. That step refuses to run (and counts as failed) if the library would leave less than 20 GB free on the NVMe |
 | Home Assistant | `/mnt/storage/homeassistant/config` copied with `rsync`, without logs or the recorder database, which is copied with SQLite's online backup API instead |
+| n8n | `/mnt/storage/n8n` copied with `rsync`, without event logs or `crash.journal`. `database.sqlite` is copied with SQLite's online backup API. `config` holds the key that encrypts saved credentials, so it is required for a restore |
 | Nginx Proxy Manager, Arcane | The `homelab-core` volumes are copied from `/var/lib/docker/volumes` with `rsync`, without NPM's logs. NPM's `database.sqlite` and Arcane's `*.db` files are copied with SQLite's online backup API. Arcane's `arcane.env` is included, because its stored secrets cannot be decrypted without that key |
 | Repository | restic 0.18, local repo on the NVMe, password in `/root/.restic-password` |
 | Retention | last 3 snapshots per group (restic groups by host and paths, so the daily and music snapshots are kept separately) |
@@ -144,7 +145,7 @@ Working as of 2026-10-13. The job failed every night from 2026-09-22 until it wa
 | Vaultwarden | Yes (file copy of a live SQLite database) |
 | Obsidian LiveSync | Yes (file copy of CouchDB data and of the plain-Markdown vault mirror) |
 | UniFi | Yes (the controller's own backup files; the newest is dated 2026-10-01) |
-| n8n | **No** |
+| n8n | Yes (`config` with the credentials encryption key, workflow files, consistent copy of its SQLite database; not its event logs) |
 | Music | Yes (consistent copy of the Navidrome database, Discover Weekly state, slskd config; library files in place). Not the slskd transfer history or Navidrome's artwork cache |
 | Home Assistant | Yes (config and `.storage`; consistent copy of the recorder database) |
 | Nginx Proxy Manager | Yes (config, keys, certificates and DuckDNS settings; consistent copy of its SQLite database; not its logs) |

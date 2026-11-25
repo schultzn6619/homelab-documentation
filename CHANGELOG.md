@@ -6,6 +6,20 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Added n8n to the nightly backup (finding 2, partly)
+
+**Problem.** n8n was the last service whose state was not backed up. That includes the "Rocketbook → Obsidian" workflow, two saved credentials, and the key that encrypts them.
+
+**Changed.** [`homelab-backup.sh`](scripts/homelab-backup.sh) has a new `n8n` step:
+
+- `/mnt/storage/n8n` is copied with `rsync`, without event logs or `crash.journal`.
+- `database.sqlite` is copied with SQLite's online backup API.
+- `config` is included, because the saved credentials cannot be decrypted without the key in it.
+
+The Rocketbook inbox that n8n writes to is in the Obsidian vault, which was already backed up. The previous script is kept on the server as `homelab-backup.sh.bak-2026-11-25-n8n`.
+
+**Verified.** A manual run reported every step ok. The snapshot contains `n8n/config` and `n8n/database.sqlite`. The database, restored to a scratch directory, passed `PRAGMA integrity_check` and lists both workflows ("Rocketbook → Obsidian" active, the test copy inactive) and 2 credentials.
+
 ### Added NPM and Arcane to the nightly backup (finding 2, partly)
 
 **Problem.** The NPM volumes hold every proxy host, the access lists, the wildcard certificate and the DuckDNS settings. Arcane's volume holds its users and settings. None of them were backed up, so losing the NVMe meant rebuilding all 13 proxy hosts by hand.
@@ -23,7 +37,7 @@ The staging directory is root-only and the restic repository is encrypted. The p
 - The snapshot contains NPM's `database.sqlite`, `keys.json` and `live/npm-1/fullchain.pem`, and Arcane's two databases and `arcane.env`.
 - NPM's and Arcane's main databases were restored from the snapshot to a scratch directory. Both passed `PRAGMA integrity_check`, and the restored NPM database lists 13 proxy hosts.
 
-**Still open.** n8n's data is still not backed up, and every copy is still on the same machine (finding 2).
+**Still open.** Every copy is still on the same machine (finding 2).
 
 ### Replaced Portainer with Arcane
 

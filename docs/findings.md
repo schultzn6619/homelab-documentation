@@ -53,7 +53,7 @@ The script runs `mongodump` inside a Docker container called `unifi-db`. That co
 
 - The restic repository is at `/var/backups/restic-repo` on the NVMe, the same disk as the operating system and in the same chassis as the data.
 - Immich's photo and video library (17 GB, the only irreplaceable bulk data) is not in the backup. Only its database is.
-- n8n state is not included. Nginx Proxy Manager and Arcane (Portainer's replacement) have been included since 2026-11-25.
+- *Fixed 2026-11-25:* n8n, Nginx Proxy Manager and Arcane (Portainer's replacement) were not included. All three are now.
 - Retention is three snapshots, so three days of history.
 - Vaultwarden and Trilium are copied with `cp -a` while running. A SQLite database copied mid-write with its WAL file can be inconsistent.
 - Nextcloud's data directory is first copied in full to staging on the NVMe and then stored again in the repository on the same disk, so it needs twice its size in free space on the root filesystem as it grows.

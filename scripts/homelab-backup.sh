@@ -87,6 +87,14 @@ arcane_state() {
 }
 step "arcane" arcane_state
 
+# --- n8n: config (holds the credentials encryption key), workflows, consistent database copy ---
+n8n_state() {
+  local src=/mnt/storage/n8n dst="$STAGING/n8n"
+  rsync -a --exclude 'database.sqlite*' --exclude '*.log' --exclude 'crash.journal' "$src/" "$dst/" &&
+  sqlite_copy "$src/database.sqlite" "$dst/database.sqlite"
+}
+step "n8n" n8n_state
+
 # --- Back up staging with restic (writes land on the SSD) ---
 step "restic backup" restic backup "$STAGING" --tag homelab-daily
 
