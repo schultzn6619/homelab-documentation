@@ -43,7 +43,9 @@ Public DNS for the domain is only needed for the Let's Encrypt DNS-01 TXT challe
 | Tailscale SSH | Off |
 | Exit node | Not offered, not used |
 | Serve / Funnel | Not configured |
-| Peers | 2 (a laptop and a phone) |
+| Peers | 3 (a laptop, a phone, and the router) |
+
+The router also runs Tailscale (since 2026-11-25), as an exit node and as a second subnet router for the same LAN subnet. Tailscale picks one of the two as primary and fails over to the other. Either path works: the router masquerades tailnet traffic into the LAN (fw3 rule `Tailnet-to-LAN-masquerade`), and its dnsmasq answers split-DNS queries from tailnet clients (`localservice=0`).
 
 Supporting host configuration:
 

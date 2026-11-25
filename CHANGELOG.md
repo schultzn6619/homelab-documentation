@@ -6,6 +6,24 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Router: made remote access work through the router's Tailscale
+
+**Problem.** Tailscale was turned on on the router at 18:29 from the GL interface, with "Remote access to LAN" and exit node. The router then also advertised the LAN subnet, and Tailscale made it the primary subnet router in place of the host. From then on remote clients failed in two ways:
+
+- The router forwarded their traffic to the LAN without rewriting the source address. The host answered the tailnet addresses through its own Tailscale interface, so connections never completed.
+- dnsmasq ignored their split-DNS queries ("ignoring query from non-local network"). Its `local-service` option only accepts subnets of its own interfaces, and the router's tailnet address is a /32.
+
+LAN clients were not affected.
+
+**Changed.** On the router, with the old `firewall` and `dhcp` configs copied to `/root/bak-2026-11-25/`:
+
+- Added a fw3 NAT rule, `Tailnet-to-LAN-masquerade`: source `100.64.0.0/10`, outgoing zone `lan`, target `MASQUERADE`. GL's own "masquerade" Tailscale option only applies to traffic leaving into the tailnet. Tailscale's own SNAT chain exists but never matches, because GL runs `tailscaled` with netfilter mode `nodivert`.
+- `dhcp.@dnsmasq[0].localservice=0`. The WAN zone drops all input and has no DNS rule, so DNS is still unreachable from outside.
+
+**Verified.** The router logged no new "non-local network" warnings after the change. Conntrack shows the remote client's DNS queries answered and its HTTPS connections to the host established, with replies addressed to the router. NPM logs requests arriving from the router's address.
+
+**Still open.** Enabling Tailscale on the router also changed dnsmasq's local domain from `lan` to the tailnet's MagicDNS suffix. GL's script stores the old value in `tailscale.settings.original_domain`.
+
 ### Added a hook that restarts containers left with a stale Docker socket
 
 **Problem.** `live-restore` keeps containers running while dockerd restarts. But when `docker.socket` restarts, as it did during today's 16:37 Docker package upgrade, `/var/run/docker.sock` is recreated. Containers that bind-mount it keep the deleted socket. The Nextcloud AIO mastercontainer lost all Docker access this way (see the AIO entry below), and so would Arcane.
