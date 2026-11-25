@@ -12,7 +12,7 @@ Per-service reference. Versions are what was running on 2026-10-13. Hostnames ar
 | Nextcloud AIO | Nextcloud 34.0.4 | Compose + AIO | `nextcloud` (`~/nextcloud`) | `/mnt/storage/nextcloud`, AIO volumes | always |
 | Vaultwarden | 1.37.5 (pinned) | Compose | `vaultwarden` (`/mnt/storage/vaultwarden`) | `/mnt/storage/vaultwarden/data` | unless-stopped |
 | Obsidian LiveSync (CouchDB + CLI) | CouchDB 3.5.3, LiveSync CLI 1.0.43 (both pinned) | Compose | `obsidian-livesync` (`/mnt/storage/obsidian-livesync`) | `/mnt/storage/obsidian-livesync` | unless-stopped |
-| n8n | 2.36.7 | Compose | `n8n` (`~/n8n`) | `/mnt/storage/n8n` | unless-stopped |
+| n8n | 2.49.6 | Compose | `n8n` (`~/n8n`) | `/mnt/storage/n8n` | unless-stopped |
 | Navidrome | 0.64.2 (pinned) | Compose | `music` (`~/homelab/music`) | `/mnt/storage/music/navidrome`, library `/mnt/storage/music/library` | unless-stopped |
 | slskd (Soulseek client) | 0.26.2 (pinned) | Compose | `music` | `/mnt/storage/music/slskd` | unless-stopped |
 | IT-Tools | `2024.10.22-7ca5933` (pinned; upstream unchanged since 2024) | Compose | `utilities` (`~/homelab/utilities`) | none | unless-stopped |
@@ -51,15 +51,15 @@ Photo and video library with face and object search.
 
 | Container | Image | Role |
 |---|---|---|
-| `immich_server` | `ghcr.io/immich-app/immich-server:v3.1.0` | API, web UI, background jobs (port 2283) |
-| `immich_machine_learning` | `ghcr.io/immich-app/immich-machine-learning:v3.1.0` | CPU inference; model cache in volume `immich_model-cache` |
+| `immich_server` | `ghcr.io/immich-app/immich-server:v3.4.2` | API, web UI, background jobs (port 2283) |
+| `immich_machine_learning` | `ghcr.io/immich-app/immich-machine-learning:v3.4.2` | CPU inference; model cache in volume `immich_model-cache` |
 | `immich_postgres` | `ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0` (digest-pinned) | Database with vector extensions |
 | `immich_redis` | `valkey/valkey:9` (digest-pinned) | Job queue |
 
 - Library at `/mnt/storage/immich/library` (17 GB), database at `/mnt/storage/immich/postgres`. The database is tuned for spinning disk (`DB_STORAGE_TYPE: HDD`).
 - Inference runs on the CPU; the installed GPU is not usable for it. This workload is what the thermal watchdog guards.
 - All four containers are on the `proxy` network.
-- Pinned with `IMMICH_VERSION=v3.1.0` in `.env`. Upgrades are manual: read the release notes, change `IMMICH_VERSION`, then `docker compose pull && docker compose up -d`. The weekly update check reports new releases.
+- Pinned with `IMMICH_VERSION=v3.4.2` in `.env`. Upgrades are manual: read the release notes, change `IMMICH_VERSION`, then `docker compose pull && docker compose up -d`. The weekly update check reports new releases.
 
 ## Nextcloud AIO
 
@@ -104,7 +104,7 @@ Replaces Trilium as the notes system (migrated 2026-10-25). Notes are an Obsidia
 
 ## n8n
 
-- Image `n8nio/n8n:2.36.7` (pinned), state (SQLite database, credentials encryption key, workflows) in `/mnt/storage/n8n`.
+- Image `n8nio/n8n:2.49.6` (pinned), state (SQLite database, credentials encryption key, workflows) in `/mnt/storage/n8n`.
 - Configured for `https://n8n.example.duckdns.org`.
 - Updated by hand; the weekly update check reports new releases. Not included in the backup script.
 - Bind-mounts the vault folder `/mnt/storage/obsidian-livesync/vault/Rocketbook Inbox` at `/home/node/.n8n-files/rocketbook`. n8n 2.x only lets file nodes use `~/.n8n-files`, and mounting just this folder keeps n8n out of the rest of the vault.

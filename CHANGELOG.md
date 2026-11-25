@@ -6,6 +6,34 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Updated n8n and Immich to clear critical image vulnerabilities
+
+**Problem.** Arcane's Trivy scan of every image on the host reported critical vulnerabilities in 13 images. The two worst were both pinned well behind upstream:
+
+- `n8nio/n8n:2.36.7`: 40 critical, including 21 sandbox-escape and code-execution CVEs in the bundled `vm2` 3.11.6, plus `shell-quote`, `simple-git`, `handlebars` and the image's OpenSSH packages.
+- `immich-server:v3.1.0` (28 critical) and `immich-machine-learning:v3.1.0` (13 critical): Pillow heap overflows in the ML image, `proxy-addr` IP spoofing, `handlebars`, Mesa, Brotli and Perl in the server image. Immich v3.4.0's release notes also list security fixes in Immich itself.
+
+**Changed.**
+
+- n8n: `2.36.7` → `2.49.6` (current stable). No breaking changes are listed inside 2.x. `/mnt/storage/n8n` was archived to `/mnt/storage/backups/` first. Database migrations ran on startup.
+- Immich: `IMMICH_VERSION` `v3.1.0` → `v3.4.2`. The `pg_dumpall` taken beforehand is in `/mnt/storage/backups/`. The valkey digest and healthcheck were updated to match upstream's v3.4.2 compose file. The Postgres image is unchanged upstream. The opt-in `MACHINE_LEARNING_MODEL_REVISION=v2` was not enabled.
+- Each new image was scanned with Trivy before it was deployed.
+
+**Verified.**
+
+- Trivy, critical only: n8n 2.49.6 has 0 (was 40). immich-server v3.4.2 has 3 (was 28): OpenEXR and libxml2, with no fixed Debian package yet for libxml2. immich-machine-learning v3.4.2 has 2 (was 13): `anyio` and `certifi`.
+- n8n `/healthz` returns ok, `n8n --version` reports 2.49.6, and the workflow index loaded its published workflow.
+- All four Immich containers are healthy, migrations finished, and `/api/server/version` reports 3.4.2.
+- Both services return 200 through NPM.
+
+**Not acted on, reviewed as not reachable.** Vaultwarden's two MariaDB criticals are server-side bugs, but the image only ships the client library and Vaultwarden runs on SQLite. Home Assistant's OpenSSH critical is a server password-auth bug, but the image only has the client. Both images are already on the latest release.
+
+**Still open.**
+
+- The Nextcloud AIO containers have rebuilt images waiting (Brotli and Perl fixes). They update through the AIO interface.
+- Home Assistant's bundled `Authlib` has a critical CVE, and no Home Assistant release fixes it yet.
+- The residual Immich criticals listed above wait on upstream.
+
 ### Router: switched upstream DNS to DNS-over-HTTPS
 
 **Problem.** dnsmasq on the router sent every LAN lookup it couldn't answer from cache to 1.1.1.1 and 8.8.8.8 in plain text over port 53. The ISP and anything else on the path could read or alter them.
