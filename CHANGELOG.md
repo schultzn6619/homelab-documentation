@@ -6,6 +6,24 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Router: redirected the admin interfaces to HTTPS
+
+**Problem.** Both of the router's admin interfaces answered on plain HTTP on the LAN: the GL interface (nginx, port 80) and LuCI (uhttpd, port 8080). Logging in over those ports sent the admin password and session in the clear.
+
+**Changed.** On the router, both interfaces now use their built-in redirect option:
+
+- GL interface: `oui-httpd.main.redirect_https=1`, and nginx restarted.
+- LuCI: `uhttpd.main.redirect_https=1`, and uhttpd restarted.
+
+Both still use the router's self-signed certificate.
+
+**Verified.**
+
+- `http://<router>/` returns 302 to `https://<router>/`.
+- `http://<router>:8080/cgi-bin/luci` returns 307 to port 8443.
+- The GL interface loads over HTTPS, and its `/rpc` API answers.
+- LuCI's login page loads over HTTPS.
+
 ### Router: turned on DNS rebind protection
 
 **Problem.** dnsmasq on the router had `rebind_protection='0'`. It passed on upstream answers that put a public name on a private or loopback address. A malicious web page can use that kind of answer (a DNS rebinding attack) to reach devices on the LAN from a browser.
