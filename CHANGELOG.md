@@ -6,6 +6,15 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-26
 
+### Turned on Arcane's container update notifications
+
+**Changed.** Turned on the `container_update` event on Arcane's Discord provider, so all five events are now on: image updates, container updates, vulnerability summaries, prune reports and auto-heal. The webhook token was re-read from `/etc/discord-notify.env`. In the v3.1.1 source the event is sent by Arcane's updater (`internal/updater/service.go`), so it only fires when Arcane itself updates a container. That means an update started from its UI, since auto-update is off and the update gate applies. Updates done from the shell with `docker compose` don't trigger it.
+
+**Verified.**
+
+- Arcane's notification settings show all five events enabled.
+- Arcane has no test type for container updates, so its generic test was used to confirm the re-saved provider still delivers. It reported "Test notification sent successfully".
+
 ### Added a healthcheck to livesync-cli
 
 **Problem.** `livesync-cli` was the one service left without a healthcheck. It has no HTTP endpoint, and its files don't change while it is idle, so a hung daemon would have gone unnoticed by auto-heal and `homelab-health-check`.
