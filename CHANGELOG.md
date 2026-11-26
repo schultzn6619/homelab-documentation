@@ -39,7 +39,9 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 - `tools`, `it` and `vault` return 200 through NPM.
 - Arcane's rescan shows criticals only in Home Assistant (1), immich-machine-learning (2) and Immich Postgres (4, all Go stdlib in `gosu`). Every one is in an application library or an upstream binary that Copa can't patch.
 
-**Still open.** The unpatched original images are kept for rollback and as Copa bases, so Arcane still lists them. On every version bump, re-patch as described in the entry below.
+**Still open.** On every version bump, re-patch as described in the entry below.
+
+**Follow-up.** Deleted the unpatched original images (Vaultwarden, SnapOtter, it-tools, valkey, Immich Postgres). The other originals were already gone. Rolling back or re-patching an image now means pulling its original again first.
 
 ### Switched eight containers to Arcane's patched images
 
