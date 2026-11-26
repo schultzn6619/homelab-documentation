@@ -6,6 +6,14 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Turned on Arcane's vulnerability update gate
+
+**Changed.** Turned on `vulnerabilityUpdateGateEnabled` with the default limits: at most 0 critical findings, and no limit on high, medium or low. Arcane now runs Trivy on the new image before any update made through Arcane (its update action or auto-update, which is off) and blocks the update if the image goes over the limit. `trivyIgnoreUnfixed` is on, so only criticals that already have a fix count. Updates done from the shell with `docker compose` don't go through the gate.
+
+**Trade-off, chosen deliberately.** Until upstream fixes the remaining library criticals, Arcane will block updates for Home Assistant (`Authlib`) and immich-machine-learning (`anyio`, `certifi`), even for a release that improves on the running one. Those updates go through the shell, with a manual Trivy scan as before.
+
+**Verified.** Arcane's settings show the gate enabled with `vulnerabilityUpdateGateMaxCritical` set to 0.
+
 ### Added healthchecks to the containers that had none
 
 **Problem.** Seven containers had no healthcheck. Arcane's auto-heal and `homelab-health-check` couldn't tell whether they were working, only whether they were running.
