@@ -10,11 +10,11 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 **Problem.** All alerts were sent by the host itself (unit failures, the 5-minute health check, smartd). If the host was powered off, crashed, hung, or lost its internet connection, nothing was posted, and the silence looked the same as everything being fine.
 
-**Changed.** Added `heartbeat.service` and `heartbeat.timer` ([units](system/)), with the ping URL in `/etc/heartbeat.env` (root, mode 600; [example](system/heartbeat.env.example)). Every 2 minutes, starting 1 minute after boot, the service pings a Healthchecks.io check (`curl -fsS -m 10 --retry 5`). The check has a 5-minute period and a 10-minute grace time, and Healthchecks.io posts to Discord when pings stop and again when they resume. The heartbeat runs separately from the health check, so a failing health check is not reported as the host being down.
+**Changed.** Added `heartbeat.service` and `heartbeat.timer` ([units](system/)), with the ping URL in `/etc/heartbeat.env` (root, mode 600; [example](system/heartbeat.env.example)). Every 2 minutes, starting 1 minute after boot, the service pings a Healthchecks.io check (`curl -fsS -m 10 --retry 5`). The check has a 5-minute period and a 5-minute grace time, and Healthchecks.io posts to Discord when pings stop and again when they resume. The heartbeat runs separately from the health check, so a failing health check is not reported as the host being down.
 
-**Verified.** The first manual run and the first timer runs exited 0, and the check shows as up on Healthchecks.io.
+**Verified.** Stopped `heartbeat.timer` after the 19:25 ping. Healthchecks.io marked the check down at 19:35, which is the period plus the grace time, and the alert arrived in Discord. A manual "Ping now" from the dashboard at 19:36 brought the check back up, and the recovery message also arrived in Discord. A scheduled transient timer restarted `heartbeat.timer` at 19:44, and the host's pings succeeded again from 19:44.
 
-**Still open.** The down alert has not been tested yet. To test it, stop `heartbeat.timer` for about 12 minutes and check that the Discord alert arrives.
+**Still open.** Nothing.
 
 ### Router: made remote access work through the router's Tailscale
 
