@@ -30,7 +30,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 - A test note created in `vault/` was uploaded about a minute later (`_bulk_docs` 201), and its deletion also reached CouchDB.
 - Right after the fetch the daemon spent a few minutes writing checkpoints, then settled to about one a minute, the same as 1.0.43.
 
-**Still open.** The `1.0.43-cli-patched` image is kept for rollback, together with the backups.
+**Follow-up.** Deleted the `1.0.43-cli-patched` image. A rollback means pulling `1.0.43-cli` again and restoring the backups.
 
 ## 2026-11-25
 
