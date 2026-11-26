@@ -6,6 +6,12 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Removed the stale Corvid dev Postgres container
+
+**Changed.** Removed the `corvid-postgres-1` container, which had been stopped since 2026-11-03 and whose project folder no longer exists. Also removed its `postgres:18.6-alpine` image, which had 2 criticals (Brotli, Go stdlib). The `corvid_pgdata` volume is kept.
+
+**Verified.** Neither the container nor the image is listed any more.
+
 ### Rescanned every image for criticals, patched Immich's Postgres image and removed superseded images
 
 **Problem.** Arcane's 17:00 scan results were stale: the old n8n 2.36.7, Immich v3.1.0 and valkey images were still on disk after today's updates and still counted. A fresh Trivy scan (critical only) of every running image found the most criticals in `immich_postgres` (23). Immich v3.4.2 still pins the 13-month-old `ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0` digest, and no rebuilt tag exists. The `-pgvector0.8.1` variant has the same Debian base and the same 23 findings.
