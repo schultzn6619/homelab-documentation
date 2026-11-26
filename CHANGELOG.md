@@ -6,6 +6,12 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-26
 
+### Excluded livesync-cli from Arcane's auto-update
+
+**Changed.** Added `livesync-cli` to `autoUpdateExcludedContainers`, next to the seven Nextcloud AIO containers. Every livesync-cli change, including a same-tag rebuild, now goes through the manual procedure: stop the daemon, back up `cli-db/` and `vault/`, then update. That leaves n8n and Arcane itself as the only containers auto-update can touch.
+
+**Verified.** Arcane's settings list `livesync-cli` among the excluded containers.
+
 ### Turned on Arcane's auto-update
 
 **Changed.**
