@@ -6,6 +6,25 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Fixed the weekly image update check for patched images
+
+**Problem.** `image-update-check` (Mondays 09:00) treated `-patched` as part of the version. No registry has tags ending in `-patched`, so after today's switch it silently stopped reporting new releases for every patched service. `livesync-cli`'s `1.0.43-cli-patched` didn't even match its version pattern. Arcane's own image-update notification can't fill the gap, because it treats local tags as uncheckable. A dry run also hit HTTP 429 from ghcr.io on the Immich tag lists.
+
+**Changed.** In [`scripts/image-update-check.py`](scripts/image-update-check.py):
+
+- Strips a `PATCH_SUFFIX` (default `-patched`) before comparing, so patched images are checked against their upstream release. Those lines in the report say to re-patch in Arcane after updating.
+- Retries tag listings on HTTP 429, honouring `Retry-After` (up to 4 attempts, at most 120 s wait).
+
+The installed script was backed up first.
+
+**Verified.**
+
+- The check now covers all 12 version-pinned containers. 11 of them run patched images.
+- A dry run reports `livesync-cli` 1.0.43 → 1.0.52 (held back on purpose, see its compose comment) and `n8n` 2.49.6 → 3.4.0 (a major version). Immich's tag lists loaded on retry.
+- `it-tools` is still skipped, as before: its tag `2024.10.22-7ca5933` is not a plain version.
+
+**Still open.** Immich's Postgres and valkey are pinned by digest, which this check doesn't follow. Their updates arrive with Immich releases, so check upstream's compose file when updating Immich.
+
 ### Turned on Arcane's image update notifications
 
 **Changed.** Turned on the `image_update` event on Arcane's Discord provider. Only `container_update` is still off. The webhook token was re-read from `/etc/discord-notify.env`. The v3.1.1 source (`internal/imageupdate/service.go`) marks each update as notified after delivery, so the hourly poll announces a given update only once.

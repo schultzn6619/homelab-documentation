@@ -8,6 +8,11 @@ build tags and pr-123 tags are ignored. Posts a summary to a Discord webhook
 (DISCORD_WEBHOOK_URL). Releases listed in IGNORE_TAGS ("container:tag ...")
 are left out. Nothing is pulled or changed.
 
+Images patched by Arcane (Copacetic) run on a local "<tag>-patched" tag that
+no registry has. The suffix (PATCH_SUFFIX, default "-patched") is stripped
+before comparing, so those images are checked against their original release,
+and the report says they need re-patching after the update.
+
 Usage: image-update-check.py [--dry-run] [--test]
   --dry-run  print the report instead of posting it
   --test     post a short test message and exit
@@ -17,11 +22,14 @@ import os
 import re
 import subprocess
 import sys
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
 UA = "homelab-image-update-check/1.0"
 VERSION_TAG = re.compile(r"^v?(\d+(?:\.\d+)+)(-[a-z][a-z0-9]*)?$")
+PATCH_SUFFIX = os.environ.get("PATCH_SUFFIX", "-patched")
 
 RELEASE_NOTES = {
     "jc21/nginx-proxy-manager": "https://github.com/NginxProxyManager/nginx-proxy-manager/releases",
@@ -39,14 +47,24 @@ RELEASE_NOTES = {
 }
 
 
-def http_json(url, headers=None):
+def http_json(url, headers=None, attempts=4):
     req = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {})})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.load(r)
+    for attempt in range(attempts):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return json.load(r)
+        except urllib.error.HTTPError as e:
+            # Registries rate-limit tag listings (ghcr.io answers 429); back off and retry.
+            if e.code != 429 or attempt == attempts - 1:
+                raise
+            wait = e.headers.get("Retry-After", "")
+            time.sleep(min(int(wait) if wait.isdigit() else 30 * (attempt + 1), 120))
 
 
 def running_pinned():
-    """(container, repository, tag) for running containers on a version tag."""
+    """(container, repository, tag, patched) for running containers on a version tag.
+
+    tag is the upstream tag: a PATCH_SUFFIX is removed and patched is set."""
     names = subprocess.run(["docker", "ps", "--format", "{{.Names}}"], check=True,
                            capture_output=True, text=True).stdout.split()
     out = []
@@ -56,9 +74,12 @@ def running_pinned():
         if "@" in image:
             continue
         repo, sep, tag = image.rpartition(":")
+        patched = bool(PATCH_SUFFIX) and tag.endswith(PATCH_SUFFIX)
+        if patched:
+            tag = tag[:-len(PATCH_SUFFIX)]
         if not sep or "/" in tag or not VERSION_TAG.match(tag):
             continue
-        out.append((name, repo, tag))
+        out.append((name, repo, tag, patched))
     return out
 
 
@@ -119,7 +140,7 @@ def ignored():
 def build_report():
     lines, errors = [], []
     skip = ignored()
-    for name, repo, tag in running_pinned():
+    for name, repo, tag, patched in running_pinned():
         try:
             newer = [t for t in newer_tags(tag, list_tags(repo)) if f"{name}:{t}" not in skip]
         except Exception as e:  # report and carry on with the others
@@ -133,7 +154,8 @@ def build_report():
         between = f", {len(newer) - 1} other release(s) in between" if len(newer) > 1 else ""
         notes = RELEASE_NOTES.get(repo)
         link = f" - [release notes](<{notes}>)" if notes else ""
-        lines.append(f"- `{name}`: {tag} -> **{latest}**{flag}{between}{link}")
+        repatch = " (patched image: re-patch in Arcane after updating)" if patched else ""
+        lines.append(f"- `{name}`: {tag} -> **{latest}**{flag}{between}{repatch}{link}")
     return lines, errors
 
 
