@@ -6,6 +6,16 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Added an external heartbeat so a down host raises an alert
+
+**Problem.** All alerts were sent by the host itself (unit failures, the 5-minute health check, smartd). If the host was powered off, crashed, hung, or lost its internet connection, nothing was posted, and the silence looked the same as everything being fine.
+
+**Changed.** Added `heartbeat.service` and `heartbeat.timer` ([units](system/)), with the ping URL in `/etc/heartbeat.env` (root, mode 600; [example](system/heartbeat.env.example)). Every 2 minutes, starting 1 minute after boot, the service pings a Healthchecks.io check (`curl -fsS -m 10 --retry 5`). The check has a 5-minute period and a 10-minute grace time, and Healthchecks.io posts to Discord when pings stop and again when they resume. The heartbeat runs separately from the health check, so a failing health check is not reported as the host being down.
+
+**Verified.** The first manual run and the first timer runs exited 0, and the check shows as up on Healthchecks.io.
+
+**Still open.** The down alert has not been tested yet. To test it, stop `heartbeat.timer` for about 12 minutes and check that the Discord alert arrives.
+
 ### Router: made remote access work through the router's Tailscale
 
 **Problem.** Tailscale was turned on on the router at 18:29 from the GL interface, with "Remote access to LAN" and exit node. The router then also advertised the LAN subnet, and Tailscale made it the primary subnet router in place of the host. From then on remote clients failed in two ways:

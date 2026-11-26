@@ -1,0 +1,9 @@
+[Unit]
+Description=Send heartbeat to Healthchecks.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/heartbeat.env
+ExecStart=/usr/bin/curl -fsS -m 10 --retry 5 -o /dev/null ${HC_PING_URL}
