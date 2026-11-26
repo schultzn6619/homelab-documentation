@@ -6,6 +6,22 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Turned on Arcane's image update notifications
+
+**Changed.** Turned on the `image_update` event on Arcane's Discord provider. Only `container_update` is still off. The webhook token was re-read from `/etc/discord-notify.env`. The v3.1.1 source (`internal/imageupdate/service.go`) marks each update as notified after delivery, so the hourly poll announces a given update only once.
+
+**Limitation.** Arcane's update check (`image_updates`) marks every `-patched` tag as `local`, because those tags exist only on this host, and never checks them. Arcane also checks the other images only for a new digest of the same tag, not for newer version tags. In practice the notification covers:
+
+- rebuilt `latest` images for Nextcloud AIO, which AIO updates itself
+- digest rebuilds of n8n, Arcane and the pinned tags
+
+New releases of the patched services (Home Assistant, Immich, NPM, Vaultwarden and the others) won't trigger it.
+
+**Verified.**
+
+- Arcane's notification settings show `image_update`, `prune_report`, `auto_heal` and `vulnerability_found` enabled.
+- Arcane reported "Test notification sent successfully" for a test image-update notification.
+
 ### Turned on Arcane's prune report notifications
 
 **Changed.** Turned on the `prune_report` event on Arcane's Discord provider, alongside `vulnerability_found` and `auto_heal`. The webhook token was re-read from `/etc/discord-notify.env` again. The v3.1.1 source (`internal/notification/service.go`, `SendPruneReportNotification`) shows a report is posted only when the 04:00 prune reclaims space, removes something, or hits an error. Runs with nothing to prune send nothing.
