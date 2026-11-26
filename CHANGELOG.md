@@ -6,6 +6,41 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Patched the remaining images through Arcane's API and moved Immich Postgres to Arcane's patch
+
+**Problem.** Arcane's first patch run left Vaultwarden, SnapOtter, n8n and it-tools unpatched. It never attempted Immich's valkey, because that image is referenced only by digest. Immich Postgres was on the local Dockerfile build from earlier today. Arcane's vulnerability results were also stale.
+
+**Changed.**
+
+- Connected to Arcane's API with a scoped API key and ran the patches one at a time. The earlier "lease does not exist" failures came from patches running in parallel.
+- New patches:
+  - `vaultwarden/server:1.37.5-patched` ([compose](compose/vaultwarden/docker-compose.yml)). The data directory and a `/vaultwarden backup` copy were archived to `/mnt/storage/backups/` first.
+  - `snapotter/snapotter:2.3.0-patched` and `corentinth/it-tools:2024.10.22-7ca5933-patched` ([compose](compose/utilities/docker-compose.yml)).
+  - `valkey/valkey:9-patched`, given an explicit tag because the source image has no tag.
+  - `ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0-patched` ([compose](compose/immich/docker-compose.yml)), in report mode, so only packages with known CVEs were updated. PostgreSQL 14.19, vchord 0.4.3 and pgvector 0.8.1 are unchanged. A checked `pg_dumpall` is in `/mnt/storage/backups/`. This replaces the local `postgres-patched` Dockerfile build, which has been removed.
+- n8n can't be patched. The image is built on Docker Hardened Images, its apk repository (`dhi.io`) needs authentication, and it ships no `apk`. It has 0 criticals.
+- Had Arcane rescan every image in use, which refreshed its dashboard.
+
+**Effect (Trivy, critical / unique high CVEs):**
+
+| Image | Original | Patched |
+|---|---|---|
+| vaultwarden 1.37.5 | 4 / 174 | 0 / 56 |
+| it-tools | 3 / 37 | 0 / 0 |
+| snapotter 2.3.0 | 0 / 2 | 0 / 0 |
+| valkey 9 | 0 / 57 | 0 / 50 |
+| immich postgres | 23 / 120 | 7 / 93 (the local build was 7 / 104) |
+
+**Verified.**
+
+- All recreated containers are running, and the ones with healthchecks report healthy.
+- Vaultwarden's `/api/alive` responds and it logs no errors.
+- Immich: both extensions load, similarity queries use `clip_index`, all 5011 assets are present, and `/api/server/ping` returns 200. immich-server logged Redis errors only while valkey restarted, and valkey reports 83 connected clients.
+- `tools`, `it` and `vault` return 200 through NPM.
+- Arcane's rescan shows criticals only in Home Assistant (1), immich-machine-learning (2) and Immich Postgres (4, all Go stdlib in `gosu`). Every one is in an application library or an upstream binary that Copa can't patch.
+
+**Still open.** The unpatched original images are kept for rollback and as Copa bases, so Arcane still lists them. On every version bump, re-patch as described in the entry below.
+
 ### Switched eight containers to Arcane's patched images
 
 **Problem.** Arcane's image patching ran Copacetic on every image at about 22:23. It writes a `<tag>-patched` image with the OS packages updated. Nothing used these images yet.

@@ -1,6 +1,7 @@
 services:
   vaultwarden:
-    image: vaultwarden/server:1.37.5
+    image: vaultwarden/server:1.37.5-patched   # Arcane/Copa OS-package patch of vaultwarden/server:1.37.5
+    pull_policy: never
     container_name: vaultwarden
     restart: unless-stopped
     networks:
