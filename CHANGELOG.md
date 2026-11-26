@@ -20,7 +20,7 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
   - Home Assistant ([compose](compose/homeassistant/docker-compose.yml))
   - CouchDB and livesync-cli ([compose](compose/obsidian-livesync/docker-compose.yml))
 - `immich_postgres` keeps the Dockerfile build from the entry below, because Arcane made no patch for it. Removed `pull_policy: build` from that service, since it rebuilt the image and restarted the database on every `up`.
-- Nextcloud AIO was not switched. The mastercontainer recreates its containers from upstream tags, and those images already had 0 criticals.
+- Nextcloud AIO was not switched. The mastercontainer recreates its containers from upstream tags, and those images already had 0 criticals. Arcane's five unused AIO `-patched` images were deleted afterwards.
 - Did not use the failed patches: n8n (`apk update` failed), Vaultwarden and SnapOtter (image load error), and it-tools (Copa version conflict).
 
 **Effect (critical / high):**
