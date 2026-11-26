@@ -22,6 +22,12 @@ services:
     image: jc21/nginx-proxy-manager:2.17.1-patched   # Arcane/Copa OS-package patch of jc21/nginx-proxy-manager:2.17.1
     pull_policy: never
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -m 5 http://127.0.0.1:81/api/ | grep -q '\"status\":\"OK\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     environment:
       - TZ=America/New_York
     networks:

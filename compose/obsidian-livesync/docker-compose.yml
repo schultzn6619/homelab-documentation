@@ -4,6 +4,12 @@ services:
     pull_policy: never
     container_name: couchdb
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -m 5 -u \"$$COUCHDB_USER:$$COUCHDB_PASSWORD\" http://localhost:5984/_up >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     user: "1000:1000"
     env_file: .env
     environment:

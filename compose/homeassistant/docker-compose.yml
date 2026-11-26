@@ -7,6 +7,12 @@ services:
     pull_policy: never
     container_name: homeassistant
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -m 5 -o /dev/null http://localhost:8123/manifest.json"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     network_mode: host
     environment:
       - TZ=America/New_York

@@ -6,6 +6,32 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Added healthchecks to the containers that had none
+
+**Problem.** Seven containers had no healthcheck. Arcane's auto-heal and `homelab-health-check` couldn't tell whether they were working, only whether they were running.
+
+**Changed.** Added a Docker healthcheck to six of them (30 s interval, 10 s timeout, 3 retries). Each probe uses a tool already in its image:
+
+| Container | Probe | Start period |
+|---|---|---|
+| NPM | `GET :81/api/` returns `"status":"OK"` | 30 s |
+| Home Assistant | `GET :8123/manifest.json` (host network) | 120 s |
+| n8n | `GET :5678/healthz` | 60 s |
+| Navidrome | `GET :4533/ping` | 30 s |
+| CouchDB | `GET :5984/_up`, authenticated with the container's own `COUCHDB_USER`/`COUCHDB_PASSWORD` (`require_valid_user` is on, so it can't be probed anonymously) | 30 s |
+| it-tools | `GET :80/` | 15 s |
+
+Left without a healthcheck:
+
+- **livesync-cli** has no HTTP endpoint. Its state folder doesn't change while it is idle, so the only thing a probe could test is whether CouchDB is reachable, and CouchDB now has its own check. Its restart policy covers crashes.
+- **Arcane** is distroless (no shell), and auto-heal skips it anyway.
+
+**Verified.**
+
+- All six report `healthy` after recreation. Each probe was run by hand inside its container first, and the anonymous CouchDB probe failed as expected.
+- livesync-cli resumed its `_changes` feed against CouchDB straight after the restart.
+- Every NPM proxy host still answers, with the same codes as before.
+
 ### Turned on Arcane's auto-heal
 
 **Changed.** Set `autoHealEnabled` to `true`, keeping Arcane's defaults: a check every 5 minutes, at most 5 restarts per container in a 30-minute window, and no excluded containers. It restarts running containers whose healthcheck reports `unhealthy`, so it applies only to the 14 containers with healthchecks: the Immich stack, Nextcloud AIO, Vaultwarden, slskd and SnapOtter. Arcane never restarts its own container.
