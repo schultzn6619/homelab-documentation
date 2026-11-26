@@ -4,6 +4,34 @@ A dated record of changes made to the server. Each entry corresponds to one comm
 
 Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
+## 2026-11-26
+
+### Updated livesync-cli from 1.0.43 to 1.0.52
+
+**Problem.** `livesync-cli` had been pinned to 1.0.43 since 2026-11-03. 1.0.44 refused to start its daemon on state written by older versions ("[Legacy state] ... owner is unknown"). The only way past that is `fetch --force`, and in 1.0.44 that failed at random.
+
+**Checked first.**
+
+- The release notes for 1.0.47 list "Fixed repeated CouchDB Fetch failures in an existing Vault" (#1329).
+- The 1.0.44 truncation fix applies only to S3 remotes, and this setup uses CouchDB.
+- The NFC path-identity change in 1.0.45 leaves existing settings on Legacy.
+- Arcane found no OS packages to patch in 1.0.52-cli, and it has 0 fixable criticals. It runs the upstream image, so the `-patched` tag and `pull_policy: never` are gone.
+
+**Changed.**
+
+- Stopped the daemon. Archived `cli-db/` and `vault/` to `/mnt/storage/backups/livesync-pre-1.0.52-*`, with a SHA-256 list of every vault file.
+- Switched the image to `ghcr.io/vrtmrz/livesync-cli:1.0.52-cli` ([compose](compose/obsidian-livesync/docker-compose.yml)).
+- 1.0.52 refused to start with the expected legacy-state error. A one-off `fetch --force` rebuilt the local database from CouchDB, which holds the authoritative copy: 1330 files processed, 761 completed, 569 skipped, 0 failed.
+
+**Verified.**
+
+- After the fetch, all 764 vault files match their pre-upgrade checksums.
+- The daemon reached "LiveSync active" with 0 restarts.
+- A test note created in `vault/` was uploaded about a minute later (`_bulk_docs` 201), and its deletion also reached CouchDB.
+- Right after the fetch the daemon spent a few minutes writing checkpoints, then settled to about one a minute, the same as 1.0.43.
+
+**Still open.** The `1.0.43-cli-patched` image is kept for rollback, together with the backups.
+
 ## 2026-11-25
 
 ### Kept n8n on 2.49.6, and the update check now skips pre-releases

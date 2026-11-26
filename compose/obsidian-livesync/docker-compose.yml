@@ -24,11 +24,11 @@ services:
 
   # Headless LiveSync client: keeps a plain-Markdown copy of the vault in ./vault
   livesync-cli:
-    # Pinned: 1.0.44 (2026-11-01) refuses to start the daemon on state written by
-    # earlier versions ("[Legacy state] ... owner is unknown"), and its fetch --force
-    # fails at random. Update by hand after checking a release.
-    image: ghcr.io/vrtmrz/livesync-cli:1.0.43-cli-patched   # Arcane/Copa OS-package patch of ghcr.io/vrtmrz/livesync-cli:1.0.43-cli
-    pull_policy: never
+    # Pinned; update by hand after checking a release. 1.0.44 (2026-11-01) refused to
+    # start the daemon on state written by earlier versions ("[Legacy state] ... owner
+    # is unknown") and its fetch --force failed at random; 1.0.47 fixed the fetch
+    # failures (#1329). Back up cli-db/ and vault/ before every update.
+    image: ghcr.io/vrtmrz/livesync-cli:1.0.52-cli
     container_name: livesync-cli
     restart: unless-stopped
     user: "1000:1000"
