@@ -8,9 +8,9 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ### Removed the stale Corvid dev Postgres container
 
-**Changed.** Removed the `corvid-postgres-1` container, which had been stopped since 2026-11-03 and whose project folder no longer exists. Also removed its `postgres:18.6-alpine` image, which had 2 criticals (Brotli, Go stdlib). The `corvid_pgdata` volume is kept.
+**Changed.** Removed the `corvid-postgres-1` container, which had been stopped since 2026-11-03 and whose project folder no longer exists. Also removed its `postgres:18.6-alpine` image, which had 2 criticals (Brotli, Go stdlib). Also removed its `corvid_pgdata` volume, at the user's request.
 
-**Verified.** Neither the container nor the image is listed any more.
+**Verified.** The container, the image and the volume are no longer listed.
 
 ### Rescanned every image for criticals, patched Immich's Postgres image and removed superseded images
 
