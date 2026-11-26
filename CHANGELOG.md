@@ -6,6 +6,15 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Turned on Arcane's auto-heal notifications
+
+**Changed.** Turned on the `auto_heal` event on Arcane's Discord provider, so every container restart made by auto-heal now posts to Discord. The `vulnerability_found` event stays on, and the other events stay off. The webhook token was re-read from `/etc/discord-notify.env`, because Arcane's API returns it blank.
+
+**Verified.**
+
+- Arcane's notification settings show `auto_heal` and `vulnerability_found` enabled.
+- Arcane reported "Test notification sent successfully" for a test auto-heal notification.
+
 ### Sent Arcane's vulnerability notifications to Discord
 
 **Problem.** Arcane's threat intelligence (the CISA KEV catalog and FIRST EPSS scores) was already on, but Arcane had no notification provider, so nothing it found reached anyone.
