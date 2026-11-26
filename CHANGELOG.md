@@ -6,6 +6,14 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Turned on Arcane's auto-heal
+
+**Changed.** Set `autoHealEnabled` to `true`, keeping Arcane's defaults: a check every 5 minutes, at most 5 restarts per container in a 30-minute window, and no excluded containers. It restarts running containers whose healthcheck reports `unhealthy`, so it applies only to the 14 containers with healthchecks: the Immich stack, Nextcloud AIO, Vaultwarden, slskd and SnapOtter. Arcane never restarts its own container.
+
+`homelab-health-check` only sends alerts and never restarts anything, so the two don't overlap. A container that auto-heal brings back is cleared by the next health check. One that stays unhealthy past the restart limit still raises a Discord alert.
+
+**Verified.** The first run at 23:20 completed and logged that it skips Arcane's own container. Nothing was unhealthy, so nothing was restarted.
+
 ### Turned on Arcane's scheduled prune
 
 **Changed.** Turned on `scheduledPruneEnabled` and moved `scheduledPruneInterval` from midnight to `0 4 * * *`, so the prune doesn't overlap the midnight vulnerability scan. The prune modes stay at Arcane's defaults:
