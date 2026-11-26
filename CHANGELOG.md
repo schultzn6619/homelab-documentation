@@ -6,6 +6,12 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Turned on Arcane's scheduled vulnerability scan
+
+**Changed.** Set `vulnerabilityScanEnabled` to `true` through Arcane's API. It was `false`, which is why the scan results went stale today. The schedule is unchanged at `0 0 * * *`, so Trivy scans every image nightly at midnight. Auto-patching (`imageAutoPatchEnabled`) stays off: patched images still have to be scanned and switched in each compose file by hand.
+
+**Verified.** Arcane's job list shows the "Vulnerability Scan" job enabled, with its next run at 00:00.
+
 ### Patched the remaining images through Arcane's API and moved Immich Postgres to Arcane's patch
 
 **Problem.** Arcane's first patch run left Vaultwarden, SnapOtter, n8n and it-tools unpatched. It never attempted Immich's valkey, because that image is referenced only by digest. Immich Postgres was on the local Dockerfile build from earlier today. Arcane's vulnerability results were also stale.
