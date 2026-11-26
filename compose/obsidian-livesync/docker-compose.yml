@@ -31,6 +31,15 @@ services:
     image: ghcr.io/vrtmrz/livesync-cli:1.0.52-cli
     container_name: livesync-cli
     restart: unless-stopped
+    # Healthy if the daemon has talked to CouchDB (port 5984) in about the last minute:
+    # an ESTABLISHED or TIME_WAIT (lasts 60s) socket. It syncs roughly once a minute,
+    # so three misses in a row (~3 min of silence) means it has stalled.
+    healthcheck:
+      test: ["CMD", "node", "-e", "const fs=require(\"fs\");const n=[\"/proc/net/tcp\",\"/proc/net/tcp6\"].flatMap(p=>{try{return fs.readFileSync(p,\"utf8\").trim().split(\"\\n\").slice(1)}catch(e){return []}}).map(r=>r.trim().split(/\\s+/)).filter(f=>parseInt(f[2].split(\":\").pop(),16)===5984&&[\"01\",\"06\"].includes(f[3])).length;process.exit(n>0?0:1)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
     user: "1000:1000"
     command: ["--vault", "/vault", "daemon"]
     environment:

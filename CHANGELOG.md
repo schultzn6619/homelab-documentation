@@ -6,6 +6,18 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-26
 
+### Added a healthcheck to livesync-cli
+
+**Problem.** `livesync-cli` was the one service left without a healthcheck. It has no HTTP endpoint, and its files don't change while it is idle, so a hung daemon would have gone unnoticed by auto-heal and `homelab-health-check`.
+
+**Changed.** Added a healthcheck in [compose](compose/obsidian-livesync/docker-compose.yml) that passes if the container has an `ESTABLISHED` or `TIME_WAIT` TCP socket to port 5984, read from `/proc/net/tcp` and `tcp6` with the image's own `node`. The daemon opens a short connection to CouchDB about once a minute, and Linux keeps `TIME_WAIT` for 60 s, so a socket is present while the daemon is syncing. Settings: interval 60 s, timeout 10 s, 3 retries, 120 s start period. It goes unhealthy after about 3 minutes with no CouchDB traffic. A CouchDB outage also marks it unhealthy, and CouchDB has its own check.
+
+**Verified.**
+
+- Run by hand, the probe passed inside the running daemon (exit 0) and failed in a fresh container from the same image with no traffic (exit 1).
+- After recreation the daemon reached "LiveSync active" with no legacy-state error and turned `healthy`.
+- Five consecutive checks, one a minute, all passed.
+
 ### Updated livesync-cli from 1.0.43 to 1.0.52
 
 **Problem.** `livesync-cli` had been pinned to 1.0.43 since 2026-11-03. 1.0.44 refused to start its daemon on state written by older versions ("[Legacy state] ... owner is unknown"). The only way past that is `fetch --force`, and in 1.0.44 that failed at random.
