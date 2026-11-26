@@ -6,6 +6,37 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Rescanned every image for criticals, patched Immich's Postgres image and removed superseded images
+
+**Problem.** Arcane's 17:00 scan results were stale: the old n8n 2.36.7, Immich v3.1.0 and valkey images were still on disk after today's updates and still counted. A fresh Trivy scan (critical only) of every running image found the most criticals in `immich_postgres` (23). Immich v3.4.2 still pins the 13-month-old `ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0` digest, and no rebuilt tag exists. The `-pgvector0.8.1` variant has the same Debian base and the same 23 findings.
+
+**Changed.**
+
+- Removed the unused images `immich-server:v3.1.0`, `immich-machine-learning:v3.1.0`, `n8n:2.36.7` and the old valkey digest (2.8 GB).
+- Added [`compose/immich/postgres-patched/Dockerfile`](compose/immich/postgres-patched/Dockerfile). It builds `FROM` the exact upstream digest and runs `apt-get install --only-upgrade` for Perl, OpenSSL and GnuTLS only. PostgreSQL 14.19, vchord 0.4.3 and pgvector 0.8.1 are byte-for-byte unchanged. The compose file builds it as `local/immich-postgres:…-patched`.
+- A `pg_dumpall` is in `/mnt/storage/backups/`, taken right after the switch. The pre-switch dump failed on a permissions error, and the container was recreated anyway. The data directory is a bind mount and was not touched.
+
+**Verified.**
+
+- Trivy finds 7 criticals in the patched Postgres image (was 23).
+- `immich_postgres` is healthy, the `vchord` and `vector` extensions load, and an ordered similarity query uses `clip_index`.
+- All four Immich containers are healthy, and `/api/server/ping` returns 200 through NPM.
+
+**Remaining criticals, none with a fix available on this host:**
+
+| Image | Findings | Why it stays |
+|---|---|---|
+| immich-postgres (patched) | 4 Go stdlib in `gosu`, plus zlib (minizip), SQLite, libxml2 | `gosu` is upstream's binary. The other three have no Debian fix yet. |
+| immich-server v3.4.2 | OpenEXR ×2, libxml2 | Already the latest release, so this waits on upstream. |
+| immich-machine-learning v3.4.2 | `anyio`, `certifi` | Same as immich-server. |
+| home-assistant 2026.11.3 | OpenSSH (client only), `Authlib`, `python-jose` | Same as immich-server. |
+| vaultwarden 1.37.5 | MariaDB ×2 | Server-side bugs. The image only has the client library, and Vaultwarden uses SQLite. |
+| it-tools | libxml2, OpenSSL | Upstream has not released since 2024. |
+| nginx-proxy-manager 2.17.1 | `openssh-client` | Client only, with no fix. Already the latest release. |
+| livesync-cli 1.0.43 | zlib (minizip) | No fix. |
+
+**Still open.** Revert the Postgres build once Immich pins a rebuilt image. Arcane needs a manual rescan to drop its stale results, because its scheduled scan is disabled.
+
 ### Added an external heartbeat so a down host raises an alert
 
 **Problem.** All alerts were sent by the host itself (unit failures, the 5-minute health check, smartd). If the host was powered off, crashed, hung, or lost its internet connection, nothing was posted, and the silence looked the same as everything being fine.
