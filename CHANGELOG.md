@@ -6,6 +6,28 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Kept n8n on 2.49.6, and the update check now skips pre-releases
+
+**Problem.** The weekly update check reported n8n 2.49.6 → 3.4.0. Every n8n 3.x release is marked pre-release on GitHub, n8n's v3.0 breaking-changes page calls 3.0 "an early access release", and n8n's `latest` and `stable` Docker tags still point to 2.49.6. Docker Hub tags don't mark pre-releases, so the check counted 3.4.0 as an update.
+
+**Reviewed before deciding.**
+
+- The two Rocketbook workflows use no node removed in 3.0 (Cron, Interval, Read/Write Binary File, Function, Item Lists and the others).
+- Their Code nodes use neither `$evaluateExpression` nor environment access.
+- All node IDs are under the new 64-character limit, and there is no `binaryData` folder for the 3.0 storage rename.
+- The 3.0 database migration is one-way, and no downgrade is documented.
+
+**Decision.** Stay on 2.49.6, the current stable release, until 3.x reaches n8n's stable channel.
+
+**Changed.** In [`scripts/image-update-check.py`](scripts/image-update-check.py):
+
+- New `STABLE_RELEASES` setting: for repositories listed there, a newer tag is reported only if GitHub lists it as a published, non-pre-release release. It currently lists `n8nio/n8n` → `n8n-io/n8n`, with tags `n8n@X`.
+- Timeouts and dropped connections are now retried, the same as 429s. A dry run had hit one Docker Hub timeout on slskd.
+
+The installed script was backed up first.
+
+**Verified.** A dry run finishes with no errors. It no longer reports n8n, and it still reports `livesync-cli` 1.0.43 → 1.0.52 (held back on purpose).
+
 ### Fixed the weekly image update check for patched images
 
 **Problem.** `image-update-check` (Mondays 09:00) treated `-patched` as part of the version. No registry has tags ending in `-patched`, so after today's switch it silently stopped reporting new releases for every patched service. `livesync-cli`'s `1.0.43-cli-patched` didn't even match its version pattern. Arcane's own image-update notification can't fill the gap, because it treats local tags as uncheckable. A dry run also hit HTTP 429 from ghcr.io on the Immich tag lists.

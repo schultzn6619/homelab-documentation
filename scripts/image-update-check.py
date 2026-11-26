@@ -13,6 +13,10 @@ no registry has. The suffix (PATCH_SUFFIX, default "-patched") is stripped
 before comparing, so those images are checked against their original release,
 and the report says they need re-patching after the update.
 
+Registries don't mark pre-releases. For repositories listed in STABLE_RELEASES,
+a newer tag is reported only if GitHub lists it as a published, non-pre-release
+release (n8n tags its 3.x early-access builds like normal versions).
+
 Usage: image-update-check.py [--dry-run] [--test]
   --dry-run  print the report instead of posting it
   --test     post a short test message and exit
@@ -47,6 +51,13 @@ RELEASE_NOTES = {
 }
 
 
+# repository -> (GitHub repo, prefix of its release tags). Only add projects whose
+# GitHub release tags match the image tags.
+STABLE_RELEASES = {
+    "n8nio/n8n": ("n8n-io/n8n", "n8n@"),
+}
+
+
 def http_json(url, headers=None, attempts=4):
     req = urllib.request.Request(url, headers={"User-Agent": UA, **(headers or {})})
     for attempt in range(attempts):
@@ -59,6 +70,11 @@ def http_json(url, headers=None, attempts=4):
                 raise
             wait = e.headers.get("Retry-After", "")
             time.sleep(min(int(wait) if wait.isdigit() else 30 * (attempt + 1), 120))
+        except (urllib.error.URLError, TimeoutError):
+            # Timeouts and dropped connections are usually transient too.
+            if attempt == attempts - 1:
+                raise
+            time.sleep(10 * (attempt + 1))
 
 
 def running_pinned():
@@ -132,6 +148,24 @@ def newer_tags(current, tags):
     return [t for _, t in sorted(found)]
 
 
+def stable_versions(repo):
+    """Tags GitHub lists as stable releases, or None if the repo isn't configured."""
+    if repo not in STABLE_RELEASES:
+        return None
+    gh, prefix = STABLE_RELEASES[repo]
+    found = set()
+    for page in range(1, 4):  # the newest 300 releases
+        releases = http_json(f"https://api.github.com/repos/{gh}/releases?per_page=100&page={page}",
+                             {"Accept": "application/vnd.github+json"})
+        for r in releases:
+            tag = r.get("tag_name", "")
+            if not r.get("prerelease") and not r.get("draft") and tag.startswith(prefix):
+                found.add(tag[len(prefix):].lstrip("v"))
+        if len(releases) < 100:
+            break
+    return found
+
+
 def ignored():
     """IGNORE_TAGS="container:tag ..." hides releases known to be bad."""
     return set(os.environ.get("IGNORE_TAGS", "").split())
@@ -143,6 +177,9 @@ def build_report():
     for name, repo, tag, patched in running_pinned():
         try:
             newer = [t for t in newer_tags(tag, list_tags(repo)) if f"{name}:{t}" not in skip]
+            stable = stable_versions(repo) if newer else None
+            if stable is not None:
+                newer = [t for t in newer if t.lstrip("v") in stable]
         except Exception as e:  # report and carry on with the others
             errors.append(f"- `{name}` ({repo}): could not list tags: {e}")
             continue
