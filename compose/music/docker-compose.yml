@@ -2,7 +2,8 @@
 # Data lives under /mnt/storage/music; secrets in .env (not committed).
 services:
   navidrome:
-    image: deluan/navidrome:0.64.2
+    image: deluan/navidrome:0.64.2-patched   # Arcane/Copa OS-package patch of deluan/navidrome:0.64.2
+    pull_policy: never
     container_name: navidrome
     restart: unless-stopped
     user: "1000:1000"
@@ -22,7 +23,8 @@ services:
       - "com.centurylinklabs.watchtower.enable=false"
 
   slskd:
-    image: slskd/slskd:0.26.2
+    image: slskd/slskd:0.26.2-patched   # Arcane/Copa OS-package patch of slskd/slskd:0.26.2
+    pull_policy: never
     container_name: slskd
     restart: unless-stopped
     user: "1000:1000"

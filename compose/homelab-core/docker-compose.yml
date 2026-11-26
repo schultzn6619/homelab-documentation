@@ -19,7 +19,8 @@ services:
   # --- Reverse proxy: routes to every future service by container name ---
   npm:
     container_name: npm
-    image: jc21/nginx-proxy-manager:2.17.1
+    image: jc21/nginx-proxy-manager:2.17.1-patched   # Arcane/Copa OS-package patch of jc21/nginx-proxy-manager:2.17.1
+    pull_policy: never
     restart: unless-stopped
     environment:
       - TZ=America/New_York

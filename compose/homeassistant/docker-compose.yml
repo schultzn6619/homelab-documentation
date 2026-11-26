@@ -3,7 +3,8 @@
 # UFW only lets the Docker networks (NPM) reach port 8123.
 services:
   homeassistant:
-    image: homeassistant/home-assistant:2026.11.3
+    image: homeassistant/home-assistant:2026.11.3-patched   # Arcane/Copa OS-package patch of homeassistant/home-assistant:2026.11.3
+    pull_policy: never
     container_name: homeassistant
     restart: unless-stopped
     network_mode: host

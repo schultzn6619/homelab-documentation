@@ -6,6 +6,46 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Switched eight containers to Arcane's patched images
+
+**Problem.** Arcane's image patching ran Copacetic on every image at about 22:23. It writes a `<tag>-patched` image with the OS packages updated. Nothing used these images yet.
+
+**Changed.**
+
+- Scanned each patched image against its original with Trivy (critical and high) before using it.
+- Switched these services to the `-patched` tag, with `pull_policy: never` because the tags exist only on this host:
+  - Navidrome and slskd ([compose](compose/music/docker-compose.yml))
+  - NPM ([compose](compose/homelab-core/docker-compose.yml))
+  - immich-server and immich-machine-learning ([compose](compose/immich/docker-compose.yml))
+  - Home Assistant ([compose](compose/homeassistant/docker-compose.yml))
+  - CouchDB and livesync-cli ([compose](compose/obsidian-livesync/docker-compose.yml))
+- `immich_postgres` keeps the Dockerfile build from the entry below, because Arcane made no patch for it. Removed `pull_policy: build` from that service, since it rebuilt the image and restarted the database on every `up`.
+- Nextcloud AIO was not switched. The mastercontainer recreates its containers from upstream tags, and those images already had 0 criticals.
+- Did not use the failed patches: n8n (`apk update` failed), Vaultwarden and SnapOtter (image load error), and it-tools (Copa version conflict).
+
+**Effect (critical / high):**
+
+| Image | Original | Patched |
+|---|---|---|
+| home-assistant 2026.11.3 | 5 / 62 | 2 / 35 |
+| immich-server v3.4.2 | 3 / 217 | 1 / 109 |
+| immich-machine-learning v3.4.2 | 2 / 71 | 2 / 67 |
+| nginx-proxy-manager 2.17.1 | 1 / 222 | 1 / 146 |
+| livesync-cli 1.0.43 | 1 / 50 | 1 / 48 |
+| couchdb 3.5.3 | 0 / 150 | 0 / 75 |
+| navidrome 0.64.2 | 0 / 30 | 0 / 6 |
+| slskd 0.26.2 | 0 / 2 | 0 / 0 |
+
+The criticals that remain are in application libraries (`Authlib`, `python-jose`, `anyio`, `certifi`) or have no fixed package (libxml2, minizip, NPM's `openssh-client`). Copa only updates OS packages.
+
+**Verified.**
+
+- All recreated containers are running, and the ones with healthchecks report healthy.
+- The logs show no new errors. Home Assistant's Bluetooth-permission error was already in the previous log.
+- `nginx -t` passes, and every NPM proxy host answers: 200, a 302 to login, or CouchDB's 401.
+
+**Still open.** Patched tags don't track upstream. On each version bump, update the base tag, re-run Arcane's patch, and then switch to the new `-patched` tag. If it can't be patched, drop the suffix and `pull_policy` instead.
+
 ### Removed the stale Corvid dev Postgres container
 
 **Changed.** Removed the `corvid-postgres-1` container, which had been stopped since 2026-11-03 and whose project folder no longer exists. Also removed its `postgres:18.6-alpine` image, which had 2 criticals (Brotli, Go stdlib). Also removed its `corvid_pgdata` volume, at the user's request.
