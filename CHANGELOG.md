@@ -6,6 +6,25 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-26
 
+### Turned on Arcane's auto-update
+
+**Changed.**
+
+- Turned on `autoUpdate` and moved `autoUpdateInterval` from midnight to `0 5 * * *`. It runs after the midnight vulnerability scan and the 04:00 prune.
+- Added the seven `nextcloud-aio-*` containers to `autoUpdateExcludedContainers`. The AIO mastercontainer creates and updates those itself, and Arcane recreating them would leave AIO managing containers it didn't create.
+
+**What it can update.** From the v3.1.1 source (`internal/updater/service.go`):
+
+- It acts only on images whose hourly update check found a new build of the same tag, which is a digest update. It never moves to a different version.
+- It skips services with `pull_policy: never` or a `build:` section, which covers every Arcane-patched image. It also skips containers excluded by name or opted out by label.
+- That leaves same-tag rebuilds of `n8nio/n8n:2.49.6`, `livesync-cli:1.0.52-cli` and Arcane itself (`getarcaneapp/manager:v3.1.1`). Arcane updates itself through its CLI self-updater.
+- The update gate (0 fixable criticals) scans each new image first, and each update posts a container-update notification to Discord.
+
+**Verified.**
+
+- Arcane's settings and job list show auto-update enabled, with its next run at 05:00 and the AIO containers excluded.
+- A dry run (`POST /agents/0/updater/run` with `dryRun`) completed successfully and found nothing pending.
+
 ### Turned on Arcane's container update notifications
 
 **Changed.** Turned on the `container_update` event on Arcane's Discord provider, so all five events are now on: image updates, container updates, vulnerability summaries, prune reports and auto-heal. The webhook token was re-read from `/etc/discord-notify.env`. In the v3.1.1 source the event is sent by Arcane's updater (`internal/updater/service.go`), so it only fires when Arcane itself updates a container. That means an update started from its UI, since auto-update is off and the update gate applies. Updates done from the shell with `docker compose` don't trigger it.
