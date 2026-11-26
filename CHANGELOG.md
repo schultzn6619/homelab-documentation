@@ -6,6 +6,19 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Sent Arcane's vulnerability notifications to Discord
+
+**Problem.** Arcane's threat intelligence (the CISA KEV catalog and FIRST EPSS scores) was already on, but Arcane had no notification provider, so nothing it found reached anyone.
+
+**Changed.**
+
+- Added a Discord notification provider in Arcane that uses the same webhook as the host's other alerts. The webhook ID and token were read from `/etc/discord-notify.env` and sent straight to Arcane's API. Arcane stores them in its own database, not in this repository.
+- Only the `vulnerability_found` event is enabled. The image update, container update, prune report and auto-heal events are off.
+- Checked in Arcane's v3.1.1 source what the event sends (`internal/vulnerability/children/scan/service.go`, `NotifySummary`). It is one daily summary after the midnight scan, counting fixable vulnerabilities by severity with up to five example CVEs. It is not one message per CVE, and nothing is sent when there are no fixable findings.
+- Arcane has no notification specifically for KEV or EPSS. "Known exploited in a running image" appears only on its dashboard.
+
+**Verified.** Sent a test of the vulnerability notification through `POST /notifications/settings/discord?action=test`. Arcane reported "Test notification sent successfully", and the Discord request returned 200.
+
 ### Turned on Arcane's vulnerability update gate
 
 **Changed.** Turned on `vulnerabilityUpdateGateEnabled` with the default limits: at most 0 critical findings, and no limit on high, medium or low. Arcane now runs Trivy on the new image before any update made through Arcane (its update action or auto-update, which is off) and blocks the update if the image goes over the limit. `trivyIgnoreUnfixed` is on, so only criticals that already have a fix count. Updates done from the shell with `docker compose` don't go through the gate.
