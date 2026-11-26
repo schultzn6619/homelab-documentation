@@ -6,6 +6,20 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
 ## 2026-11-25
 
+### Turned on Arcane's scheduled prune
+
+**Changed.** Turned on `scheduledPruneEnabled` and moved `scheduledPruneInterval` from midnight to `0 4 * * *`, so the prune doesn't overlap the midnight vulnerability scan. The prune modes stay at Arcane's defaults:
+
+- stopped containers
+- dangling images only, so tagged images, including every `-patched` tag, are kept
+- unused networks
+- volumes: never
+- build cache: never
+
+**Verified.** A dry check found nothing to prune right now: no stopped containers, no dangling images and no unused networks. Arcane's job list shows "scheduled-prune" enabled, with its next run at 04:00.
+
+**Note.** Anything left stopped on purpose will be deleted at 04:00, though its volumes and bind-mounted data are kept. AIO recreates its helper containers, such as watchtower, when it needs them.
+
 ### Turned on Arcane's scheduled vulnerability scan
 
 **Changed.** Set `vulnerabilityScanEnabled` to `true` through Arcane's API. It was `false`, which is why the scan results went stale today. The schedule is unchanged at `0 0 * * *`, so Trivy scans every image nightly at midnight. Auto-patching (`imageAutoPatchEnabled`) stays off: patched images still have to be scanned and switched in each compose file by hand.
