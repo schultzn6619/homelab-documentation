@@ -324,7 +324,7 @@ The log showed how long it had gone unnoticed: every login for the previous eigh
 
 ## 20. Host froze during the NVMe self-test
 
-> **Partly fixed 2026-11-27.** The NVMe is now monitored but no longer self-tested, and the stale Windows Boot Manager entry is deleted. Still open: turning off CSM and setting the BIOS clock to UTC, which need hands-on access, and checking for newer Sabrent firmware. See the [changelog](../CHANGELOG.md#stopped-self-testing-the-nvme-after-repeated-host-freezes-finding-20).
+> **Partly fixed 2026-11-27.** The NVMe is now monitored but no longer self-tested, and the stale Windows Boot Manager entry is deleted. Still open: turning off CSM and setting the BIOS clock to UTC, which need hands-on access. A firmware update was looked into and deferred (step 4). See the [changelog](../CHANGELOG.md#stopped-self-testing-the-nvme-after-repeated-host-freezes-finding-20).
 
 **Observed.** From 2026-11-04 the host froze hard four times, each time 1 to 2 minutes after `smartd` started its scheduled short self-test on all three disks. Nothing was logged at shutdown:
 
@@ -346,5 +346,5 @@ Each freeze left the host off until someone power-cycled it (about 11 hours, 41 
 1. Monitor the NVMe without scheduling self-tests: an explicit `/dev/nvme0` line without `-s` above `DEVICESCAN` ([`smartd.conf`](../system/smartd.conf)). DEVICESCAN then skips it as a duplicate. *Done 2026-11-27.*
 2. Delete the stale firmware boot entry: `efibootmgr -b 0000 -B`. *Done 2026-11-27.*
 3. In the BIOS, turn off CSM so the legacy entries stop coming back, and set the clock to UTC. *Open (needs hands-on access).*
-4. Check Sabrent for a newer firmware release for this drive. *Open.*
+4. Check Sabrent for a newer firmware release for this drive. *Checked 2026-11-27; deferred.* The drive is the first Rocket revision (Phison E12, PCI `1987:5012`) on Phison's generic firmware. Forum reports describe a 12.2 and a 12.3. No release notes for either were found, and nothing says they fix hangs or self-test problems. LVFS (`fwupdmgr get-updates`) has no release for it. The update is a Windows tool or Sabrent's Control Panel, and it only works with the drive in the M.2 slot. This host has no Windows, so it would mean booting a Windows USB stick. Forum reports also disagree on whether the update wipes the drive, so imaging `/` first is required. Flashing from Linux with `nvme fw-download` would need the image pulled out of the Windows tool, which is too risky on the only boot drive. Revisit only if the host freezes again with self-tests off; at that point consider replacing the drive instead.
 

@@ -23,7 +23,9 @@ Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 - The backup re-run finished with "all steps ok".
 - The first test is tonight's 02:00 run. The host should stay up through it.
 
-**Still open.** Turning off CSM in the BIOS (so the BBS entries stop coming back) and setting the BIOS clock to UTC (it was 5 hours fast on this boot) both need hands-on access. Also check for newer Sabrent firmware.
+**Still open.** Turning off CSM in the BIOS (so the BBS entries stop coming back) and setting the BIOS clock to UTC (it was 5 hours fast on this boot) both need hands-on access.
+
+**Firmware checked.** A firmware update for the NVMe was looked into and deferred: newer versions exist, but none claims to fix freezes, they install only from Windows, and they may wipe the drive. Details are in finding 20, step 4.
 
 ## 2026-11-26
 
