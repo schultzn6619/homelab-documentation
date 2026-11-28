@@ -4,6 +4,27 @@ A dated record of changes made to the server. Each entry corresponds to one comm
 
 Newest first. Finding numbers refer to [`docs/findings.md`](docs/findings.md).
 
+## 2026-11-27
+
+### Stopped self-testing the NVMe after repeated host freezes (finding 20)
+
+**Problem.** The host had frozen hard four times since 2026-11-04, each time 1 to 2 minutes after smartd's scheduled short self-test started (02:27 to 02:30, plus once at 20:23 for a missed test). The journal stops with no shutdown sequence each time. The SATA disks finished every short test. The Sabrent NVMe's self-test log has no short test at all. After the power cycles the firmware kept changing the boot order, and it still had a `Windows Boot Manager` entry although no disk has a Windows install.
+
+**Changed.**
+
+- [`smartd.conf`](system/smartd.conf): added an explicit `/dev/nvme0 -d nvme -a ...` line with no `-s` schedule above `DEVICESCAN`. The NVMe is still monitored and alerts still go to Discord, but it is no longer self-tested. The original is kept at `/etc/smartd.conf.bak-2026-11-27`.
+- Deleted the stale `Boot0000 Windows Boot Manager` EFI entry. The boot order is now `Ubuntu, KINGSTON (BBS), ST4000DM000 (BBS)`.
+- Re-ran `homelab-backup.service`. Its run at boot had failed because the immich and nextcloud Postgres instances were still starting.
+
+**Verified.**
+
+- `smartd -q showtests` schedules tests only for `/dev/sda` and `/dev/sdb`. After restart smartd logs `/dev/nvme0, duplicate, ignored` for DEVICESCAN and "Monitoring 2 ATA/SATA, 0 SCSI/SAS and 1 NVMe devices".
+- `efibootmgr` no longer lists Boot0000.
+- The backup re-run finished with "all steps ok".
+- The first test is tonight's 02:00 run. The host should stay up through it.
+
+**Still open.** Turning off CSM in the BIOS (so the BBS entries stop coming back) and setting the BIOS clock to UTC (it was 5 hours fast on this boot) both need hands-on access. Also check for newer Sabrent firmware.
+
 ## 2026-11-26
 
 ### Excluded livesync-cli from Arcane's auto-update

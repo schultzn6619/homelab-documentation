@@ -92,7 +92,7 @@ bcache reports zero I/O errors on both the cache and backing device.
 
 The HDD's surface is healthy but its head-parking mechanism is heavily worn; see [finding 18](findings.md#18-data-disk-is-past-its-rated-load-cycles). Since 2026-11-03, [`datadisk-apm.service`](../system/datadisk-apm.service) sets its APM level to 254 at boot, which stops the firmware parking the heads when idle.
 
-- `smartd` scans all three disks (`DEVICESCAN`) and runs a short self-test every day at 02:00 and a long one every Saturday at 03:00 ([`smartd.conf`](../system/smartd.conf)). Warnings go to Discord through `smartd-runner`; see [alerts](services.md#alerts).
+- `smartd` monitors all three disks and runs a short self-test on the two SATA disks every day at 02:00 and a long one every Saturday at 03:00 ([`smartd.conf`](../system/smartd.conf)). The NVMe is monitored but not self-tested, because its self-tests froze the host ([finding 20](findings.md#20-host-froze-during-the-nvme-self-test)). Warnings go to Discord through `smartd-runner`; see [alerts](services.md#alerts).
 - `fstrim.timer` trims weekly; `e2scrub_all.timer` checks ext4 metadata weekly.
 - The kernel log for the current boot shows no I/O, ext4, or bcache errors.
 

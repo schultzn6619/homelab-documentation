@@ -23,6 +23,7 @@ Results of a full review of the live host on **2026-10-13**, roughly ordered by 
 | 17 | [Firewall rules have drifted](#17-firewall-rules-have-drifted) | Medium | Partly fixed 2026-11-03 |
 | 18 | [Data disk is past its rated load cycles](#18-data-disk-is-past-its-rated-load-cycles) | Medium | Partly fixed 2026-11-03 |
 | 19 | [SSH password login was enabled by a drop-in](#19-ssh-password-login-was-enabled-by-a-drop-in) | High | **Fixed 2026-10-13** |
+| 20 | [Host froze during the NVMe self-test](#20-host-froze-during-the-nvme-self-test) | High | Partly fixed 2026-11-27 |
 
 ---
 
@@ -320,4 +321,30 @@ The log showed how long it had gone unnoticed: every login for the previous eigh
 **Fix.** Installed a key for the client actually in use, confirmed a key login in the server log, then set the drop-in to `PasswordAuthentication no` and reloaded sshd.
 
 **Takeaway.** A setting in a config file is a statement of intent. `sshd -T` is the statement of fact. Check the effective configuration after every change, and check which authentication method the log says was used.
+
+## 20. Host froze during the NVMe self-test
+
+> **Partly fixed 2026-11-27.** The NVMe is now monitored but no longer self-tested, and the stale Windows Boot Manager entry is deleted. Still open: turning off CSM and setting the BIOS clock to UTC, which need hands-on access, and checking for newer Sabrent firmware. See the [changelog](../CHANGELOG.md#stopped-self-testing-the-nvme-after-repeated-host-freezes-finding-20).
+
+**Observed.** From 2026-11-04 the host froze hard four times, each time 1 to 2 minutes after `smartd` started its scheduled short self-test on all three disks. Nothing was logged at shutdown:
+
+| Boot | Self-test started | Last journal line |
+|---|---|---|
+| 2026-11-04 | 02:29:38 | 02:30:39 |
+| 2026-11-05 | 02:27:05 | 02:29:01 |
+| 2026-11-06 | 20:23:16 (a missed test, run late) | 20:24:50 |
+| 2026-11-26 | 02:27:36 | 02:28:46 |
+
+The self-tests had been scheduled on 2026-11-03 (finding 18). The SATA disks' self-test logs show every short test completing. The Sabrent NVMe (Phison, firmware ECFM12.1) has no short test in its log at all, so none it started ever finished. It passes SMART with no media errors, but it shows 169 unsafe shutdowns and 2,608 error log entries.
+
+Each freeze left the host off until someone power-cycled it (about 11 hours, 41 hours, 19 days and 40 hours). After these power cycles the board kept changing the boot order. The firmware still had a `Windows Boot Manager` entry, although no disk has a Windows install, plus legacy BBS entries for the two SATA disks, which means CSM is on. On 2026-11-27 the system clock also started exactly 5 hours fast (18,003 s), which matches the RTC being set to local time in the BIOS. chrony corrected it.
+
+**Impact.** Unplanned outages of every service, each lasting until someone noticed. Backups after these boots ran before the databases were up and failed (seen on 2026-11-27).
+
+**Fix.**
+
+1. Monitor the NVMe without scheduling self-tests: an explicit `/dev/nvme0` line without `-s` above `DEVICESCAN` ([`smartd.conf`](../system/smartd.conf)). DEVICESCAN then skips it as a duplicate. *Done 2026-11-27.*
+2. Delete the stale firmware boot entry: `efibootmgr -b 0000 -B`. *Done 2026-11-27.*
+3. In the BIOS, turn off CSM so the legacy entries stop coming back, and set the clock to UTC. *Open (needs hands-on access).*
+4. Check Sabrent for a newer firmware release for this drive. *Open.*
 
